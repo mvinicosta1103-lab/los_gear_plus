@@ -1,6 +1,7 @@
 package com.example.losgearplus;
 
 import com.example.losgearplus.compat.LosGearCompat;
+import com.example.losgearplus.hook.HookAngleNetworking;
 import com.example.losgearplus.mode.OdmgModeNetworking;
 import net.fabricmc.api.ModInitializer;
 import net.fabricmc.loader.api.FabricLoader;
@@ -16,6 +17,7 @@ public class LosGearPlus implements ModInitializer {
 	public void onInitialize() {
 		ModItems.init();
 		OdmgModeNetworking.init();
+		HookAngleNetworking.init();
 
 		// los_gear é "recommends": só toca nas classes dele se estiver instalado.
 		if (FabricLoader.getInstance().isModLoaded("los_gear")) {

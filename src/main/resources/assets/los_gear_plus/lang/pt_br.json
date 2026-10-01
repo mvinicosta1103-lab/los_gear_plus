@@ -3,6 +3,7 @@
 	"item.los_gear_plus.example_item": "Item de Exemplo",
 	"key.categories.los_gear_plus": "LOS Gear Plus",
 	"key.los_gear_plus.toggle_odmg_mode": "Alternar Modo ODMG",
+	"key.los_gear_plus.hook_angle": "Ângulo dos Ganchos (segurar + scroll)",
 	"los_gear_plus.mode.odmg_on": "Modo ODMG: LIGADO",
 	"los_gear_plus.mode.odmg_off": "Modo ODMG: DESLIGADO",
 	"los_gear_plus.mode.odmg_unavailable": "Você precisa estar com o ODM equipado"
