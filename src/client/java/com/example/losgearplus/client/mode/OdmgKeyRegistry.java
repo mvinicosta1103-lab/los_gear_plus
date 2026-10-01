@@ -16,7 +16,7 @@ import net.minecraft.client.Minecraft;
 /**
  * Regras do ODMG Mode para TODAS as teclas do jogo. Cada tecla tem um papel:
  *
- *  FREE   - sempre funciona (inventário, slots da hotbar, trocar de mão, teclas do próprio mod);
+ *  FREE   - sempre funciona (inventário, hotbar, trocar de mão, M1/M2, V e R do DAOT, teclas do próprio mod);
  *  GEAR   - teclas do DAOT / los_gear: só funcionam COM o modo ligado (e nunca são travadas por ele);
  *  LOCKED - todas as outras: funcionam normalmente com o modo desligado e TRAVAM com o modo ligado.
  */
@@ -32,8 +32,16 @@ public final class OdmgKeyRegistry {
 	/** Pedaços de nome/categoria que identificam as teclas do DAOT e do los_gear. */
 	private static final List<String> GEAR_MARKERS = List.of("dannys", "daot", "los_gear", "losgear", "royalattire");
 
+	/**
+	 * Teclas que nunca travam nem dependem do modo.
+	 *  - key.attack / key.use: M1 e M2 (atacar com a lâmina, usar item).
+	 *  - R (reload_blade e apg_reload) e V (thunder_spear_load): teclas do DAOT, listadas pelo nome exato
+	 *    (conferido no jar 2.4.3) para funcionarem com o modo ligado OU desligado.
+	 */
 	private static final Set<String> ALWAYS_FREE = Set.of(
 			"key.inventory", "key.swapOffhand",
+			"key.attack", "key.use",
+			"key.dannys-aot.reload_blade", "key.dannys-aot.apg_reload", "key.dannys-aot.thunder_spear_load",
 			"key.hotbar.1", "key.hotbar.2", "key.hotbar.3", "key.hotbar.4", "key.hotbar.5",
 			"key.hotbar.6", "key.hotbar.7", "key.hotbar.8", "key.hotbar.9");
 
