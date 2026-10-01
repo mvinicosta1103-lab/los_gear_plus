@@ -39,6 +39,7 @@ public final class OdmgModeClient {
 		ClientPlayConnectionEvents.DISCONNECT.register((handler, client) -> setActive(false, false));
 
 		OdmgHookAngleClient.init();
+		OdmgSpeedLevel.init();
 	}
 
 	private static void tick(Minecraft mc) {

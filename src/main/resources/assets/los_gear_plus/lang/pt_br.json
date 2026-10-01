@@ -6,5 +6,7 @@
 	"los_gear_plus.mode.odmg_on": "Modo ODMG: LIGADO",
 	"los_gear_plus.mode.odmg_off": "Modo ODMG: DESLIGADO",
 	"los_gear_plus.mode.odmg_unavailable": "Você precisa estar com o ODM equipado",
-	"key.los_gear_plus.set_hook_angle": "Ângulo dos Hooks (segurar + scroll)"
+	"key.los_gear_plus.set_hook_angle": "Ângulo dos Hooks (segurar + scroll)",
+	"key.los_gear_plus.set_speed_level": "Nível de Velocidade ODMG (segurar + scroll)",
+	"los_gear_plus.speed_level": "Nível de velocidade ODMG: %s"
 }

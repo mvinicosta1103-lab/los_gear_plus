@@ -9,7 +9,8 @@
 		"client.KeyMappingAccessor",
 		"client.KeyMappingMixin",
 		"client.MouseHandlerMixin",
-		"client.DaotHookAimMixin"
+		"client.DaotHookAimMixin",
+		"client.DaotOdmSpeedMixin"
 	],
 	"injectors": {
 		"defaultRequire": 1

@@ -6,5 +6,7 @@
 	"los_gear_plus.mode.odmg_on": "ODMG Mode: ON",
 	"los_gear_plus.mode.odmg_off": "ODMG Mode: OFF",
 	"los_gear_plus.mode.odmg_unavailable": "You need ODM gear equipped",
-	"key.los_gear_plus.set_hook_angle": "Hook Angle (hold + scroll)"
+	"key.los_gear_plus.set_hook_angle": "Hook Angle (hold + scroll)",
+	"key.los_gear_plus.set_speed_level": "ODMG Speed Level (hold + scroll)",
+	"los_gear_plus.speed_level": "ODMG speed level: %s"
 }
