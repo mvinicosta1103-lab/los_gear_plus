@@ -7,7 +7,6 @@ import java.util.Collections;
 import java.util.IdentityHashMap;
 import java.util.List;
 import java.util.Set;
-import net.fabricmc.fabric.api.client.keybinding.v1.KeyBindingHelper;
 import net.minecraft.client.KeyMapping;
 import net.minecraft.client.Minecraft;
 
@@ -23,29 +22,9 @@ public final class OdmgKeyRegistry {
 	private static final Set<KeyMapping> ODMG_KEYS = Collections.newSetFromMap(new IdentityHashMap<>());
 	private static final Set<KeyMapping> EXEMPT = Collections.newSetFromMap(new IdentityHashMap<>());
 
-	/** Cria uma tecla NOVA que só vale no ODMG Mode (registra no Fabric e marca). */
-	public static KeyMapping register(KeyMapping mapping) {
-		KeyBindingHelper.registerKeyBinding(mapping);
-		ODMG_KEYS.add(mapping);
-		return mapping;
-	}
-
 	/** Marca uma tecla JÁ registrada (ex.: de outro mod) como tecla ODMG. */
 	public static void adopt(KeyMapping mapping) {
 		ODMG_KEYS.add(mapping);
-	}
-
-	/** Adota pelo nome de tradução (ex.: "key.dannys-aot.hook_left"). Chame depois do CLIENT_STARTED. */
-	public static boolean adoptByName(String translationKey) {
-		Minecraft mc = Minecraft.getInstance();
-		if (mc.options == null) return false;
-		for (KeyMapping km : mc.options.keyMappings) {
-			if (km.getName().equals(translationKey)) {
-				ODMG_KEYS.add(km);
-				return true;
-			}
-		}
-		return false;
 	}
 
 	public static void exempt(KeyMapping mapping) {

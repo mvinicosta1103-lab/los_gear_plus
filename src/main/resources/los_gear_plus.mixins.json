@@ -5,6 +5,10 @@
 	"mixins": [
 		"DannysAotOdmMixin"
 	],
+	"client": [
+		"client.KeyMappingAccessor",
+		"client.KeyMappingMixin"
+	],
 	"injectors": {
 		"defaultRequire": 1
 	},

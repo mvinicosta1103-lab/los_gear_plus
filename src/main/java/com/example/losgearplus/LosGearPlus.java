@@ -1,8 +1,7 @@
 package com.example.losgearplus;
 
 import com.example.losgearplus.compat.LosGearCompat;
-import com.example.losgearplus.gear.GearData;
-import com.example.losgearplus.network.ModNetworking;
+import com.example.losgearplus.mode.OdmgModeNetworking;
 import net.fabricmc.api.ModInitializer;
 import net.fabricmc.loader.api.FabricLoader;
 import net.minecraft.resources.ResourceLocation;
@@ -16,9 +15,7 @@ public class LosGearPlus implements ModInitializer {
 	@Override
 	public void onInitialize() {
 		ModItems.init();
-		GearData.init();
-		ModMenus.init();
-		ModNetworking.init();
+		OdmgModeNetworking.init();
 
 		// los_gear é "recommends": só toca nas classes dele se estiver instalado.
 		if (FabricLoader.getInstance().isModLoaded("los_gear")) {

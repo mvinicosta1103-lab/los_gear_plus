@@ -1,22 +1,9 @@
 {
 	"itemGroup.los_gear_plus": "LOS Gear Plus",
 	"item.los_gear_plus.example_item": "Example Item",
-	"item.los_gear_plus.chest_strap": "Chest Strap",
-	"item.los_gear_plus.waist_strap": "Waist Strap",
-	"item.los_gear_plus.leg_strap": "Leg Strap",
-	"item.los_gear_plus.boot_strap": "Boot Strap",
-	"container.los_gear_plus.gear": "Gear",
-	"tab.los_gear_plus.inventory": "Inventory",
-	"tab.los_gear_plus.gear": "Gear",
-	"key.los_gear_plus.open_gear": "Open gear tab",
 	"key.categories.los_gear_plus": "LOS Gear Plus",
-	"slot.los_gear_plus.chest_strap": "Chest Strap",
-	"slot.los_gear_plus.waist_strap": "Waist Strap",
-	"slot.los_gear_plus.leg_strap": "Leg Strap",
-	"slot.los_gear_plus.boot_strap": "Boot Strap",
-	"slot.los_gear_plus.odm_unit": "ODM Gear",
-	"slot.los_gear_plus.gas_canister": "Gas Canister",
-	"slot.los_gear_plus.blade_left": "Blade (left)",
-	"slot.los_gear_plus.blade_right": "Blade (right)",
-	"slot.los_gear_plus.spear_bag": "Thunder Spear Bag"
+	"key.los_gear_plus.toggle_odmg_mode": "Toggle ODMG Mode",
+	"los_gear_plus.mode.odmg_on": "ODMG Mode: ON",
+	"los_gear_plus.mode.odmg_off": "ODMG Mode: OFF",
+	"los_gear_plus.mode.odmg_unavailable": "You need ODM gear equipped"
 }
