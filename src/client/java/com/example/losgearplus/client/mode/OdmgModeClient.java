@@ -3,6 +3,7 @@ package com.example.losgearplus.client.mode;
 import com.example.losgearplus.mode.OdmgModeSyncPayload;
 import com.example.losgearplus.mode.ToggleOdmgModePayload;
 import com.mojang.blaze3d.platform.InputConstants;
+import net.fabricmc.fabric.api.client.event.lifecycle.v1.ClientLifecycleEvents;
 import net.fabricmc.fabric.api.client.event.lifecycle.v1.ClientTickEvents;
 import net.fabricmc.fabric.api.client.keybinding.v1.KeyBindingHelper;
 import net.fabricmc.fabric.api.client.networking.v1.ClientPlayConnectionEvents;
@@ -33,6 +34,7 @@ public final class OdmgModeClient {
 		ClientPlayNetworking.registerGlobalReceiver(OdmgModeSyncPayload.TYPE,
 				(payload, context) -> context.client().execute(() -> setActive(payload.active(), true)));
 
+		ClientLifecycleEvents.CLIENT_STARTED.register(client -> OdmgKeyRegistry.logRoles());
 		ClientTickEvents.END_CLIENT_TICK.register(OdmgModeClient::tick);
 		ClientPlayConnectionEvents.DISCONNECT.register((handler, client) -> setActive(false, false));
 	}
