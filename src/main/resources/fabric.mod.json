@@ -1,0 +1,25 @@
+{
+	"schemaVersion": 1,
+	"id": "los_gear_plus",
+	"version": "${version}",
+	"name": "LOS Gear Plus",
+	"description": "Addon do los_gear (que é addon do Danny's AoT).",
+	"authors": ["Seu nome"],
+	"license": "MIT",
+	"environment": "*",
+	"entrypoints": {
+		"main": ["com.example.losgearplus.LosGearPlus"],
+		"client": ["com.example.losgearplus.client.LosGearPlusClient"]
+	},
+	"mixins": ["los_gear_plus.mixins.json"],
+	"depends": {
+		"fabricloader": ">=0.19.3",
+		"minecraft": "~1.21.1",
+		"java": ">=21",
+		"fabric-api": "*",
+		"dannys-aot": ">=2.4.1"
+	},
+	"recommends": {
+		"los_gear": "*"
+	}
+}

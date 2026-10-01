@@ -1,0 +1,118 @@
+plugins {
+	id 'fabric-loom' version "${loom_version}"
+	id 'maven-publish'
+}
+
+base {
+	archivesName = project.archives_base_name
+}
+
+// ---------------------------------------------------------------------------
+// Mods de dependência: os .jar em libs/ entram no classpath de compilação
+// E no runClient de desenvolvimento.
+// O Fabric API NÃO deve ficar em libs/: ele já vem do Maven (veja dependencies).
+// ---------------------------------------------------------------------------
+def allJars = (file('libs').listFiles() ?: []).findAll { it.name.endsWith('.jar') }.sort { it.name }
+def libJars = allJars.findAll { !it.name.toLowerCase().startsWith('fabric-api') }
+def ignoredJars = allJars*.name - libJars*.name
+
+// ---------------------------------------------------------------------------
+// Jars embutidos (jar-in-jar): o Loom NÃO os carrega no runClient de dev.
+// Aqui extraímos tudo que estiver em META-INF/jars/*.jar dos mods de libs/
+// (ex.: Architectury e ForgeConfigAPIPort dentro do aaa_particles; mochafloats
+// e javassist dentro do PlayerAnimationLib) e os adicionamos ao classpath.
+// NÃO copie esses jars manualmente para libs/ (daria mod duplicado).
+// ---------------------------------------------------------------------------
+def nestedDir = new File(layout.buildDirectory.get().asFile, 'nested-libs')
+nestedDir.mkdirs()
+def nestedJars = []
+libJars.each { f ->
+	new java.util.zip.ZipFile(f).withCloseable { zf ->
+		zf.entries().each { e ->
+			if (e.name.startsWith('META-INF/jars/') && e.name.endsWith('.jar')) {
+				def out = new File(nestedDir, new File(e.name).name)
+				if (!out.exists()) {
+					out.bytes = zf.getInputStream(e).bytes
+				}
+				nestedJars << out
+			}
+		}
+	}
+}
+nestedJars = nestedJars.unique { it.name }
+
+loom {
+	splitEnvironmentSourceSets()
+
+	mods {
+		"los_gear_plus" {
+			sourceSet sourceSets.main
+			sourceSet sourceSets.client
+		}
+	}
+}
+
+dependencies {
+	minecraft "com.mojang:minecraft:${project.minecraft_version}"
+	mappings loom.officialMojangMappings()
+	modImplementation "net.fabricmc:fabric-loader:${project.loader_version}"
+	modImplementation "net.fabricmc.fabric-api:fabric-api:${project.fabric_api_version}"
+
+	libJars.each { modImplementation files(it) }
+	nestedJars.each { modImplementation files(it) }
+}
+
+// Falha cedo, com mensagem clara, se o libs/ estiver errado.
+tasks.register('checkLibs') {
+	def names = libJars*.name*.toLowerCase()
+	doLast {
+		if (!ignoredJars.isEmpty()) {
+			logger.warn("libs/: ignorando ${ignoredJars} (o Fabric API já vem do Maven).")
+		}
+		def required = [
+				"Danny's AoT"             : { String n -> n.contains('dannys-aot') },
+				"los_gear"                : { String n -> n.contains('los_gear') },
+				"GeckoLib"                : { String n -> n.contains('geckolib') },
+				"Player Animation Library": { String n -> n.contains('player') && n.contains('anim') }
+		]
+		required.each { label, matcher ->
+			def hits = names.findAll { matcher(it) }
+			if (hits.isEmpty()) {
+				throw new GradleException("Falta o jar de ${label} na pasta libs/. Veja libs/README.txt")
+			}
+			if (hits.size() > 1) {
+				throw new GradleException("Há mais de um jar de ${label} em libs/: ${hits}. Deixe só UM (senão o jogo reclama de mod duplicado).")
+			}
+		}
+	}
+}
+tasks.named('compileJava') { dependsOn 'checkLibs' }
+
+processResources {
+	def version = project.version
+	inputs.property "version", version
+
+	filesMatching("fabric.mod.json") {
+		expand "version": version
+	}
+}
+
+tasks.withType(JavaCompile).configureEach {
+	it.options.release = 21
+}
+
+java {
+	withSourcesJar()
+
+	sourceCompatibility = JavaVersion.VERSION_21
+	targetCompatibility = JavaVersion.VERSION_21
+}
+
+jar {
+	def projectName = project.name
+	inputs.property "projectName", projectName
+
+	from("LICENSE") {
+		rename { "${it}_$projectName" }
+	}
+}
