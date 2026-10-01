@@ -37,6 +37,8 @@ public final class OdmgModeClient {
 		ClientLifecycleEvents.CLIENT_STARTED.register(client -> OdmgKeyRegistry.logRoles());
 		ClientTickEvents.END_CLIENT_TICK.register(OdmgModeClient::tick);
 		ClientPlayConnectionEvents.DISCONNECT.register((handler, client) -> setActive(false, false));
+
+		OdmgHookAngleClient.init();
 	}
 
 	private static void tick(Minecraft mc) {

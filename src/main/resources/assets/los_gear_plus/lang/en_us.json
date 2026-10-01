@@ -3,8 +3,8 @@
 	"item.los_gear_plus.example_item": "Example Item",
 	"key.categories.los_gear_plus": "LOS Gear Plus",
 	"key.los_gear_plus.toggle_odmg_mode": "Toggle ODMG Mode",
-	"key.los_gear_plus.hook_angle": "Hook Angle (hold + scroll)",
 	"los_gear_plus.mode.odmg_on": "ODMG Mode: ON",
 	"los_gear_plus.mode.odmg_off": "ODMG Mode: OFF",
-	"los_gear_plus.mode.odmg_unavailable": "You need ODM gear equipped"
+	"los_gear_plus.mode.odmg_unavailable": "You need ODM gear equipped",
+	"key.los_gear_plus.set_hook_angle": "Hook Angle (hold + scroll)"
 }
