@@ -244,7 +244,8 @@ public final class GripStorage {
 	// ------------------------------------------------------------------ sincronização com os clientes
 
 	private static GripHolsterSyncPayload payloadFor(ServerPlayer player) {
-		return new GripHolsterSyncPayload(player.getId(), storedMask(read(player)));
+		List<ItemStack> stored = read(player);
+		return new GripHolsterSyncPayload(player.getId(), stored.get(MAIN), stored.get(OFF));
 	}
 
 	/** Avisa o próprio jogador e quem o está vendo do que está guardado no storage. */

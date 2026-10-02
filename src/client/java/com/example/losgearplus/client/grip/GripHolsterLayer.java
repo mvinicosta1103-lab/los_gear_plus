@@ -1,8 +1,5 @@
 package com.example.losgearplus.client.grip;
 
-import com.example.losgearplus.compat.DaotBridge;
-import com.example.losgearplus.grip.GripItems;
-import com.example.losgearplus.grip.GripMarker;
 import com.mojang.blaze3d.vertex.PoseStack;
 import com.mojang.math.Axis;
 import net.minecraft.client.model.PlayerModel;
@@ -12,65 +9,75 @@ import net.minecraft.client.renderer.entity.ItemRenderer;
 import net.minecraft.client.renderer.entity.RenderLayerParent;
 import net.minecraft.client.renderer.entity.layers.RenderLayer;
 import net.minecraft.client.renderer.texture.OverlayTexture;
-import net.minecraft.world.item.Item;
+import net.minecraft.world.entity.HumanoidArm;
 import net.minecraft.world.item.ItemDisplayContext;
 import net.minecraft.world.item.ItemStack;
 
 /**
  * Desenha os dois grips guardados nas laterais do torso (como no blueprint) enquanto o ODMG Mode está desligado.
  *
- * Não precisa de pacote de sincronização: com o modo ligado os grips estão nas mãos (o vanilla já sincroniza
- * as mãos de todos os jogadores), então "ODM equipado e nenhum grip na mão" = grips guardados.
+ * SERVIDOR: o que é desenhado vem do servidor (GripHolsterSyncPayload -> ClientGripHolsters), para o jogador local
+ * e para todos os outros jogadores que ele vê. O layer não adivinha nada pelas mãos nem pelo equipamento.
  *
- * O modelo do blade é "builtin/entity" (renderer GeckoLib do DAOT) e o contexto GROUND dele quase não tem
- * rotação, então o grip sai em pé. Se o DAOT mudar isso, troque o contexto abaixo.
+ * O modelo é o MESMO 3D da mão: usamos o contexto THIRD_PERSON_*_HAND e o quadro de referência do
+ * ItemInHandLayer (rotX -90, rotY 180, translate ±1/16, 2/16), mas ancorado no corpo em vez do braço.
+ * O ponto (sideX, y, z) é onde fica o CABO do grip.
  *
- * AJUSTE OS NÚMEROS ABAIXO para calibrar a posição (unidades de pixel do modelo: o torso tem 8 de largura,
- * 12 de altura e 4 de profundidade; y cresce para BAIXO a partir do pescoço; z negativo é a frente).
+ * CALIBRAÇÃO AO VIVO (sem recompilar), no jogo:
+ *   /gripholster sidex 3.2      /gripholster y 2      /gripholster z -2.8
+ *   /gripholster pitch 90       /gripholster yaw 0    /gripholster tilt 8      /gripholster scale 0.6
+ *   /gripholster show           (imprime os valores no chat para copiar para os DEFAULTS abaixo)
+ *   /gripholster reset
+ * Unidades: pixels do modelo (torso: 8 de largura, 12 de altura, 4 de profundidade; y cresce para BAIXO
+ * a partir do pescoço; z negativo é a frente; sideX é a distância do centro do torso).
+ * pitch: 0 = lâmina para a frente (como na mão), 90 = pendurado para baixo. yaw gira em volta do próprio eixo.
  */
 public class GripHolsterLayer extends RenderLayer<AbstractClientPlayer, PlayerModel<AbstractClientPlayer>> {
 
-	/** Distância do centro do torso até cada grip (o torso vai até 4; as armaduras engordam um pouco). */
-	private static final float SIDE_X = 4.6f;
-	/** Altura a partir do topo do torso (chest ~ 3 a 5). */
-	private static final float Y = 4.5f;
-	/** Profundidade: negativo = para a frente do torso (fora do braço, que fica ao lado). */
-	private static final float Z = -1.2f;
-	/** Tamanho do grip desenhado. */
-	private static final float SCALE = 0.45f;
-	/** Inclinação para fora (graus) para o grip "repousar" junto ao corpo em vez de ficar rígido. */
-	private static final float TILT_OUT_DEGREES = 8f;
+	public static final String[] NAMES = {"sidex", "y", "z", "pitch", "yaw", "tilt", "scale"};
+	public static final float[] DEFAULTS = {3.2f, 2.0f, -2.8f, 90f, 0f, 8f, 0.6f};
+	/** Valores atuais (mutáveis pelo comando /gripholster). */
+	public static final float[] VALUES = DEFAULTS.clone();
 
 	private final ItemRenderer itemRenderer;
-	private ItemStack display;
 
 	public GripHolsterLayer(RenderLayerParent<AbstractClientPlayer, PlayerModel<AbstractClientPlayer>> parent,
-			ItemRenderer itemRenderer) {
+							ItemRenderer itemRenderer) {
 		super(parent);
 		this.itemRenderer = itemRenderer;
 	}
 
 	@Override
 	public void render(PoseStack pose, MultiBufferSource buffers, int light, AbstractClientPlayer player,
-			float limbSwing, float limbSwingAmount, float partialTick, float ageInTicks, float netHeadYaw, float headPitch) {
+					   float limbSwing, float limbSwingAmount, float partialTick, float ageInTicks, float netHeadYaw, float headPitch) {
 		if (player.isInvisible() || player.isSpectator()) return;
-		Item grip = GripItems.get();
-		if (grip == null) return;
-		// Grips nas mãos = ODMG Mode ligado: nada guardado para desenhar.
-		if (GripMarker.isBound(player.getMainHandItem()) || GripMarker.isBound(player.getOffhandItem())) return;
-		if (!DaotBridge.wearsOdmGear(player)) return;
+		ItemStack[] stored = ClientGripHolsters.get(player.getId());
+		if (stored == null) return;
+		// Índice 0 = mão principal: fica no lado do braço principal do jogador.
+		boolean mainIsRight = player.getMainArm() == HumanoidArm.RIGHT;
 
-		if (display == null || display.getItem() != grip) display = new ItemStack(grip);
+		float sideX = VALUES[0], y = VALUES[1], z = VALUES[2], pitch = VALUES[3], yaw = VALUES[4], tilt = VALUES[5],
+				scale = VALUES[6];
 
 		// No modelo, o braço direito do jogador fica em x negativo e o esquerdo em x positivo.
 		for (int side = -1; side <= 1; side += 2) {
+			boolean left = side > 0;
+			ItemStack display = stored[(left == mainIsRight) ? 1 : 0];
+			if (display.isEmpty()) continue;
 			pose.pushPose();
 			getParentModel().body.translateAndRotate(pose);
-			pose.translate(side * SIDE_X / 16f, Y / 16f, Z / 16f);
-			pose.mulPose(Axis.ZP.rotationDegrees(180f + side * TILT_OUT_DEGREES)); // y do modelo é para baixo: desvira o item
-			pose.scale(SCALE, SCALE, SCALE);
-			itemRenderer.renderStatic(display, ItemDisplayContext.GROUND, light, OverlayTexture.NO_OVERLAY, pose, buffers,
-					player.level(), player.getId());
+			pose.translate(side * sideX / 16f, y / 16f, z / 16f);
+			pose.mulPose(Axis.ZP.rotationDegrees(side * tilt));
+			pose.mulPose(Axis.XP.rotationDegrees(pitch));
+			pose.mulPose(Axis.YP.rotationDegrees(yaw));
+			pose.scale(scale, scale, scale);
+			// Quadro de referência da mão (ItemInHandLayer), SEM o deslocamento de 10 px ao longo do braço.
+			pose.mulPose(Axis.XP.rotationDegrees(-90f));
+			pose.mulPose(Axis.YP.rotationDegrees(180f));
+			pose.translate((left ? -1 : 1) / 16f, 0.125f, 0f);
+			itemRenderer.renderStatic(player, display,
+					left ? ItemDisplayContext.THIRD_PERSON_LEFT_HAND : ItemDisplayContext.THIRD_PERSON_RIGHT_HAND,
+					left, pose, buffers, player.level(), light, OverlayTexture.NO_OVERLAY, player.getId());
 			pose.popPose();
 		}
 	}
