@@ -76,6 +76,10 @@ public class GripHolsterLayer extends RenderLayer<AbstractClientPlayer, PlayerMo
 		float gx = VALUES[7], gy = VALUES[8], gz = VALUES[9], gpitch = VALUES[10], gyaw = VALUES[11],
 				groll = VALUES[12], gscale = VALUES[13];
 
+		// DAOT 2.5.0: a caixa do ODM segue 90% o torso e só 10% a perna (100% usando ODM/montado).
+		// O grip com lâmina precisa seguir a MESMA mistura, senão fica solto da caixa (ver OdmTankFollow).
+		float tankLegWeight = OdmTankFollow.legWeight(player);
+
 		// No modelo, o braço direito do jogador fica em x negativo e o esquerdo em x positivo.
 		for (int side = -1; side <= 1; side += 2) {
 			boolean left = side > 0;
@@ -89,7 +93,7 @@ public class GripHolsterLayer extends RenderLayer<AbstractClientPlayer, PlayerMo
 			if (GripBlade.state(stack) > 0) {
 				// Grip com lâmina: na boca da caixa do ODM (presa à perna, como a caixa).
 				ModelPart leg = left ? getParentModel().leftLeg : getParentModel().rightLeg;
-				leg.translateAndRotate(pose);
+				OdmTankFollow.applyHipFrame(pose, getParentModel().body, leg, tankLegWeight);
 				pose.translate(side * gx / 16f, gy / 16f, gz / 16f);
 				pose.mulPose(Axis.XP.rotationDegrees(gpitch));
 				pose.mulPose(Axis.YP.rotationDegrees(gyaw));
