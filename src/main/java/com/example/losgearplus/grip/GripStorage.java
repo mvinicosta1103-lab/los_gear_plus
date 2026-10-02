@@ -77,11 +77,37 @@ public final class GripStorage {
 			if (++releaseTimer < 20) return;
 			releaseTimer = 0;
 			for (ServerPlayer player : server.getPlayerList().getPlayers()) {
-				if (!isLocked(player) && storedMask(read(player)) != 0 && !DaotBridge.wearsOdmGear(player)) {
+				if (isLocked(player)) continue;
+				List<ItemStack> stored = read(player);
+				if (storedMask(stored) == 0) continue;
+				if (!DaotBridge.wearsOdmGear(player)) {
 					release(player);
+				} else if (normalize(player, stored)) { // trocou de ODM com grips guardados
+					write(player, stored);
+					sync(player);
 				}
 			}
 		});
+	}
+
+	/**
+	 * Ajusta a lâmina dos grips guardados ao ODM vestido. New ODM Gear (sem scabbard): a lâmina é recolhida
+	 * (o grip fica só com o cabo). ODM Gear do DAOT: a lâmina fica no grip e é desenhada na boca do scabbard.
+	 * Nos dois casos o estado/desgaste da lâmina é preservado. Retorna true se algo mudou.
+	 */
+	private static boolean normalize(ServerPlayer player, List<ItemStack> stored) {
+		boolean sheath = DaotBridge.odmType(player) == DaotBridge.OdmType.NEW;
+		boolean changed = false;
+		for (ItemStack stack : stored) {
+			if (stack.isEmpty()) continue;
+			if (sheath) {
+				changed |= GripBlade.sheathe(stack);
+			} else if (GripBlade.isSheathed(stack)) {
+				GripBlade.restore(stack);
+				changed = true;
+			}
+		}
+		return changed;
 	}
 
 	public static boolean isLocked(ServerPlayer player) {
@@ -125,6 +151,8 @@ public final class GripStorage {
 			giveOrDrop(player, GripMarker.unmark(off));
 			return false;
 		}
+		GripBlade.restore(main); // lâmina recolhida volta pronta para o combate
+		GripBlade.restore(off);
 		GripMarker.mark(main);
 		GripMarker.mark(off);
 
@@ -171,6 +199,7 @@ public final class GripStorage {
 		if (GripMarker.isBound(menu.getCarried())) {
 			menu.setCarried(ItemStack.EMPTY);
 		}
+		changed |= normalize(player, stored);
 		if (changed) write(player, stored);
 		sync(player);
 	}
@@ -181,7 +210,7 @@ public final class GripStorage {
 		if (storedMask(stored) == 0) return;
 		write(player, List.of(ItemStack.EMPTY, ItemStack.EMPTY));
 		for (ItemStack s : stored) {
-			if (!s.isEmpty()) giveOrDrop(player, GripMarker.unmark(s.copy()));
+			if (!s.isEmpty()) giveOrDrop(player, GripMarker.unmark(GripBlade.restore(s.copy())));
 		}
 		sync(player);
 	}

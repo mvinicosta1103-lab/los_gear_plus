@@ -4,6 +4,8 @@ import com.example.losgearplus.LosGearPlus;
 import java.lang.invoke.MethodHandle;
 import java.lang.invoke.MethodHandles;
 import java.lang.reflect.Method;
+import net.minecraft.core.registries.BuiltInRegistries;
+import net.minecraft.resources.ResourceLocation;
 import net.minecraft.world.entity.EquipmentSlot;
 import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.item.Item;
@@ -35,6 +37,22 @@ public final class DaotBridge {
 	public static boolean wearsOdmGear(Player player) {
 		if (IS_ODM_GEAR == null) return true;
 		return isOdm(player.getItemBySlot(EquipmentSlot.LEGS)) || isOdm(player.getItemBySlot(EquipmentSlot.CHEST));
+	}
+
+	/** Tipo de ODM vestido: NEW = los_gear (New ODM Gear / New ODM Uniform, sem scabbards), CLASSIC = ODM Gear do DAOT. */
+	public enum OdmType { NONE, CLASSIC, NEW }
+
+	public static OdmType odmType(Player player) {
+		if (isLosOdm(player.getItemBySlot(EquipmentSlot.LEGS)) || isLosOdm(player.getItemBySlot(EquipmentSlot.CHEST))) {
+			return OdmType.NEW;
+		}
+		return wearsOdmGear(player) ? OdmType.CLASSIC : OdmType.NONE;
+	}
+
+	private static boolean isLosOdm(ItemStack stack) {
+		if (stack.isEmpty()) return false;
+		ResourceLocation id = BuiltInRegistries.ITEM.getKey(stack.getItem());
+		return id.getNamespace().equals("los_gear") && id.getPath().contains("odm");
 	}
 
 	private static boolean isOdm(ItemStack stack) {
