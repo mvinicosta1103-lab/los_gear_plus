@@ -1,6 +1,5 @@
 package com.example.losgearplus.mixin.client;
 
-import com.example.losgearplus.mode.OdmgKeyRegistry;
 import com.mojang.blaze3d.platform.InputConstants;
 import java.util.List;
 import net.minecraft.client.KeyMapping;
@@ -11,6 +10,7 @@ import org.spongepowered.asm.mixin.injection.Inject;
 import org.spongepowered.asm.mixin.injection.ModifyVariable;
 import org.spongepowered.asm.mixin.injection.callback.CallbackInfo;
 import org.spongepowered.asm.mixin.injection.callback.CallbackInfoReturnable;
+import com.example.losgearplus.client.mode.OdmgKeyRegistry;
 
 /**
  * Equivalente Fabric do IKeyConflictContext do Forge (que o WoF usa): barra as teclas
