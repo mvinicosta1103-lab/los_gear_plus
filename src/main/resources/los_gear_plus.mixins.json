@@ -1,9 +1,12 @@
 {
 	"required": true,
 	"package": "com.example.losgearplus.mixin",
+	"plugin": "com.example.losgearplus.mixin.LosGearPlusMixinPlugin",
 	"compatibilityLevel": "JAVA_21",
 	"mixins": [
 		"DannysAotOdmMixin",
+		"DaotOdmHarnessNamedMixin",
+		"DaotOdmHarnessIntermediaryMixin",
 		"AbstractContainerMenuAddSlotInvoker",
 		"InventoryMenuHolsterSlotMixin"
 	],
