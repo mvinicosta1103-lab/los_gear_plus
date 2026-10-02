@@ -18,5 +18,9 @@
 	"los_gear_plus.mode.swap_no_pistols": "Você precisa de 2 pistolas (nos slots do peitoral ou no inventário)",
 	"los_gear_plus.mode.swap_no_blades": "Você precisa de 2 ODM Grips no inventário",
 	"los_gear_plus.mode.kind_blades": "Arma: New ODM Gear - Lâminas",
-	"los_gear_plus.mode.kind_pistols": "Arma: New ODM Uniform - Pistolas"
+	"los_gear_plus.mode.kind_pistols": "Arma: New ODM Uniform - Pistolas",
+	"key.los_gear_plus.steam_heal": "Steam Heal (cura de shifter)",
+	"los_gear_plus.steam_heal.not_shifter": "Só shifters podem usar o Steam Heal",
+	"los_gear_plus.steam_heal.cooldown": "Steam Heal em recarga: %s s",
+	"los_gear_plus.steam_heal.full": "Vida já está cheia"
 }

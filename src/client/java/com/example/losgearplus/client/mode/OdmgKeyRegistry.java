@@ -36,11 +36,13 @@ public final class OdmgKeyRegistry {
 	/**
 	 * Teclas que nunca travam nem dependem do modo.
 	 *  - key.attack / key.use: M1 e M2 (atacar com a lâmina, usar item).
+	 *  - key.chat (T) e key.command (/): abrir o chat com o modo ligado.
 	 *  - R (reload_blade e apg_reload) e V (thunder_spear_load): teclas do DAOT, listadas pelo nome exato
 	 *    (conferido no jar 2.4.3) para funcionarem com o modo ligado OU desligado.
 	 */
 	private static final Set<String> ALWAYS_FREE = Set.of(
 			"key.inventory",
+			"key.chat", "key.command",
 			"key.attack", "key.use",
 			"key.dannys-aot.reload_blade", "key.dannys-aot.apg_reload", "key.dannys-aot.thunder_spear_load");
 

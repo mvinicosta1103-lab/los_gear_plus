@@ -7,6 +7,7 @@
 		"DannysAotOdmMixin",
 		"DaotOdmHarnessNamedMixin",
 		"DaotOdmHarnessIntermediaryMixin",
+		"DaotTeaseShiftStaminaMixin",
 		"AbstractContainerMenuAddSlotInvoker",
 		"InventoryMenuHolsterSlotMixin"
 	],

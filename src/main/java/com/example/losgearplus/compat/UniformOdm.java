@@ -30,6 +30,13 @@ import net.minecraft.world.item.ItemStack;
  *       passam a funcionar, no cliente e no servidor (o método é código comum).</li>
  * </ul>
  * Se houver um gear de verdade no harness (New ODM Gear, ODM Gear, APG), ele continua mandando.
+ *
+ * <h3>Por que o uniforme aparecia duplicado no inventário</h3>
+ * O slot de gear do harness no inventário ({@code daot.HarnessGearContainer}) também lê o conteúdo por
+ * {@code OdmHarness.getGear}. Com o ODMG Mode ligado (pistola na mão) o {@link #resolve} devolvia o uniforme do
+ * peito, e o slot mostrava uma segunda cópia dele (e, ao clicar, entregava uma cópia real). Por isso, quando a
+ * consulta vem desse container, devolvemos o valor REAL do DAOT (vazio): o uniforme só serve de gear para a lógica
+ * de jogo (hooks, gás, boost, HUD), nunca para o slot.
  */
 public final class UniformOdm {
     private UniformOdm() {}
@@ -43,6 +50,10 @@ public final class UniformOdm {
 
     private static final ResourceLocation UNIFORM_ID = ResourceLocation.fromNamespaceAndPath("los_gear", "new_odm_uniform");
     private static final ResourceLocation CANISTER_ID = ResourceLocation.fromNamespaceAndPath("dannys-aot", "gas_canister");
+
+    /** Container do DAOT que alimenta o slot de gear do harness na tela de inventário (nome de classe não é remapeado). */
+    private static final String HARNESS_SLOT_CONTAINER = "daot.HarnessGearContainer";
+    private static final StackWalker WALKER = StackWalker.getInstance();
 
     private static Item uniformItem;
     private static Item canisterItem;
@@ -59,7 +70,14 @@ public final class UniformOdm {
         ItemStack chest = player.getItemBySlot(EquipmentSlot.CHEST);
         if (chest.isEmpty() || chest.getItem() != uniform()) return real;
         if (REQUIRE_PISTOLS && !holdsPistolOrCanister(player)) return real;
+        // O slot de gear do harness (inventário/criativo) não pode ver o uniforme: seria uma cópia fantasma dele.
+        if (calledFromHarnessSlot()) return real;
         return chest;
+    }
+
+    /** true se a consulta de gear veio do container do slot do harness (só olha as primeiras chamadas da pilha). */
+    private static boolean calledFromHarnessSlot() {
+        return WALKER.walk(frames -> frames.limit(8).anyMatch(f -> f.getClassName().equals(HARNESS_SLOT_CONTAINER)));
     }
 
     private static boolean holdsPistolOrCanister(Player player) {
