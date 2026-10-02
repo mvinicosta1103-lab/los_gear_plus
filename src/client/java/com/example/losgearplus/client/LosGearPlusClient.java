@@ -21,8 +21,9 @@ public class LosGearPlusClient implements ClientModInitializer {
 		OdmgModeClient.init();
 		GripHolsterCommand.init();
 
-		// Os slots de arma ao lado do peitoral só aparecem com o ODMG Mode desligado: o cliente informa o estado.
+		// Os slots de arma ao lado do peitoral somem só com o ODMG Mode ligado COM pistolas nas mãos: o cliente informa o estado.
 		HolsterSlots.clientModeActive = player -> OdmgModeClient.isActive();
+		HolsterSlots.clientGunsActive = player -> OdmgModeClient.isGuns();
 
 		// Tela de seleção (New ODM Gear com blades ou New ODM Uniform com pistolas).
 		ClientPlayNetworking.registerGlobalReceiver(OdmgChoicePromptPayload.TYPE,

@@ -12,5 +12,11 @@
 	"los_gear_plus.speed_level": "ODMG speed level: %s",
 	"los_gear_plus.choice.title": "Which gear do you want to use?",
 	"los_gear_plus.choice.blades": "New ODM Gear - Blades",
-	"los_gear_plus.choice.pistols": "New ODM Uniform - Pistols"
+	"los_gear_plus.choice.pistols": "New ODM Uniform - Pistols",
+	"key.los_gear_plus.swap_odmg_kind": "Swap ODMG Weapon (Blades / Pistols)",
+	"los_gear_plus.mode.swap_unavailable": "You need the New ODM Uniform and the New ODM Gear equipped",
+	"los_gear_plus.mode.swap_no_pistols": "You need 2 pistols (in the chest slots or in your inventory)",
+	"los_gear_plus.mode.swap_no_blades": "You need 2 ODM Grips in your inventory",
+	"los_gear_plus.mode.kind_blades": "Weapon: New ODM Gear - Blades",
+	"los_gear_plus.mode.kind_pistols": "Weapon: New ODM Uniform - Pistols"
 }

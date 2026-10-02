@@ -7,7 +7,7 @@ import net.minecraft.world.item.ItemStack;
 
 /**
  * Estado dos grips guardados de TODOS os jogadores que este cliente está vendo, vindo do servidor
- * (GripHolsterSyncPayload). A chave é o id de entidade; [0] = mão principal, [1] = mão secundária.
+ * (GripHolsterSyncPayload). A chave é o id de entidade; [0] = mão principal, [1] = mão secundária, [2]/[3] = o mesmo para o segundo storage.
  */
 public final class ClientGripHolsters {
     private ClientGripHolsters() {}
@@ -15,10 +15,10 @@ public final class ClientGripHolsters {
     private static final Map<Integer, ItemStack[]> STATE = new HashMap<>();
 
     public static void accept(GripHolsterSyncPayload payload) {
-        if (payload.main().isEmpty() && payload.off().isEmpty()) {
+        if (payload.main().isEmpty() && payload.off().isEmpty() && payload.altMain().isEmpty() && payload.altOff().isEmpty()) {
             STATE.remove(payload.entityId());
         } else {
-            STATE.put(payload.entityId(), new ItemStack[] {payload.main(), payload.off()});
+            STATE.put(payload.entityId(), new ItemStack[] {payload.main(), payload.off(), payload.altMain(), payload.altOff()});
         }
     }
 

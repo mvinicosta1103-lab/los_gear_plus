@@ -32,18 +32,30 @@ public final class HolsterSlots {
 	/** Preenchido pelo cliente: o ODMG Mode do jogador local está ligado? (o servidor usa OdmgModeServer.) */
 	public static volatile Predicate<Player> clientModeActive = p -> false;
 
+	/** Preenchido pelo cliente: o ODMG Mode do jogador local está ligado com PISTOLAS/armas de fogo nas mãos? */
+	public static volatile Predicate<Player> clientGunsActive = p -> false;
+
 	public static boolean modeOn(Player player) {
 		return player.level().isClientSide ? clientModeActive.test(player) : OdmgModeServer.isActive(player);
 	}
 
-	/** Os slots estão disponíveis (visíveis e editáveis) para este jogador agora? */
+	public static boolean gunsActive(Player player) {
+		return player.level().isClientSide ? clientGunsActive.test(player) : OdmgModeServer.gunsActive(player);
+	}
+
+	/**
+	 * Os slots estão disponíveis (visíveis e editáveis) para este jogador agora? Ficam disponíveis com o modo desligado
+	 * e também com as BLADES nas mãos (as pistolas guardadas continuam nos slots até o jogador trocar com P).
+	 * Somem só quando as armas dos slots estão nas mãos (modo ligado com pistolas).
+	 */
 	public static boolean available(Player player) {
-		return DaotBridge.wearsUniformAndGear(player) && !modeOn(player);
+		return DaotBridge.wearsUniformAndGear(player) && (!modeOn(player) || !gunsActive(player));
 	}
 
 	/** Lado servidor do payload do criativo. Rejeição = reenvia o menu para o cliente desfazer o slot fantasma. */
 	static void handleCreativeSet(ServerPlayer player, int slot, ItemStack stack) {
-		if (!player.isCreative() || !available(player) || slot < 0 || slot > 1) {
+		if (!player.isCreative() || !available(player) || slot < 0 || slot > 1
+				|| (!stack.isEmpty() && modeOn(player) && !HolsterWeapons.isGun(stack))) {
 			resync(player);
 			return;
 		}

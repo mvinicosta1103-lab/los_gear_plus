@@ -93,9 +93,10 @@ public class GripHolsterLayer extends RenderLayer<AbstractClientPlayer, PlayerMo
 		float tankLegWeight = OdmTankFollow.legWeight(player);
 
 		// No modelo, o braço direito do jogador fica em x negativo e o esquerdo em x positivo.
+		for (int set = 0; set < 2; set++) // set 0 = storage principal, set 1 = segundo storage (o outro tipo de arma)
 		for (int side = -1; side <= 1; side += 2) {
 			boolean left = side > 0;
-			ItemStack stack = stored[(left == mainIsRight) ? 1 : 0];
+			ItemStack stack = stored[set * 2 + ((left == mainIsRight) ? 1 : 0)];
 			if (stack.isEmpty()) continue;
 			ItemDisplayContext ctx = left ? ItemDisplayContext.THIRD_PERSON_LEFT_HAND
 					: ItemDisplayContext.THIRD_PERSON_RIGHT_HAND;

@@ -19,6 +19,8 @@ public final class HolsterSlot extends Slot {
 	public boolean mayPlace(ItemStack stack) {
 		if (!HolsterSlots.available(player) || stack.isEmpty() || GripMarker.isBound(stack)) return false;
 		if (!HolsterWeapons.fits(DaotBridge.loadout(player), stack)) return false;
+		// Com as blades nas mãos os slots só aceitam armas de fogo (um grip colocado aqui se perderia ao guardar as blades).
+		if (HolsterSlots.modeOn(player) && !HolsterWeapons.isGun(stack)) return false;
 		ItemStack other = container.getItem(1 - getContainerSlot());
 		return other.isEmpty() || other.getItem() == stack.getItem();
 	}

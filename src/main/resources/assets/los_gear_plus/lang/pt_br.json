@@ -12,5 +12,11 @@
 	"los_gear_plus.speed_level": "Nível de velocidade ODMG: %s",
 	"los_gear_plus.choice.title": "Qual equipamento você quer usar?",
 	"los_gear_plus.choice.blades": "New ODM Gear - Lâminas",
-	"los_gear_plus.choice.pistols": "New ODM Uniform - Pistolas"
+	"los_gear_plus.choice.pistols": "New ODM Uniform - Pistolas",
+	"key.los_gear_plus.swap_odmg_kind": "Trocar Funcionamento ODMG (Lâminas / Pistolas)",
+	"los_gear_plus.mode.swap_unavailable": "Você precisa estar com o New ODM Uniform e o New ODM Gear vestidos",
+	"los_gear_plus.mode.swap_no_pistols": "Você precisa de 2 pistolas (nos slots do peitoral ou no inventário)",
+	"los_gear_plus.mode.swap_no_blades": "Você precisa de 2 ODM Grips no inventário",
+	"los_gear_plus.mode.kind_blades": "Arma: New ODM Gear - Lâminas",
+	"los_gear_plus.mode.kind_pistols": "Arma: New ODM Uniform - Pistolas"
 }

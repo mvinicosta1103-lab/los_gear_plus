@@ -19,9 +19,13 @@ public final class OdmgModeNetworking {
 		PayloadTypeRegistry.playS2C().register(HookAngleSyncPayload.TYPE, HookAngleSyncPayload.CODEC);
 		PayloadTypeRegistry.playS2C().register(OdmgChoicePromptPayload.TYPE, OdmgChoicePromptPayload.CODEC);
 		PayloadTypeRegistry.playC2S().register(OdmgChoicePayload.TYPE, OdmgChoicePayload.CODEC);
+		PayloadTypeRegistry.playC2S().register(SwapOdmgKindPayload.TYPE, SwapOdmgKindPayload.CODEC);
 
 		ServerPlayNetworking.registerGlobalReceiver(ToggleOdmgModePayload.TYPE,
 				(payload, context) -> OdmgModeServer.toggle(context.player()));
+
+		ServerPlayNetworking.registerGlobalReceiver(SwapOdmgKindPayload.TYPE,
+				(payload, context) -> OdmgModeServer.swapKind(context.player()));
 
 		ServerPlayNetworking.registerGlobalReceiver(OdmgChoicePayload.TYPE,
 				(payload, context) -> OdmgModeServer.choose(context.player(), payload.guns()));
