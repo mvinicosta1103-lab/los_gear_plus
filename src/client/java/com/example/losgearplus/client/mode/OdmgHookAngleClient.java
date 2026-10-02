@@ -2,6 +2,8 @@ package com.example.losgearplus.client.mode;
 
 import com.example.losgearplus.mode.HookAngleSyncPayload;
 import com.example.losgearplus.mode.HookAngles;
+import com.example.losgearplus.mode.OdmgKeyRegistry;
+import com.example.losgearplus.mode.OdmgModeClient;
 import com.example.losgearplus.mode.SetHookAnglePayload;
 import com.mojang.blaze3d.platform.InputConstants;
 import com.mojang.blaze3d.vertex.PoseStack;
@@ -49,7 +51,7 @@ public final class OdmgHookAngleClient {
 	}
 
 	private static int effectiveAngle() {
-		return OdmgModeClient.isActive() ? angle : 0;
+		return com.example.losgearplus.mode.OdmgModeClient.isActive() ? angle : 0;
 	}
 
 	private static boolean adjusting(Minecraft mc) {

@@ -1,8 +1,7 @@
-package com.example.losgearplus.client.mode;
+package com.example.losgearplus.mode;
 
-import com.example.losgearplus.grip.GripItems;
-import com.example.losgearplus.mode.OdmgModeSyncPayload;
-import com.example.losgearplus.mode.ToggleOdmgModePayload;
+import com.example.losgearplus.client.mode.OdmgHookAngleClient;
+import com.example.losgearplus.client.mode.OdmgSpeedLevel;
 import com.mojang.blaze3d.platform.InputConstants;
 import net.fabricmc.fabric.api.client.event.lifecycle.v1.ClientLifecycleEvents;
 import net.fabricmc.fabric.api.client.event.lifecycle.v1.ClientTickEvents;
@@ -23,12 +22,6 @@ public final class OdmgModeClient {
 
 	public static boolean isActive() {
 		return active;
-	}
-
-	/** Grip Storage: com o modo ligado a hotbar fica presa no slot do grip, então o scroll não pode trocar de slot. */
-	public static boolean blocksHotbarScroll() {
-		Minecraft mc = Minecraft.getInstance();
-		return active && GripItems.isAvailable() && mc.player != null && mc.screen == null;
 	}
 
 	/** Chame em LosGearPlusClient.onInitializeClient(). */

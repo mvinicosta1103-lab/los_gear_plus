@@ -1,6 +1,6 @@
 package com.example.losgearplus.mixin.client;
 
-import com.example.losgearplus.client.mode.OdmgKeyRegistry;
+import com.example.losgearplus.mode.OdmgKeyRegistry;
 import com.mojang.blaze3d.platform.InputConstants;
 import java.util.List;
 import net.minecraft.client.KeyMapping;

@@ -1,5 +1,7 @@
 package com.example.losgearplus.client.mode;
 
+import com.example.losgearplus.mode.OdmgKeyRegistry;
+import com.example.losgearplus.mode.OdmgModeClient;
 import com.mojang.blaze3d.platform.InputConstants;
 import net.fabricmc.fabric.api.client.keybinding.v1.KeyBindingHelper;
 import net.fabricmc.fabric.api.client.networking.v1.ClientPlayConnectionEvents;
@@ -53,7 +55,7 @@ public final class OdmgSpeedLevel {
 
     /** Nível que vale agora. */
     public static int current() {
-        return OdmgModeClient.isActive() ? level : DEFAULT;
+        return com.example.losgearplus.mode.OdmgModeClient.isActive() ? level : DEFAULT;
     }
 
     /** Segurar a tecla + scroll muda o nível. Retorna true se consumiu o scroll. */

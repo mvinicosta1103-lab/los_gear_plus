@@ -1,5 +1,7 @@
 package com.example.losgearplus.mode;
 
+import com.example.losgearplus.grip.GripStorage;
+import net.fabricmc.fabric.api.entity.event.v1.ServerLivingEntityEvents;
 import net.fabricmc.fabric.api.event.lifecycle.v1.ServerTickEvents;
 import net.fabricmc.fabric.api.entity.event.v1.ServerPlayerEvents;
 import net.fabricmc.fabric.api.networking.v1.PayloadTypeRegistry;
@@ -27,13 +29,29 @@ public final class OdmgModeNetworking {
 		});
 
 		ServerTickEvents.END_SERVER_TICK.register(OdmgModeServer::tick);
+
+		GripStorage.init();
+		// Grips que sobraram nas mãos (queda do servidor, por exemplo) voltam para o storage ao entrar.
+		ServerPlayConnectionEvents.JOIN.register((handler, sender, server) -> GripStorage.stow(handler.getPlayer()));
+		// Morrer: os grips (nas mãos ou guardados) viram itens comuns de novo antes de o inventário cair.
+		ServerLivingEntityEvents.ALLOW_DEATH.register((entity, source, amount) -> {
+			if (entity instanceof net.minecraft.server.level.ServerPlayer sp) {
+				// Os grips voltam para o inventário (como itens comuns) e caem junto com ele, sem duplicar.
+				GripStorage.stow(sp);
+				GripStorage.release(sp);
+			}
+			return true;
+		});
+
 		ServerPlayConnectionEvents.DISCONNECT.register((handler, server) -> {
+			GripStorage.stow(handler.getPlayer()); // sai com os grips guardados, nunca presos nas mãos
 			OdmgModeServer.forget(handler.getPlayer());
 			HookAngles.forget(handler.getPlayer().getUUID());
 		});
 		// Ao morrer/respawnar o modo cai (e o cliente é avisado).
 		ServerPlayerEvents.AFTER_RESPAWN.register((oldPlayer, newPlayer, alive) -> {
 			OdmgModeServer.set(newPlayer, false);
+			GripStorage.sync(newPlayer); // o id de entidade muda ao respawnar
 			HookAngles.forget(newPlayer.getUUID());
 			ServerPlayNetworking.send(newPlayer, new HookAngleSyncPayload(0));
 		});

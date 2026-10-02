@@ -1,5 +1,6 @@
 package com.example.losgearplus.mode;
 
+import com.example.losgearplus.grip.GripStorage;
 import java.util.HashSet;
 import java.util.Set;
 import java.util.UUID;
@@ -21,10 +22,19 @@ public final class OdmgModeServer {
 	}
 
 	public static void set(ServerPlayer player, boolean on) {
-		boolean changed = on ? ACTIVE.add(player.getUUID()) : ACTIVE.remove(player.getUUID());
-		if (changed) {
-			ServerPlayNetworking.send(player, new OdmgModeSyncPayload(on));
+		if (on == ACTIVE.contains(player.getUUID())) return;
+		if (on) {
+			// Grip Storage: os grips vêm do inventário do jogador; sem eles o modo não liga.
+			if (!GripStorage.equip(player)) {
+				player.displayClientMessage(Component.translatable("los_gear_plus.mode.odmg_no_grips"), true);
+				return;
+			}
+			ACTIVE.add(player.getUUID());
+		} else {
+			ACTIVE.remove(player.getUUID());
+			GripStorage.stow(player); // grips das mãos voltam para o storage (laterais do torso)
 		}
+		ServerPlayNetworking.send(player, new OdmgModeSyncPayload(on));
 	}
 
 	public static void toggle(ServerPlayer player) {
@@ -51,6 +61,8 @@ public final class OdmgModeServer {
 				ACTIVE.remove(id);
 			} else if (!OdmgEligibility.canUse(player)) {
 				set(player, false);
+			} else {
+				GripStorage.enforce(player);
 			}
 		}
 	}

@@ -1,7 +1,6 @@
-package com.example.losgearplus.client.mode;
+package com.example.losgearplus.mode;
 
 import com.example.losgearplus.LosGearPlus;
-import com.example.losgearplus.grip.GripItems;
 import com.example.losgearplus.mixin.client.KeyMappingAccessor;
 import com.mojang.blaze3d.platform.InputConstants;
 import java.util.ArrayList;
@@ -40,19 +39,11 @@ public final class OdmgKeyRegistry {
 	 *    (conferido no jar 2.4.3) para funcionarem com o modo ligado OU desligado.
 	 */
 	private static final Set<String> ALWAYS_FREE = Set.of(
-			"key.inventory",
+			"key.inventory", "key.swapOffhand",
 			"key.attack", "key.use",
-			"key.dannys-aot.reload_blade", "key.dannys-aot.apg_reload", "key.dannys-aot.thunder_spear_load");
-
-	/**
-	 * Grip Storage: com o modo ligado os grips ocupam as duas mãos e ficam travados, então trocar de slot da hotbar
-	 * e trocar de mão travam junto (o servidor também impõe isso). Se o item do grip não foi encontrado,
-	 * o sistema fica desligado e estas teclas continuam livres, como antes.
-	 */
-	private static final Set<String> GRIP_LOCKED = Set.of(
+			"key.dannys-aot.reload_blade", "key.dannys-aot.apg_reload", "key.dannys-aot.thunder_spear_load",
 			"key.hotbar.1", "key.hotbar.2", "key.hotbar.3", "key.hotbar.4", "key.hotbar.5",
-			"key.hotbar.6", "key.hotbar.7", "key.hotbar.8", "key.hotbar.9",
-			"key.swapOffhand");
+			"key.hotbar.6", "key.hotbar.7", "key.hotbar.8", "key.hotbar.9");
 
 	private static final Set<String> MOVEMENT = Set.of(
 			"key.forward", "key.back", "key.left", "key.right", "key.jump", "key.sneak", "key.sprint");
@@ -71,9 +62,6 @@ public final class OdmgKeyRegistry {
 	private static Role classify(KeyMapping mapping) {
 		String name = mapping.getName();
 		String text = (name + " " + mapping.getCategory()).toLowerCase(Locale.ROOT);
-		if (!EXEMPT.contains(mapping) && GRIP_LOCKED.contains(name)) {
-			return GripItems.isAvailable() ? Role.LOCKED : Role.FREE;
-		}
 		if (EXEMPT.contains(mapping) || ALWAYS_FREE.contains(name)
 				|| (!LOCK_MOVEMENT && MOVEMENT.contains(name)) || text.contains(OWN_MOD)) {
 			return Role.FREE;

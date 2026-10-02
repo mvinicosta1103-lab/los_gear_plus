@@ -1,6 +1,7 @@
 package com.example.losgearplus.mixin.client;
 
 import com.example.losgearplus.client.mode.OdmgHookAngleClient;
+import com.example.losgearplus.client.mode.OdmgModeClient;
 import com.example.losgearplus.client.mode.OdmgSpeedLevel;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.MouseHandler;
@@ -15,7 +16,8 @@ public abstract class MouseHandlerMixin {
 
 	@Inject(method = "onScroll", at = @At("HEAD"), cancellable = true)
 	private void losgearplus$scroll(long window, double horizontal, double vertical, CallbackInfo ci) {
-		if (window == Minecraft.getInstance().getWindow().getWindow() && (OdmgHookAngleClient.onScroll(vertical) || OdmgSpeedLevel.onScroll(vertical))) {
+		if (window == Minecraft.getInstance().getWindow().getWindow() && (OdmgHookAngleClient.onScroll(vertical) || OdmgSpeedLevel.onScroll(vertical)
+				|| OdmgModeClient.blocksHotbarScroll())) {
 			ci.cancel();
 		}
 	}
