@@ -47,7 +47,7 @@ public class GripHolsterLayer extends RenderLayer<AbstractClientPlayer, PlayerMo
 	 * groll gira em torno do próprio comprimento). */
 	public static final String[] NAMES = {"sidex", "y", "z", "pitch", "yaw", "tilt", "scale",
 			"gx", "gy", "gz", "gpitch", "gyaw", "groll", "gscale"};
-	public static final float[] DEFAULTS = {3.2f, 2.0f, -2.8f, 90f, 0f, 8f, 0.6f,
+	public static final float[] DEFAULTS = {4.0f, 2.0f, -2.8f, 90f, 0f, 8f, 0.7f,
 			// grip com lâmina (calibrado em jogo): gx, gy, gz, gpitch, gyaw, groll, gscale
 			4.0f, 2.0f, -10.5f, -23f, 180f, 0f, 0.90f};
 	/** Valores atuais (mutáveis pelo comando /gripholster). */
