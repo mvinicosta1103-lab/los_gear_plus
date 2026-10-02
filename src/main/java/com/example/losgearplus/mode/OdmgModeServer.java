@@ -1,6 +1,7 @@
 package com.example.losgearplus.mode;
 
 import com.example.losgearplus.grip.GripStorage;
+import com.example.losgearplus.grip.HolsterWeapons;
 import java.util.HashSet;
 import java.util.Set;
 import java.util.UUID;
@@ -22,10 +23,15 @@ public final class OdmgModeServer {
 	}
 
 	public static void set(ServerPlayer player, boolean on) {
+		set(player, on, null);
+	}
+
+	/** {@code kind}: escolha da tela de seleção (blades ou armas de fogo); null = automático. */
+	public static void set(ServerPlayer player, boolean on, HolsterWeapons.Kind kind) {
 		if (on == ACTIVE.contains(player.getUUID())) return;
 		if (on) {
 			// Grip Storage: os grips vêm do inventário do jogador; sem eles o modo não liga.
-			if (!GripStorage.equip(player)) {
+			if (!GripStorage.equip(player, kind)) {
 				player.displayClientMessage(Component.translatable("los_gear_plus.mode.odmg_no_grips"), true);
 				return;
 			}
@@ -41,10 +47,21 @@ public final class OdmgModeServer {
 		if (isActive(player)) {
 			set(player, false);
 		} else if (OdmgEligibility.canUse(player)) {
-			set(player, true);
+			if (GripStorage.needsChoice(player)) {
+				// New ODM Gear + New ODM Uniform e os dois tipos de arma: o jogador escolhe (resposta em choose()).
+				ServerPlayNetworking.send(player, new OdmgChoicePromptPayload());
+			} else {
+				set(player, true);
+			}
 		} else {
 			player.displayClientMessage(Component.translatable("los_gear_plus.mode.odmg_unavailable"), true);
 		}
+	}
+
+	/** Resposta da tela de seleção. O estado pode ter mudado desde o prompt, então tudo é revalidado. */
+	public static void choose(ServerPlayer player, boolean guns) {
+		if (isActive(player) || !OdmgEligibility.canUse(player)) return;
+		set(player, true, guns ? HolsterWeapons.Kind.GUNS : HolsterWeapons.Kind.BLADES);
 	}
 
 	/** Remove sem enviar pacote (o jogador já saiu). */

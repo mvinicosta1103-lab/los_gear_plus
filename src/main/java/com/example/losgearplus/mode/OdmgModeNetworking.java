@@ -17,9 +17,14 @@ public final class OdmgModeNetworking {
 		PayloadTypeRegistry.playS2C().register(OdmgModeSyncPayload.TYPE, OdmgModeSyncPayload.CODEC);
 		PayloadTypeRegistry.playC2S().register(SetHookAnglePayload.TYPE, SetHookAnglePayload.CODEC);
 		PayloadTypeRegistry.playS2C().register(HookAngleSyncPayload.TYPE, HookAngleSyncPayload.CODEC);
+		PayloadTypeRegistry.playS2C().register(OdmgChoicePromptPayload.TYPE, OdmgChoicePromptPayload.CODEC);
+		PayloadTypeRegistry.playC2S().register(OdmgChoicePayload.TYPE, OdmgChoicePayload.CODEC);
 
 		ServerPlayNetworking.registerGlobalReceiver(ToggleOdmgModePayload.TYPE,
 				(payload, context) -> OdmgModeServer.toggle(context.player()));
+
+		ServerPlayNetworking.registerGlobalReceiver(OdmgChoicePayload.TYPE,
+				(payload, context) -> OdmgModeServer.choose(context.player(), payload.guns()));
 
 		// Angulação dos hooks: só aceita com o ODMG Mode ligado (o valor é limitado a 0..180).
 		ServerPlayNetworking.registerGlobalReceiver(SetHookAnglePayload.TYPE, (payload, context) -> {

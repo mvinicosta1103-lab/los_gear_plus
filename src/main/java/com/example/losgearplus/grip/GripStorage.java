@@ -2,6 +2,7 @@ package com.example.losgearplus.grip;
 
 import com.example.losgearplus.LosGearPlus;
 import com.example.losgearplus.compat.DaotBridge;
+import com.example.losgearplus.compat.DaotBridge.Loadout;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
@@ -64,6 +65,9 @@ public final class GripStorage {
 
 	public static void init() {
 		PayloadTypeRegistry.playS2C().register(GripHolsterSyncPayload.TYPE, GripHolsterSyncPayload.CODEC);
+		PayloadTypeRegistry.playC2S().register(SetHolsterSlotPayload.TYPE, SetHolsterSlotPayload.CODEC);
+		ServerPlayNetworking.registerGlobalReceiver(SetHolsterSlotPayload.TYPE,
+				(payload, context) -> HolsterSlots.handleCreativeSet(context.player(), payload.slot(), payload.stack()));
 
 		// Quem começa a ver um jogador recebe o estado dos grips dele.
 		EntityTrackingEvents.START_TRACKING.register((tracked, viewer) -> {
@@ -82,6 +86,8 @@ public final class GripStorage {
 				if (storedMask(stored) == 0) continue;
 				if (!DaotBridge.wearsOdmGear(player)) {
 					release(player);
+				} else if (!storedFits(player, stored)) { // trocou de ODM: as armas guardadas não servem mais
+					release(player);
 				} else if (normalize(player, stored)) { // trocou de ODM com grips guardados
 					write(player, stored);
 					sync(player);
@@ -99,7 +105,7 @@ public final class GripStorage {
 		boolean sheath = DaotBridge.odmType(player) == DaotBridge.OdmType.NEW;
 		boolean changed = false;
 		for (ItemStack stack : stored) {
-			if (stack.isEmpty()) continue;
+			if (stack.isEmpty() || !HolsterWeapons.isGrip(stack)) continue; // APG Gun / pistola não têm lâmina
 			if (sheath) {
 				changed |= GripBlade.sheathe(stack);
 			} else if (GripBlade.isSheathed(stack)) {
@@ -120,13 +126,85 @@ public final class GripStorage {
 	public static boolean canEquip(ServerPlayer player) {
 		if (!GripItems.isAvailable()) return true; // item do grip não achado: o sistema fica desligado
 		if (isLocked(player)) return true;
+		return resolve(player, DaotBridge.loadout(player), read(player)) != null;
+	}
+
+	/**
+	 * Mostra a tela de seleção? Só com New ODM Uniform + New ODM Gear vestidos E com um par de grips E um par de
+	 * armas de fogo disponíveis (guardados nos slots ou soltos no inventário). Com só um ODM, ou só um tipo de
+	 * arma, não há o que escolher.
+	 */
+	public static boolean needsChoice(ServerPlayer player) {
+		if (!GripItems.isAvailable() || isLocked(player)) return false;
+		if (!DaotBridge.wearsUniformAndGear(player)) return false;
+		Loadout loadout = DaotBridge.loadout(player);
+		List<ItemStack> stored = read(player);
+		return resolve(player, loadout, stored, HolsterWeapons.Kind.BLADES) != null
+				&& resolve(player, loadout, stored, HolsterWeapons.Kind.GUNS) != null;
+	}
+
+	/** Guardado ou solto no inventário: quantas unidades deste item o jogador tem (para formar o par). */
+	private static int available(ServerPlayer player, List<ItemStack> stored, Item item) {
 		int count = 0;
-		for (ItemStack s : read(player)) if (!s.isEmpty()) count++;
+		for (ItemStack s : stored) if (!s.isEmpty() && s.getItem() == item) count++;
 		Inventory inv = player.getInventory();
 		for (int i = 0; i < inv.getContainerSize(); i++) {
-			if (isLooseGrip(i, inv.getItem(i))) count++;
+			if (isLoose(i, inv.getItem(i), item)) count++;
 		}
-		return count >= MIN_GRIPS;
+		return count;
+	}
+
+	/**
+	 * Qual item vira o par de armas deste jogador (2 grips, 2 APG Guns ou 2 pistolas), ou null se não houver
+	 * duas unidades do mesmo tipo que sirvam para o ODM vestido. Prioridade: o item da mão principal, depois o
+	 * que já está guardado, depois grip > APG Gun > pistola.
+	 */
+	private static Item resolve(ServerPlayer player, Loadout loadout, List<ItemStack> stored) {
+		return resolve(player, loadout, stored, null);
+	}
+
+	/** Igual ao resolve normal, mas se {@code forced} != null só considera aquela família (blades ou armas de fogo). */
+	private static Item resolve(ServerPlayer player, Loadout loadout, List<ItemStack> stored, HolsterWeapons.Kind forced) {
+		if (forced != null) {
+			List<Item> options = HolsterWeapons.candidates(loadout, forced);
+			ItemStack heldForced = player.getMainHandItem();
+			if (!heldForced.isEmpty() && options.contains(heldForced.getItem()) && !GripMarker.isBound(heldForced)
+					&& available(player, stored, heldForced.getItem()) >= MIN_GRIPS) {
+				return heldForced.getItem();
+			}
+			for (ItemStack s : stored) {
+				if (!s.isEmpty() && options.contains(s.getItem()) && available(player, stored, s.getItem()) >= MIN_GRIPS) {
+					return s.getItem();
+				}
+			}
+			for (Item item : options) {
+				if (available(player, stored, item) >= MIN_GRIPS) return item;
+			}
+			return null;
+		}
+		ItemStack held = player.getMainHandItem();
+		if (HolsterWeapons.fits(loadout, held) && !GripMarker.isBound(held)
+				&& available(player, stored, held.getItem()) >= MIN_GRIPS) {
+			return held.getItem();
+		}
+		for (ItemStack s : stored) {
+			if (!s.isEmpty() && HolsterWeapons.fits(loadout, s) && available(player, stored, s.getItem()) >= MIN_GRIPS) {
+				return s.getItem();
+			}
+		}
+		for (Item item : HolsterWeapons.candidates(loadout)) {
+			if (available(player, stored, item) >= MIN_GRIPS) return item;
+		}
+		return null;
+	}
+
+	/** Tudo que está guardado serve para o ODM vestido agora? */
+	private static boolean storedFits(ServerPlayer player, List<ItemStack> stored) {
+		Loadout loadout = DaotBridge.loadout(player);
+		for (ItemStack s : stored) {
+			if (!s.isEmpty() && !HolsterWeapons.fits(loadout, s)) return false;
+		}
+		return true;
 	}
 
 	// ------------------------------------------------------------------ ligar / desligar
@@ -136,17 +214,35 @@ public final class GripStorage {
 	 * se não houver grips suficientes.
 	 */
 	public static boolean equip(ServerPlayer player) {
-		Item gripItem = GripItems.get();
-		if (gripItem == null) return true;
+		return equip(player, null);
+	}
+
+	/**
+	 * Quando New ODM Uniform e New ODM Gear estão vestidos juntos, {@code kind} diz se o jogador escolheu
+	 * blades (grips) ou armas de fogo (pistolas / APG Guns). null = escolha automática de sempre.
+	 */
+	public static boolean equip(ServerPlayer player, HolsterWeapons.Kind kind) {
+		if (GripItems.get() == null) return true;
 		if (isLocked(player)) return true;
-		if (!canEquip(player)) return false;
 
 		List<ItemStack> stored = read(player);
+		Item weapon = resolve(player, DaotBridge.loadout(player), stored, kind);
+		if (weapon == null) return false;
+
+		// O que estava guardado e é de outro tipo (ex.: grips guardados e o jogador vai usar APG Guns) volta ao inventário.
+		for (int i = 0; i < stored.size(); i++) {
+			ItemStack other = stored.get(i);
+			if (!other.isEmpty() && other.getItem() != weapon) {
+				giveOrDrop(player, GripMarker.unmark(GripBlade.restore(other.copy())));
+				stored.set(i, ItemStack.EMPTY);
+			}
+		}
+
 		ItemStack main = stored.get(MAIN);
 		ItemStack off = stored.get(OFF);
-		if (main.isEmpty()) main = takeFromInventory(player);
-		if (off.isEmpty()) off = takeFromInventory(player);
-		if (main.isEmpty() || off.isEmpty()) { // não deveria acontecer depois do canEquip; desfaz por segurança
+		if (main.isEmpty()) main = takeFromInventory(player, weapon);
+		if (off.isEmpty()) off = takeFromInventory(player, weapon);
+		if (main.isEmpty() || off.isEmpty()) { // não deveria acontecer depois do resolve; desfaz por segurança
 			giveOrDrop(player, GripMarker.unmark(main));
 			giveOrDrop(player, GripMarker.unmark(off));
 			return false;
@@ -190,7 +286,7 @@ public final class GripStorage {
 			if (!GripMarker.isBound(stack)) continue;
 			int index = i == OFFHAND_SLOT ? OFF : MAIN;
 			if (!stored.get(index).isEmpty()) index = 1 - index;
-			if (stored.get(index).isEmpty()) stored.set(index, stack.copy());
+			if (stored.get(index).isEmpty()) stored.set(index, GripMarker.unmark(stack.copy())); // guardado = item comum (os slots do peitoral o mostram)
 			inv.setItem(i, ItemStack.EMPTY); // se já houver os dois guardados, o excedente some (era cópia)
 			changed = true;
 		}
@@ -292,20 +388,22 @@ public final class GripStorage {
 
 	// ------------------------------------------------------------------ util
 
-	/** Grip comum (não marcado) em um slot de itens do inventário. */
-	private static boolean isLooseGrip(int invSlot, ItemStack stack) {
+	/** Arma comum (não marcada) deste item em um slot de itens do inventário. */
+	private static boolean isLoose(int invSlot, ItemStack stack, Item item) {
 		if (invSlot >= MAIN_INVENTORY_SIZE && invSlot != OFFHAND_SLOT) return false; // armadura
-		return !stack.isEmpty() && stack.getItem() == GripItems.get() && !GripMarker.isBound(stack);
+		return !stack.isEmpty() && stack.getItem() == item && !GripMarker.isBound(stack);
 	}
 
-	/** Tira um grip do inventário (hotbar, mochila ou mão secundária) e devolve; EMPTY se não houver. */
-	private static ItemStack takeFromInventory(ServerPlayer player) {
+	/** Tira uma unidade deste item do inventário (hotbar, mochila ou mão secundária) e devolve; EMPTY se não houver. */
+	private static ItemStack takeFromInventory(ServerPlayer player, Item item) {
 		Inventory inv = player.getInventory();
 		for (int i = 0; i < inv.getContainerSize(); i++) {
 			ItemStack stack = inv.getItem(i);
-			if (isLooseGrip(i, stack)) {
+			if (isLoose(i, stack, item)) {
 				ItemStack taken = stack.copy();
-				inv.setItem(i, ItemStack.EMPTY);
+				taken.setCount(1);
+				stack.shrink(1);
+				if (stack.isEmpty()) inv.setItem(i, ItemStack.EMPTY);
 				return taken;
 			}
 		}
@@ -320,7 +418,7 @@ public final class GripStorage {
 		}
 	}
 
-	private static List<ItemStack> read(ServerPlayer player) {
+	static List<ItemStack> read(ServerPlayer player) {
 		List<ItemStack> stored = player.getAttached(STORE);
 		List<ItemStack> out = new ArrayList<>(2);
 		for (int i = 0; i < 2; i++) {
@@ -329,7 +427,7 @@ public final class GripStorage {
 		return out;
 	}
 
-	private static void write(ServerPlayer player, List<ItemStack> stacks) {
+	static void write(ServerPlayer player, List<ItemStack> stacks) {
 		player.setAttached(STORE, List.copyOf(stacks));
 	}
 }

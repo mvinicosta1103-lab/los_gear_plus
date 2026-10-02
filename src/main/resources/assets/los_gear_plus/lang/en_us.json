@@ -9,5 +9,8 @@
 	"los_gear_plus.mode.odmg_unavailable": "You need ODM gear equipped",
 	"key.los_gear_plus.set_hook_angle": "Hook Angle (hold + scroll)",
 	"key.los_gear_plus.set_speed_level": "ODMG Speed Level (hold + scroll)",
-	"los_gear_plus.speed_level": "ODMG speed level: %s"
+	"los_gear_plus.speed_level": "ODMG speed level: %s",
+	"los_gear_plus.choice.title": "Which gear do you want to use?",
+	"los_gear_plus.choice.blades": "New ODM Gear - Blades",
+	"los_gear_plus.choice.pistols": "New ODM Uniform - Pistols"
 }

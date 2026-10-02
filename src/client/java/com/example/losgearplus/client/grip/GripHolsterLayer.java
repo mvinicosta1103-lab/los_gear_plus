@@ -1,6 +1,7 @@
 package com.example.losgearplus.client.grip;
 
 import com.example.losgearplus.grip.GripBlade;
+import com.example.losgearplus.grip.HolsterWeapons;
 import com.mojang.blaze3d.vertex.PoseStack;
 import com.mojang.math.Axis;
 import net.minecraft.client.model.PlayerModel;
@@ -25,6 +26,8 @@ import net.minecraft.world.item.ItemStack;
  *  - grip COM lâmina (ODM Gear do DAOT): o grip inteiro (cabo + lâmina) entra na BOCA da caixa do ODM, na
  *    frente de cada caixa, preso à perna como a caixa (parâmetros g*). O cabo fica na boca e a lâmina dentro.
  *  - grip SEM lâmina (New ODM Gear recolhe a lâmina, ou grip vazio): só o cabo, na lateral do peito.
+ *  - APG Gun / Automatic Pistol (Anti-Personnel ODM Gear, New ODM Uniform): a arma inteira na lateral do torso,
+ *    mais embaixo (cintura/barriga), presa ao torso (parâmetros w*). Cano para baixo, como num coldre.
  *
  * O modelo é o MESMO 3D da mão: usamos o contexto THIRD_PERSON_*_HAND e o quadro de referência do
  * ItemInHandLayer (rotX -90, rotY 180, translate ±1/16, 2/16), mas ancorado no corpo em vez do braço.
@@ -35,21 +38,27 @@ import net.minecraft.world.item.ItemStack;
  *   /gripholster pitch 90       /gripholster yaw 0    /gripholster tilt 8      /gripholster scale 0.6
  *   /gripholster show           (imprime os valores no chat para copiar para os DEFAULTS abaixo)
  *   /gripholster reset
+ *   Armas (APG/pistola) na cintura: /gripholster wx 4.8   wy 9.5   wz 0   wpitch 90   wyaw 0   wtilt 0   wscale 0.6
  * Unidades: pixels do modelo (torso: 8 de largura, 12 de altura, 4 de profundidade; y cresce para BAIXO
  * a partir do pescoço; z negativo é a frente; sideX é a distância do centro do torso).
  * pitch: 0 = lâmina para a frente (como na mão), 90 = pendurado para baixo. yaw gira em volta do próprio eixo.
  */
 public class GripHolsterLayer extends RenderLayer<AbstractClientPlayer, PlayerModel<AbstractClientPlayer>> {
 
-	/** 0..6: cabo no peito. 7..13: grip com lâmina na boca da caixa do ODM, preso à perna
+	/** 0..6: cabo no peito. 14..20: APG Gun / Automatic Pistol na lateral do torso, na altura da cintura
+	 * (wx = distância do centro do torso, wy = para baixo a partir do pescoço, wz = profundidade, negativo = frente;
+	 * wpitch 90 = cano para baixo; wtilt inclina para fora; wyaw gira em volta do próprio eixo). 7..13: grip com lâmina na boca da caixa do ODM, preso à perna
 	 * (gx = distância lateral a partir do quadril, gy = para baixo a partir do quadril, gz = profundidade,
 	 * negativo = frente; gyaw 180 = lâmina para dentro da caixa (para trás); gpitch negativo inclina a ponta da lâmina para BAIXO (para dentro da caixa), positivo para cima;
 	 * groll gira em torno do próprio comprimento). */
 	public static final String[] NAMES = {"sidex", "y", "z", "pitch", "yaw", "tilt", "scale",
-			"gx", "gy", "gz", "gpitch", "gyaw", "groll", "gscale"};
+			"gx", "gy", "gz", "gpitch", "gyaw", "groll", "gscale",
+			"wx", "wy", "wz", "wpitch", "wyaw", "wtilt", "wscale"};
 	public static final float[] DEFAULTS = {4.0f, 2.0f, -2.8f, 90f, 0f, 8f, 0.7f,
 			// grip com lâmina (calibrado em jogo): gx, gy, gz, gpitch, gyaw, groll, gscale
-			4.0f, 2.0f, -10.5f, -23f, 180f, 0f, 0.90f};
+			4.0f, 2.0f, -10.5f, -23f, 180f, 0f, 0.90f,
+			// APG Gun / Automatic Pistol na cintura (valores iniciais, calibre em jogo): wx, wy, wz, wpitch, wyaw, wtilt, wscale
+			4.8f, 9.5f, 0.0f, 90f, 0f, 0f, 0.6f};
 	/** Valores atuais (mutáveis pelo comando /gripholster). */
 	public static final float[] VALUES = DEFAULTS.clone();
 
@@ -76,6 +85,9 @@ public class GripHolsterLayer extends RenderLayer<AbstractClientPlayer, PlayerMo
 		float gx = VALUES[7], gy = VALUES[8], gz = VALUES[9], gpitch = VALUES[10], gyaw = VALUES[11],
 				groll = VALUES[12], gscale = VALUES[13];
 
+		float wx = VALUES[14], wy = VALUES[15], wz = VALUES[16], wpitch = VALUES[17], wyaw = VALUES[18],
+				wtilt = VALUES[19], wscale = VALUES[20];
+
 		// DAOT 2.5.0: a caixa do ODM segue 90% o torso e só 10% a perna (100% usando ODM/montado).
 		// O grip com lâmina precisa seguir a MESMA mistura, senão fica solto da caixa (ver OdmTankFollow).
 		float tankLegWeight = OdmTankFollow.legWeight(player);
@@ -90,7 +102,16 @@ public class GripHolsterLayer extends RenderLayer<AbstractClientPlayer, PlayerMo
 
 			pose.pushPose();
 			ItemStack toDraw;
-			if (GripBlade.state(stack) > 0) {
+			if (HolsterWeapons.isGun(stack)) {
+				// APG Gun / Automatic Pistol: lateral do torso, na altura da cintura (presa ao torso).
+				getParentModel().body.translateAndRotate(pose);
+				pose.translate(side * wx / 16f, wy / 16f, wz / 16f);
+				pose.mulPose(Axis.ZP.rotationDegrees(side * wtilt));
+				pose.mulPose(Axis.XP.rotationDegrees(wpitch));
+				pose.mulPose(Axis.YP.rotationDegrees(wyaw));
+				pose.scale(wscale, wscale, wscale);
+				toDraw = stack;
+			} else if (GripBlade.state(stack) > 0) {
 				// Grip com lâmina: na boca da caixa do ODM (presa à perna, como a caixa).
 				ModelPart leg = left ? getParentModel().leftLeg : getParentModel().rightLeg;
 				OdmTankFollow.applyHipFrame(pose, getParentModel().body, leg, tankLegWeight);

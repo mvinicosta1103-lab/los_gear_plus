@@ -120,6 +120,43 @@ public final class DaotBridge {
 		return wearsOdmGear(player) ? OdmType.CLASSIC : OdmType.NONE;
 	}
 
+	/**
+	 * O que o ODMG Mode coloca nas mãos com o ODM vestido:
+	 *  GRIPS  = ODM Gear / New ODM Gear (grips com lâmina);
+	 *  GUNS   = Anti-Personnel ODM Gear (só APG Guns);
+	 *  EITHER = New ODM Uniform (grips, APG Guns ou Automatic Pistol; quem decide é {@code GripStorage}).
+	 */
+	public enum Loadout { NONE, GRIPS, GUNS, EITHER }
+
+	public static Loadout loadout(Player player) {
+		ItemStack gear = equippedGear(player);
+		if (isId(gear, "dannys-aot", "odm_apg")) return Loadout.GUNS;
+		if (isId(gear, "los_gear", "new_odm_uniform")
+				|| isId(player.getItemBySlot(EquipmentSlot.CHEST), "los_gear", "new_odm_uniform")
+				|| isId(player.getItemBySlot(EquipmentSlot.LEGS), "los_gear", "new_odm_uniform")) {
+			return Loadout.EITHER;
+		}
+		return wearsOdmGear(player) ? Loadout.GRIPS : Loadout.NONE;
+	}
+
+	/**
+	 * New ODM Uniform (peitoral) E New ODM Gear (dentro do harness) vestidos ao mesmo tempo.
+	 * Só nesse caso aparecem os 2 slots de arma ao lado do peitoral e a tela de seleção blades/pistolas.
+	 */
+	public static boolean wearsUniformAndGear(Player player) {
+		ItemStack chest = player.getItemBySlot(EquipmentSlot.CHEST);
+		ItemStack legs = player.getItemBySlot(EquipmentSlot.LEGS);
+		boolean uniform = isId(chest, "los_gear", "new_odm_uniform") || isId(legs, "los_gear", "new_odm_uniform");
+		boolean gear = isId(equippedGear(player), "los_gear", "new_odm_gear") || isId(legs, "los_gear", "new_odm_gear");
+		return uniform && gear;
+	}
+
+	private static boolean isId(ItemStack stack, String namespace, String path) {
+		if (stack.isEmpty()) return false;
+		ResourceLocation id = BuiltInRegistries.ITEM.getKey(stack.getItem());
+		return id.getNamespace().equals(namespace) && id.getPath().equals(path);
+	}
+
 	private static boolean isLosOdm(ItemStack stack) {
 		if (stack.isEmpty()) return false;
 		ResourceLocation id = BuiltInRegistries.ITEM.getKey(stack.getItem());

@@ -6,7 +6,10 @@ import net.fabricmc.fabric.api.client.networking.v1.ClientPlayConnectionEvents;
 import net.fabricmc.fabric.api.client.networking.v1.ClientPlayNetworking;
 import com.example.losgearplus.client.grip.GripHolsterCommand;
 import com.example.losgearplus.client.grip.GripHolsterLayer;
+import com.example.losgearplus.client.mode.OdmgChoiceScreen;
 import com.example.losgearplus.client.mode.OdmgModeClient;
+import com.example.losgearplus.grip.HolsterSlots;
+import com.example.losgearplus.mode.OdmgChoicePromptPayload;
 import net.fabricmc.api.ClientModInitializer;
 import net.fabricmc.fabric.api.client.rendering.v1.LivingEntityFeatureRendererRegistrationCallback;
 import net.minecraft.client.renderer.entity.player.PlayerRenderer;
@@ -17,6 +20,13 @@ public class LosGearPlusClient implements ClientModInitializer {
 		// Ponto de entrada para lógica só de cliente (renderers, HUD, teclas...).
 		OdmgModeClient.init();
 		GripHolsterCommand.init();
+
+		// Os slots de arma ao lado do peitoral só aparecem com o ODMG Mode desligado: o cliente informa o estado.
+		HolsterSlots.clientModeActive = player -> OdmgModeClient.isActive();
+
+		// Tela de seleção (New ODM Gear com blades ou New ODM Uniform com pistolas).
+		ClientPlayNetworking.registerGlobalReceiver(OdmgChoicePromptPayload.TYPE,
+				(payload, context) -> context.client().execute(() -> context.client().setScreen(new OdmgChoiceScreen())));
 
 		// Estado dos grips guardados (de todos os jogadores visíveis) vem do servidor.
 		ClientPlayNetworking.registerGlobalReceiver(GripHolsterSyncPayload.TYPE,
