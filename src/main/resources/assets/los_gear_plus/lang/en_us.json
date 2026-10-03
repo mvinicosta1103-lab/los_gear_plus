@@ -21,6 +21,6 @@
 	"los_gear_plus.mode.kind_pistols": "Weapon: New ODM Uniform - Pistols",
 	"key.los_gear_plus.steam_heal": "Steam Heal",
 	"los_gear_plus.steam_heal.not_shifter": "Only shifters can use Steam Heal",
-	"los_gear_plus.steam_heal.cooldown": "Steam Heal on cooldown: %s s",
-	"los_gear_plus.steam_heal.full": "Health is already full"
+	"los_gear_plus.steam_heal.on": "Steam Heal: ON",
+	"los_gear_plus.steam_heal.off": "Steam Heal: OFF"
 }

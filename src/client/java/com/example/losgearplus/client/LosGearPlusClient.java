@@ -8,6 +8,7 @@ import com.example.losgearplus.client.grip.GripHolsterCommand;
 import com.example.losgearplus.client.grip.GripHolsterLayer;
 import com.example.losgearplus.client.mode.OdmgChoiceScreen;
 import com.example.losgearplus.client.mode.OdmgModeClient;
+import com.example.losgearplus.client.steam.SteamHealClient;
 import com.example.losgearplus.grip.HolsterSlots;
 import com.example.losgearplus.mode.OdmgChoicePromptPayload;
 import net.fabricmc.api.ClientModInitializer;
@@ -19,6 +20,7 @@ public class LosGearPlusClient implements ClientModInitializer {
 	public void onInitializeClient() {
 		// Ponto de entrada para lógica só de cliente (renderers, HUD, teclas...).
 		OdmgModeClient.init();
+		SteamHealClient.init();
 		GripHolsterCommand.init();
 
 		// Os slots de arma ao lado do peitoral somem só com o ODMG Mode ligado COM pistolas nas mãos: o cliente informa o estado.
