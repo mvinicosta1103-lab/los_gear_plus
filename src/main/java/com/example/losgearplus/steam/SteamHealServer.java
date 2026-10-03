@@ -37,8 +37,8 @@ import net.minecraft.world.entity.LivingEntity;
 public final class SteamHealServer {
 	private SteamHealServer() {}
 
-	/** Fração da vida máxima curada POR SEGUNDO (0.02 = 2% por segundo; 100% em ~50 s). */
-	public static final float HEAL_FRACTION_PER_SECOND = 0.02f;
+	/** Fração da vida máxima curada POR SEGUNDO (0.01 = 1% por segundo; 100% em ~100 s). */
+	public static final float HEAL_FRACTION_PER_SECOND = 0.01f;
 	/** De quantos em quantos ticks a cura é aplicada (5 = 4 vezes por segundo). */
 	private static final int HEAL_INTERVAL_TICKS = 5;
 	/** De quantos em quantos ticks sai um pouco de fumaça. */
