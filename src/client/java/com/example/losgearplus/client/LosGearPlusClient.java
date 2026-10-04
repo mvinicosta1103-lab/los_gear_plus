@@ -6,6 +6,9 @@ import net.fabricmc.fabric.api.client.networking.v1.ClientPlayConnectionEvents;
 import net.fabricmc.fabric.api.client.networking.v1.ClientPlayNetworking;
 import com.example.losgearplus.client.grip.GripHolsterCommand;
 import com.example.losgearplus.client.grip.GripHolsterLayer;
+import com.example.losgearplus.client.hange.HangeSfxCommand;
+import com.example.losgearplus.client.hange.HangeSfxConfig;
+import com.example.losgearplus.client.hange.HangeTitanAlert;
 import com.example.losgearplus.client.mode.OdmgChoiceScreen;
 import com.example.losgearplus.client.mode.OdmgModeClient;
 import com.example.losgearplus.client.steam.SteamHealClient;
@@ -23,6 +26,11 @@ public class LosGearPlusClient implements ClientModInitializer {
 		com.example.losgearplus.client.ui.OdmgHud.init();
 		SteamHealClient.init();
 		GripHolsterCommand.init();
+
+		// SFX quando os óculos da Hange (los_gear) avistam titans + comando /hangesfx para ligar/desligar.
+		HangeSfxConfig.load();
+		HangeTitanAlert.init();
+		HangeSfxCommand.init();
 
 		// Os slots de arma ao lado do peitoral somem só com o ODMG Mode ligado COM pistolas nas mãos: o cliente informa o estado.
 		HolsterSlots.clientModeActive = player -> OdmgModeClient.isActive();

@@ -1,0 +1,7 @@
+{
+	"hange_titan_spotted": {
+		"sounds": [
+			{ "name": "los_gear_plus:hange_titan_spotted", "stream": false }
+		]
+	}
+}

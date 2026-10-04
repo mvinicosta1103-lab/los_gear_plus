@@ -26,5 +26,7 @@
 	"los_gear_plus.choice.blades.desc": "Blades: fast close-quarters combat.",
 	"los_gear_plus.choice.pistols.desc": "Pistols: range and Thunder Spears.",
 	"los_gear_plus.choice.hint": "Press 1 or 2, or click  •  Esc to close",
-	"los_gear_plus.hud.speed": "SPEED"
+	"los_gear_plus.hud.speed": "SPEED",
+	"los_gear_plus.hange_sfx.on": "Hange glasses SFX: ON",
+	"los_gear_plus.hange_sfx.off": "Hange glasses SFX: OFF"
 }
