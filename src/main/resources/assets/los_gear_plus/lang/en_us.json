@@ -10,9 +10,9 @@
 	"key.los_gear_plus.set_hook_angle": "Hook Angle (hold + scroll)",
 	"key.los_gear_plus.set_speed_level": "ODMG Speed Level (hold + scroll)",
 	"los_gear_plus.speed_level": "ODMG speed level: %s",
-	"los_gear_plus.choice.title": "Which gear do you want to use?",
-	"los_gear_plus.choice.blades": "New ODM Gear - Blades",
-	"los_gear_plus.choice.pistols": "New ODM Uniform - Pistols",
+	"los_gear_plus.choice.title": "Choose your gear",
+	"los_gear_plus.choice.blades": "New ODM Gear",
+	"los_gear_plus.choice.pistols": "New ODM Uniform",
 	"key.los_gear_plus.swap_odmg_kind": "Swap ODMG Weapon (Blades / Pistols)",
 	"los_gear_plus.mode.swap_unavailable": "You need the New ODM Uniform and the New ODM Gear equipped",
 	"los_gear_plus.mode.swap_no_pistols": "You need 2 pistols (in the chest slots or in your inventory)",
@@ -22,5 +22,9 @@
 	"key.los_gear_plus.steam_heal": "Steam Heal",
 	"los_gear_plus.steam_heal.not_shifter": "Only shifters can use Steam Heal",
 	"los_gear_plus.steam_heal.on": "Steam Heal: ON",
-	"los_gear_plus.steam_heal.off": "Steam Heal: OFF"
+	"los_gear_plus.steam_heal.off": "Steam Heal: OFF",
+	"los_gear_plus.choice.blades.desc": "Blades: fast close-quarters combat.",
+	"los_gear_plus.choice.pistols.desc": "Pistols: range and Thunder Spears.",
+	"los_gear_plus.choice.hint": "Press 1 or 2, or click  •  Esc to close",
+	"los_gear_plus.hud.speed": "SPEED"
 }

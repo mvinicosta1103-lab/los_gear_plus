@@ -1,5 +1,7 @@
 package com.example.losgearplus.mixin.client;
 
+import com.example.losgearplus.client.ui.Palette;
+import com.example.losgearplus.client.ui.UiDraw;
 import com.example.losgearplus.grip.HolsterSlot;
 import com.example.losgearplus.grip.HolsterSlots;
 import com.example.losgearplus.grip.SetHolsterSlotPayload;
@@ -60,6 +62,8 @@ public abstract class CreativeInventoryHolsterMixin extends AbstractContainerScr
 			graphics.fill(fx, fy, fx + 17, fy + 17, 0xFF373737);          // borda escura (cima/esquerda)
 			graphics.fill(fx + 1, fy + 1, fx + 18, fy + 18, 0xFFFFFFFF);  // borda clara (baixo/direita)
 			graphics.fill(fx + 1, fy + 1, fx + 17, fy + 17, 0xFF8B8B8B);  // fundo
+			float pulse = 0.55f + 0.25f * (float) Math.sin(net.minecraft.Util.getMillis() / 450.0);
+			UiDraw.outline(graphics, fx, fy, 18, 18, UiDraw.alpha(Palette.CRIMSON, pulse));
 		}
 	}
 

@@ -20,6 +20,7 @@ public class LosGearPlusClient implements ClientModInitializer {
 	public void onInitializeClient() {
 		// Ponto de entrada para lógica só de cliente (renderers, HUD, teclas...).
 		OdmgModeClient.init();
+		com.example.losgearplus.client.ui.OdmgHud.init();
 		SteamHealClient.init();
 		GripHolsterCommand.init();
 

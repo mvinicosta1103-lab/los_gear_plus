@@ -10,9 +10,9 @@
 	"key.los_gear_plus.set_hook_angle": "Ângulo dos Hooks (segurar + scroll)",
 	"key.los_gear_plus.set_speed_level": "Nível de Velocidade ODMG (segurar + scroll)",
 	"los_gear_plus.speed_level": "Nível de velocidade ODMG: %s",
-	"los_gear_plus.choice.title": "Qual equipamento você quer usar?",
-	"los_gear_plus.choice.blades": "New ODM Gear - Lâminas",
-	"los_gear_plus.choice.pistols": "New ODM Uniform - Pistolas",
+	"los_gear_plus.choice.title": "Escolha seu equipamento",
+	"los_gear_plus.choice.blades": "New ODM Gear",
+	"los_gear_plus.choice.pistols": "New ODM Uniform",
 	"key.los_gear_plus.swap_odmg_kind": "Trocar Funcionamento ODMG (Lâminas / Pistolas)",
 	"los_gear_plus.mode.swap_unavailable": "Você precisa estar com o New ODM Uniform e o New ODM Gear vestidos",
 	"los_gear_plus.mode.swap_no_pistols": "Você precisa de 2 pistolas (nos slots do peitoral ou no inventário)",
@@ -22,5 +22,9 @@
 	"key.los_gear_plus.steam_heal": "Steam Heal (cura de shifter)",
 	"los_gear_plus.steam_heal.not_shifter": "Só shifters podem usar o Steam Heal",
 	"los_gear_plus.steam_heal.on": "Steam Heal: LIGADO",
-	"los_gear_plus.steam_heal.off": "Steam Heal: DESLIGADO"
+	"los_gear_plus.steam_heal.off": "Steam Heal: DESLIGADO",
+	"los_gear_plus.choice.blades.desc": "Lâminas: combate corpo a corpo veloz.",
+	"los_gear_plus.choice.pistols.desc": "Pistolas: alcance e Thunder Spears.",
+	"los_gear_plus.choice.hint": "Pressione 1 ou 2, ou clique  •  Esc para fechar",
+	"los_gear_plus.hud.speed": "VELOCIDADE"
 }

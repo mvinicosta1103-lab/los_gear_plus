@@ -20,7 +20,8 @@
 		"client.DaotOdmSpeedMixin",
 		"client.CreativeSlotWrapperTargetAccessor",
 		"client.InventoryScreenHolsterMixin",
-		"client.CreativeInventoryHolsterMixin"
+		"client.CreativeInventoryHolsterMixin",
+		"client.GuiOverlayMessageMixin"
 	],
 	"injectors": {
 		"defaultRequire": 1

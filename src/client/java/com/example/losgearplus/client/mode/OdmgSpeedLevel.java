@@ -6,7 +6,6 @@ import net.fabricmc.fabric.api.client.networking.v1.ClientPlayConnectionEvents;
 import net.minecraft.client.KeyMapping;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.player.LocalPlayer;
-import net.minecraft.network.chat.Component;
 import org.lwjgl.glfw.GLFW;
 
 /**
@@ -66,7 +65,7 @@ public final class OdmgSpeedLevel {
         int next = Math.max(MIN, Math.min(MAX, level + (vertical > 0 ? 1 : -1)));
         if (next != level) {
             level = next;
-            mc.gui.setOverlayMessage(Component.translatable("los_gear_plus.speed_level", level), false);
+            com.example.losgearplus.client.ui.OdmgHud.flashSpeed();
         }
         return true;
     }

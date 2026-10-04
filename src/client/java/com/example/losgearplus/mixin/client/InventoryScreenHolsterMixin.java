@@ -1,5 +1,7 @@
 package com.example.losgearplus.mixin.client;
 
+import com.example.losgearplus.client.ui.Palette;
+import com.example.losgearplus.client.ui.UiDraw;
 import com.example.losgearplus.grip.HolsterSlot;
 import net.minecraft.client.gui.GuiGraphics;
 import net.minecraft.client.gui.screens.inventory.AbstractContainerScreen;
@@ -29,7 +31,14 @@ public abstract class InventoryScreenHolsterMixin extends AbstractContainerScree
 		for (Slot slot : this.menu.slots) {
 			if (slot instanceof HolsterSlot && slot.isActive()) {
 				graphics.blit(LOSGEARPLUS_INVENTORY_TEXTURE, this.leftPos + slot.x - 1, this.topPos + slot.y - 1, 76, 61, 18, 18);
+				losgearplus$accent(graphics, this.leftPos + slot.x - 1, this.topPos + slot.y - 1);
 			}
 		}
+	}
+
+	/** Contorno carmesim que pulsa de leve ao redor dos slots de arma. */
+	private static void losgearplus$accent(GuiGraphics graphics, int x, int y) {
+		float pulse = 0.55f + 0.25f * (float) Math.sin(net.minecraft.Util.getMillis() / 450.0);
+		UiDraw.outline(graphics, x, y, 18, 18, UiDraw.alpha(Palette.CRIMSON, pulse));
 	}
 }
