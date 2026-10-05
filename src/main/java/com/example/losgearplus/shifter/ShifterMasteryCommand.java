@@ -30,32 +30,48 @@ public final class ShifterMasteryCommand {
 
 	public static void init() {
 		CommandRegistrationCallback.EVENT.register((dispatcher, registryAccess, environment) -> {
-			LiteralCommandNode<CommandSourceStack> root = dispatcher.register(Commands.literal("shiftermastery")
-					.requires(src -> src.hasPermission(2))
-					.then(Commands.literal("set")
-							.then(Commands.argument("targets", EntityArgument.players())
-									.then(Commands.argument("level", IntegerArgumentType.integer(0, ShifterMastery.MAX_LEVEL))
-											.executes(ctx -> set(ctx,
-													EntityArgument.getPlayers(ctx, "targets"),
-													IntegerArgumentType.getInteger(ctx, "level"))))))
-					.then(Commands.literal("max")
-							.then(Commands.argument("targets", EntityArgument.players())
-									.executes(ctx -> set(ctx, EntityArgument.getPlayers(ctx, "targets"), ShifterMastery.MAX_LEVEL))))
-					.then(Commands.literal("reset")
-							.then(Commands.argument("targets", EntityArgument.players())
-									.executes(ctx -> reset(ctx, EntityArgument.getPlayers(ctx, "targets")))))
-					.then(cooldown("cooldown"))
-					.then(cooldown("resetcooldown"))
-					.then(Commands.literal("addxp")
-							.then(Commands.argument("targets", EntityArgument.players())
-									.then(Commands.argument("amount", IntegerArgumentType.integer(1))
-											.executes(ctx -> addXp(ctx,
-													EntityArgument.getPlayers(ctx, "targets"),
-													IntegerArgumentType.getInteger(ctx, "amount"))))))
-					.then(Commands.literal("get")
-							.executes(ctx -> get(ctx, ctx.getSource().getPlayerOrException()))
-							.then(Commands.argument("target", EntityArgument.player())
-									.executes(ctx -> get(ctx, EntityArgument.getPlayer(ctx, "target")))))));
+			LiteralArgumentBuilder<CommandSourceStack> builder = Commands.literal("shiftermastery")
+					.requires(src -> src.hasPermission(2));
+
+			// /shiftermastery set <targets> <level>
+			builder.then(Commands.literal("set")
+					.then(Commands.argument("targets", EntityArgument.players())
+							.then(Commands.argument("level", IntegerArgumentType.integer(0, ShifterMastery.MAX_LEVEL))
+									.executes(ctx -> set(ctx,
+											EntityArgument.getPlayers(ctx, "targets"),
+											IntegerArgumentType.getInteger(ctx, "level"))))));
+
+			// /shiftermastery max <targets>
+			builder.then(Commands.literal("max")
+					.then(Commands.argument("targets", EntityArgument.players())
+							.executes(ctx -> set(ctx,
+									EntityArgument.getPlayers(ctx, "targets"),
+									ShifterMastery.MAX_LEVEL))));
+
+			// /shiftermastery reset <targets>
+			builder.then(Commands.literal("reset")
+					.then(Commands.argument("targets", EntityArgument.players())
+							.executes(ctx -> reset(ctx, EntityArgument.getPlayers(ctx, "targets")))));
+
+			// /shiftermastery cooldown <targets>  (and resetcooldown)
+			builder.then(cooldown("cooldown"));
+			builder.then(cooldown("resetcooldown"));
+
+			// /shiftermastery addxp <targets> <amount>
+			builder.then(Commands.literal("addxp")
+					.then(Commands.argument("targets", EntityArgument.players())
+							.then(Commands.argument("amount", IntegerArgumentType.integer(1))
+									.executes(ctx -> addXp(ctx,
+											EntityArgument.getPlayers(ctx, "targets"),
+											IntegerArgumentType.getInteger(ctx, "amount"))))));
+
+			// /shiftermastery get [target]
+			builder.then(Commands.literal("get")
+					.executes(ctx -> get(ctx, ctx.getSource().getPlayerOrException()))
+					.then(Commands.argument("target", EntityArgument.player())
+							.executes(ctx -> get(ctx, EntityArgument.getPlayer(ctx, "target")))));
+
+			LiteralCommandNode<CommandSourceStack> root = dispatcher.register(builder);
 
 			// Short alias: /sm <anything /shiftermastery accepts>
 			dispatcher.register(Commands.literal("sm")
