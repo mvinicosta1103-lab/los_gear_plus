@@ -57,7 +57,7 @@ public final class OdmTankFollow {
         }
     }
 
-    private static boolean odmAnimating(UUID id) {
+    public static boolean isOdmAnimating(UUID id) {
         if (IS_ODM_ANIMATING == null) return false;
         try {
             return (boolean) IS_ODM_ANIMATING.invoke(id);
@@ -68,7 +68,7 @@ public final class OdmTankFollow {
 
     /** Peso da perna (0.1..1.0) igual ao que o DAOT usa na caixa deste jogador neste frame. */
     public static float legWeight(AbstractClientPlayer player) {
-        boolean onLegs = player.isPassenger() || odmAnimating(player.getUUID());
+        boolean onLegs = player.isPassenger() || isOdmAnimating(player.getUUID());
         long now = System.nanoTime();
         State s = STATES.get(player.getId());
         if (s == null) {

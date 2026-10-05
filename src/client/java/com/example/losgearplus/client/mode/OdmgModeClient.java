@@ -62,6 +62,7 @@ public final class OdmgModeClient {
 		OdmgHookAngleClient.init();
 		OdmgSpeedLevel.init();
 		PistolSpearLoadKey.init(); // V com pistolas nas mãos carrega a (Quad) Thunder Spear
+		OdmgRunAnimation.init(); // corrida do ODMG (odmrun) no lugar do sprint vanilla
 	}
 
 	private static void tick(Minecraft mc) {
