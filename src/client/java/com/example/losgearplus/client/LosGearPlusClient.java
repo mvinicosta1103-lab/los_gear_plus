@@ -25,6 +25,8 @@ public class LosGearPlusClient implements ClientModInitializer {
 		OdmgModeClient.init();
 		com.example.losgearplus.client.ui.OdmgHud.init();
 		SteamHealClient.init();
+		com.example.losgearplus.client.shifter.ShifterMasteryHud.init();
+		com.example.losgearplus.client.shifter.ShifterMasteryHudControls.init();
 		GripHolsterCommand.init();
 
 		// SFX quando os óculos da Hange (los_gear) avistam titans + comando /hangesfx para ligar/desligar.

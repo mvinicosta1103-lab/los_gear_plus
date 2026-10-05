@@ -28,5 +28,13 @@
 	"los_gear_plus.choice.hint": "Pressione 1 ou 2, ou clique  •  Esc para fechar",
 	"los_gear_plus.hud.speed": "VELOCIDADE",
 	"los_gear_plus.hange_sfx.on": "SFX dos óculos da Hange: LIGADO",
-	"los_gear_plus.hange_sfx.off": "SFX dos óculos da Hange: DESLIGADO"
+	"los_gear_plus.hange_sfx.off": "SFX dos óculos da Hange: DESLIGADO",
+	"los_gear_plus.mastery.title": "MASTERY",
+	"los_gear_plus.mastery.max": "MAX",
+	"los_gear_plus.mastery.transforms": "Shifts %s/%s",
+	"los_gear_plus.mastery.transforms_unlimited": "Shifts ∞",
+	"los_gear_plus.mastery.resets_in": "Resets in %s",
+	"los_gear_plus.mastery_hud.on": "Mastery HUD: ON",
+	"los_gear_plus.mastery_hud.off": "Mastery HUD: OFF",
+	"key.los_gear_plus.mastery_hud": "Toggle Mastery HUD"
 }
