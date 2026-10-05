@@ -16,12 +16,13 @@ import net.minecraft.server.level.ServerPlayer;
  * (commands, transformations and level-ups call {@link #send}) and re-checks once per second, which also
  * catches the cooldown window expiring and the XP gained while transformed.
  * It only resends when level / used / limit / "is shifter" / XP change; the cooldown countdown runs on the client.
+ * The Cart Titan is sent with an unlimited limit (max = -1) whatever its level.
  */
 public final class ShifterMasterySync {
 	private ShifterMasterySync() {}
 
 	/** DAOT shifter tags (same list as Steam Heal). */
-	private static final Set<String> SHIFTER_TAGS = Set.of(
+	public static final Set<String> SHIFTER_TAGS = Set.of(
 			"attack", "colossal", "armored", "beast", "female", "warhammer",
 			"founder", "triple_t", "ogre_shifter", "jaw", "cart_shifter");
 
@@ -45,7 +46,7 @@ public final class ShifterMasterySync {
 		if (!ServerPlayNetworking.canSend(player, ShifterMasterySyncPayload.TYPE)) return;
 		UUID id = player.getUUID();
 		int level = ShifterMastery.getLevel(id);
-		int maxT = ShifterMastery.maxTransforms(level);
+		int maxT = ShifterMastery.maxTransforms(id); // already applies the Cart Titan override
 		boolean shifter = false;
 		for (String tag : player.getTags()) {
 			if (SHIFTER_TAGS.contains(tag)) { shifter = true; break; }

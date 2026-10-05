@@ -24,6 +24,12 @@ import net.minecraft.sounds.SoundSource;
  *  9       unlimited           0%               0%   (full control: no stamina spent at all)
  * </pre>
  *
+ * <b>Cart Titan:</b> the Cart shifter (tag {@code cart_shifter}) ignores this table: it always uses the rules of
+ * level 9 (unlimited transformations, no stamina cost or drain), whatever its real level. Its level still grows
+ * and still gives the HP / strength / damage reduction bonuses ({@link ShifterMasteryStats}).
+ * Use {@link #ruleLevel(UUID)} (or the UUID overloads) wherever a RULE is applied, and {@link #getLevel(UUID)}
+ * only to show or store the real level.
+ *
  * <b>Progression:</b> mastery XP is earned every time the shifter transforms
  * ({@link #XP_PER_TRANSFORMATION}) and for every second spent in titan form ({@link #XP_PER_SECOND_TRANSFORMED}).
  * The level follows the XP through {@link #XP_TO_REACH}.
@@ -153,6 +159,20 @@ public final class ShifterMastery {
 		}
 	}
 
+	// ---- Cart Titan override -----------------------------------------------------------------------------------
+
+	/** True if the player is online and is the Cart Titan shifter (tag {@code cart_shifter}). */
+	public static boolean isCartShifter(UUID id) {
+		if (server == null) return false;
+		ServerPlayer p = server.getPlayerList().getPlayer(id);
+		return p != null && p.getTags().contains(ShifterTypes.CART_TAG);
+	}
+
+	/** Level used for the RULES (transformations, cost, drain): the Cart Titan always counts as the maximum. */
+	public static int ruleLevel(UUID id) {
+		return isCartShifter(id) ? MAX_LEVEL : getLevel(id);
+	}
+
 	// ---- rules per level -------------------------------------------------------------------------------------
 
 	public static int maxTransforms(int level) {
@@ -165,6 +185,19 @@ public final class ShifterMastery {
 
 	public static float drainMultiplier(int level) {
 		return DRAIN[clamp(level)];
+	}
+
+	/** Same rules, but by player: already applies the Cart Titan override. */
+	public static int maxTransforms(UUID id) {
+		return maxTransforms(ruleLevel(id));
+	}
+
+	public static float shiftCostMultiplier(UUID id) {
+		return shiftCostMultiplier(ruleLevel(id));
+	}
+
+	public static float drainMultiplier(UUID id) {
+		return drainMultiplier(ruleLevel(id));
 	}
 
 	public static boolean isMaster(UUID id) {
@@ -191,16 +224,16 @@ public final class ShifterMastery {
 		return data == null ? 0 : fresh(id).uses;
 	}
 
-	/** Can the player start a transformation right now? */
+	/** Can the player start a transformation right now? The Cart Titan always can. */
 	public static boolean canShift(ServerPlayer player) {
-		if (data == null) return true;
+		if (data == null || isCartShifter(player.getUUID())) return true;
 		ShifterMasteryData.Entry e = fresh(player.getUUID());
 		return e.uses < maxTransforms(e.level);
 	}
 
-	/** Called when a transformation really started. */
+	/** Called when a transformation really started. The Cart Titan does not spend transformations. */
 	public static void registerShift(ServerPlayer player) {
-		if (data == null) return;
+		if (data == null || isCartShifter(player.getUUID())) return;
 		ShifterMasteryData.Entry e = fresh(player.getUUID());
 		if (e.uses == 0) e.windowStart = now();
 		e.uses++;

@@ -91,6 +91,7 @@ public final class ShifterMasteryCommand {
 			ShifterMastery.setLevel(p.getUUID(), level);
 			p.sendSystemMessage(Component.literal("Your Shifter Mastery is now level " + level + "."));
 			ShifterMasterySync.send(p, true);
+			ShifterMasteryStats.apply(p);
 		}
 		ctx.getSource().sendSuccess(() -> Component.literal(
 				"Set Shifter Mastery to level " + level + " for " + targets.size() + " player(s)."), true);
@@ -102,6 +103,7 @@ public final class ShifterMasteryCommand {
 			ShifterMastery.reset(p.getUUID());
 			p.sendSystemMessage(Component.literal("Your Shifter Mastery was reset (level 0)."));
 			ShifterMasterySync.send(p, true);
+			ShifterMasteryStats.apply(p);
 		}
 		ctx.getSource().sendSuccess(() -> Component.literal(
 				"Reset Shifter Mastery for " + targets.size() + " player(s)."), true);
@@ -123,6 +125,7 @@ public final class ShifterMasteryCommand {
 		for (ServerPlayer p : targets) {
 			ShifterMastery.addXp(p, amount);
 			ShifterMasterySync.send(p, true);
+			ShifterMasteryStats.apply(p);
 		}
 		ctx.getSource().sendSuccess(() -> Component.literal(
 				"Granted " + amount + " mastery XP to " + targets.size() + " player(s)."), true);
@@ -131,13 +134,13 @@ public final class ShifterMasteryCommand {
 
 	private static int get(CommandContext<CommandSourceStack> ctx, ServerPlayer p) {
 		int level = ShifterMastery.getLevel(p.getUUID());
-		int max = ShifterMastery.maxTransforms(level);
+		int max = ShifterMastery.maxTransforms(p.getUUID()); // Cart Titan override included
 		String limit = max == ShifterMastery.UNLIMITED ? "unlimited" : String.valueOf(max);
 		String used = max == ShifterMastery.UNLIMITED ? "-" : String.valueOf(ShifterMastery.usedTransforms(p.getUUID()));
 		int need = ShifterMastery.xpForNextLevel(level);
 		String xp = need < 0 ? "MAX" : ShifterMastery.xpIntoLevel(p.getUUID()) + "/" + need;
-		int cost = Math.round(ShifterMastery.shiftCostMultiplier(level) * 100f);
-		int drain = Math.round(ShifterMastery.drainMultiplier(level) * 100f);
+		int cost = Math.round(ShifterMastery.shiftCostMultiplier(p.getUUID()) * 100f);
+		int drain = Math.round(ShifterMastery.drainMultiplier(p.getUUID()) * 100f);
 		ctx.getSource().sendSuccess(() -> Component.literal(
 				p.getGameProfile().getName() + ": level " + level + "/" + ShifterMastery.MAX_LEVEL
 						+ " | XP " + xp
