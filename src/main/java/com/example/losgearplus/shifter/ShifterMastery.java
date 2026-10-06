@@ -166,6 +166,7 @@ public final class ShifterMastery {
 			e.level = newLevel;
 			player.sendSystemMessage(Component.literal("Shifter Mastery increased to level " + newLevel + "!"));
 			player.level().playSound(null, player.blockPosition(), SoundEvents.PLAYER_LEVELUP, SoundSource.PLAYERS, 1f, 1f);
+			ShifterMasteryStats.apply(player); // +1 extra heart for the new level, right away
 			ShifterMasterySync.send(player, true);
 		}
 	}

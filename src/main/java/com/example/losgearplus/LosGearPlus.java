@@ -2,8 +2,10 @@ package com.example.losgearplus;
 
 import com.example.losgearplus.compat.LosGearCompat;
 import com.example.losgearplus.mode.OdmgModeNetworking;
+import com.example.losgearplus.shifter.ShifterForceShift;
 import com.example.losgearplus.shifter.ShifterMastery;
 import com.example.losgearplus.shifter.ShifterMasteryCommand;
+import com.example.losgearplus.shifter.ShifterMasteryStats;
 import com.example.losgearplus.shifter.ShifterMasterySync;
 import com.example.losgearplus.steam.SteamHealServer;
 import net.fabricmc.api.ModInitializer;
@@ -24,6 +26,8 @@ public class LosGearPlus implements ModInitializer {
 		ShifterMastery.init();
 		ShifterMasteryCommand.init();
 		ShifterMasterySync.init();
+		ShifterMasteryStats.init();
+		ShifterForceShift.init();
 
 		// los_gear é "recommends": só toca nas classes dele se estiver instalado.
 		if (FabricLoader.getInstance().isModLoaded("los_gear")) {

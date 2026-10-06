@@ -11,7 +11,9 @@
 		"DaotShifterMasteryMixin",
 		"DaotShifterMarkFadeMixin",
 		"AbstractContainerMenuAddSlotInvoker",
-		"InventoryMenuHolsterSlotMixin"
+		"InventoryMenuHolsterSlotMixin",
+		"ForceShiftMixin",
+		"LivingEntityMasteryMixin"
 	],
 	"client": [
 		"client.KeyMappingAccessor",
