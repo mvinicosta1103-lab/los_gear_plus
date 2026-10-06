@@ -15,12 +15,16 @@ import net.minecraft.sounds.SoundSource;
  * transformation costs in stamina and how fast stamina drains while in titan form.
  *
  * <pre>
- *  Level   Transformations   Transform cost   Titan-form drain
- *  0-2     1                 100%             100%
- *  3-5     3                 100%             100%
- *  6       6                  75%              75%
- *  7       6                  65%              65%
- *  8       6                  55%              55%
+ *  Level   Transformations   Transform cost   Titan-form drain (time transformed)
+ *  0       1                 100%             200% (60s)
+ *  1       1                 100%             170% (~70s)
+ *  2       1                 100%             145% (~83s)
+ *  3       3                 100%             125% (~96s)
+ *  4       3                 100%             110% (~109s)
+ *  5       3                 100%             100% (120s)
+ *  6       6                  75%              80% (150s)
+ *  7       6                  65%              65% (~185s)
+ *  8       6                  55%              50% (240s)
  *  9       unlimited           0%               0%   (full control: no stamina spent at all)
  * </pre>
  *
@@ -46,6 +50,9 @@ public final class ShifterMastery {
 	/** Time until used transformations reset (12000 ticks = 10 minutes). */
 	public static final long RESET_TICKS = 12000L;
 
+	/** Seconds a full stamina bar lasts in titan form at a drain multiplier of 1.0 (level 5). */
+	public static final float BASE_TITAN_SECONDS = 120f;
+
 	/** Mastery XP granted each time a transformation starts. */
 	public static final int XP_PER_TRANSFORMATION = 50;
 	/** Mastery XP granted for each full second spent in titan form. */
@@ -57,7 +64,11 @@ public final class ShifterMastery {
 	//                                          level: 0  1  2  3  4  5  6  7  8  9
 	private static final int[] MAX_TRANSFORMS = { 1, 1, 1, 3, 3, 3, 6, 6, 6, UNLIMITED };
 	private static final float[] SHIFT_COST = { 1f, 1f, 1f, 1f, 1f, 1f, 0.75f, 0.65f, 0.55f, 0f };
-	private static final float[] DRAIN = { 1f, 1f, 1f, 1f, 1f, 1f, 0.75f, 0.65f, 0.55f, 0f };
+	/**
+	 * Titan-form drain, relative to the base rate (100% = {@link #BASE_TITAN_SECONDS} seconds from full stamina to
+	 * empty). Above 1 = drains faster (low level), below 1 = lasts longer, 0 = infinite (level 9).
+	 */
+	private static final float[] DRAIN = { 2f, 1.7f, 1.45f, 1.25f, 1.1f, 1f, 0.8f, 0.65f, 0.5f, 0f };
 
 	private static MinecraftServer server;
 	private static ShifterMasteryData data;

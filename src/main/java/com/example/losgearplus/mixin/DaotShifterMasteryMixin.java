@@ -59,6 +59,9 @@ public abstract class DaotShifterMasteryMixin {
 	private static Float losgearplus$staminaBeforeShift;
 
 	@Unique
+	private static long losgearplus$lastTick;
+
+	@Unique
 	private static final Map<UUID, Float> losgearplus$tickSnapshot = new HashMap<>();
 
 	// ---- transforming -----------------------------------------------------------------------------------------
@@ -73,7 +76,7 @@ public abstract class DaotShifterMasteryMixin {
 		if (player.getVehicle() instanceof ShifterTitan) return; // leaving titan form: never blocked or counted
 		if (losgearplus$hadBite || pendingShifts.containsKey(id)) return; // already transforming
 
-		if (ShifterMastery.isMaster(id)) {
+		if (ShifterMastery.ruleLevel(id) >= ShifterMastery.MAX_LEVEL) {
 			// Full control: no entry = full stamina (DAOT uses the maximum as the default).
 			playerStamina.remove(id);
 			losgearplus$staminaBeforeShift = null;
@@ -82,7 +85,7 @@ public abstract class DaotShifterMasteryMixin {
 
 		if (!ShifterMastery.canShift(player)) {
 			int lvl = ShifterMastery.getLevel(id);
-			int max = ShifterMastery.maxTransforms(lvl);
+			int max = ShifterMastery.maxTransforms(id);
 			long secs = ShifterMastery.ticksUntilReset(id) / 20L;
 			player.displayClientMessage(Component.literal(
 					"Mastery level " + lvl + ": all " + max + " transformation(s) used. Ready again in "
@@ -102,7 +105,7 @@ public abstract class DaotShifterMasteryMixin {
 		if (hadBite || !pendingBites.containsKey(id)) return; // no new transformation started
 
 		// The refund uses the level the shifter had when transforming (before any level-up from this shift).
-		float mult = ShifterMastery.shiftCostMultiplier(ShifterMastery.getLevel(id));
+		float mult = ShifterMastery.shiftCostMultiplier(id);
 		ShifterMastery.registerShift(player);
 		ShifterMastery.addXp(player, ShifterMastery.XP_PER_TRANSFORMATION);
 		ShifterMasterySync.send(player, true);
@@ -123,27 +126,36 @@ public abstract class DaotShifterMasteryMixin {
 	}
 
 	@Inject(method = "tickShifterStamina", at = @At("RETURN"), remap = false)
-	private static void losgearplus$softenDrain(MinecraftServer server, CallbackInfo ci) {
+	private static void losgearplus$masteryDrain(MinecraftServer server, CallbackInfo ci) {
+		long tick = server.getTickCount();
+		int dt = (int) Math.max(1L, Math.min(40L, tick - losgearplus$lastTick));
+		losgearplus$lastTick = tick;
+
 		for (ServerPlayer p : server.getPlayerList().getPlayers()) {
 			if (!(p.getVehicle() instanceof ShifterTitan)) continue;
 			UUID id = p.getUUID();
-			float mult = ShifterMastery.drainMultiplier(ShifterMastery.getLevel(id));
-			if (mult >= 1f) continue;
+			float mult = ShifterMastery.drainMultiplier(id);
+			if (mult <= 0f) continue; // level 9: infinite time, stamina is not touched
+
+			Float max = playerMaxStamina.get(id);
+			float maxStamina = max == null ? 100f : max;
 			Float before = losgearplus$tickSnapshot.get(id);
-			Float now = playerStamina.get(id);
-			if (before == null || now == null) continue;
-			float spent = before - now;
-			if (spent > 0f && spent < 5f) { // normal drain per tick is < 2; ignore big jumps
-				playerStamina.put(id, now + spent * (1f - mult));
-			}
+			if (before == null) before = maxStamina; // no entry = it was full
+
+			// We own the titan-form drain: whatever DAOT did this tick (drain, regen, Beast Titan / royal blood
+			// bonuses) is discarded and replaced by the mastery drain, so stamina never goes up while transformed.
+			float perTick = maxStamina / (ShifterMastery.BASE_TITAN_SECONDS * 20f) * mult;
+			playerStamina.put(id, Math.max(0f, before - perTick * dt));
 		}
 		losgearplus$tickSnapshot.clear();
 	}
 
 	// ---- level 9: no stamina cost --------------------------------------------------------------------
 
-	@Inject(method = "isBeastStaminaImmune", at = @At("HEAD"), cancellable = true, remap = false)
+	@Inject(method = "isBeastStaminaImmune", at = @At("RETURN"), cancellable = true, remap = false)
 	private static void losgearplus$masterImmune(UUID id, CallbackInfoReturnable<Boolean> cir) {
-		if (ShifterMastery.isMaster(id)) cir.setReturnValue(true);
+		// Level 9 is immune to every stamina cost; below that the Beast Titan's natural immunity is removed so
+		// it spends stamina like any other titan.
+		cir.setReturnValue(ShifterMastery.ruleLevel(id) >= ShifterMastery.MAX_LEVEL);
 	}
 }
