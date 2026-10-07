@@ -58,6 +58,10 @@ public final class LimbManager {
 	private static final Set<UUID> MODDED = new HashSet<>();
 	private static final java.util.Map<UUID, Integer> SIGNATURES = new java.util.HashMap<>();
 
+	/** Último titã de shifter em que cada jogador estava montado ({@link #NO_TITAN} = nenhum). Detecta transformação nova. */
+	private static final java.util.Map<UUID, UUID> LAST_TITAN = new java.util.HashMap<>();
+	private static final UUID NO_TITAN = new UUID(0L, 0L);
+
 	/** Só cliente: último aviso de "mão sem braço" (para não spammar). */
 	private static long lastWarn = -100;
 
@@ -69,6 +73,7 @@ public final class LimbManager {
 		ServerPlayConnectionEvents.DISCONNECT.register((handler, server) -> {
 			MODDED.remove(handler.getPlayer().getUUID());
 			SIGNATURES.remove(handler.getPlayer().getUUID());
+			LAST_TITAN.remove(handler.getPlayer().getUUID());
 		});
 		registerHandBlocks();
 	}
@@ -156,6 +161,7 @@ public final class LimbManager {
 		long now = server.getTickCount();
 		for (ServerPlayer p : server.getPlayerList().getPlayers()) {
 			UUID id = p.getUUID();
+			trackTransformation(p);
 			LimbState st = p.getAttached(LimbData.ATTACHMENT);
 			if (st == null || st.isPristine()) {
 				SIGNATURES.remove(id);
@@ -183,6 +189,20 @@ public final class LimbManager {
 			if (LimbRules.cannotSprint(st) && p.isSprinting()) p.setSprinting(false);
 			LimbSync.tick(p);
 		}
+	}
+
+	/**
+	 * Transformar de novo cria um titã NOVO: o corpo é refeito por inteiro, então todos os membros perdidos voltam
+	 * (no titã e no corpo humano, que usam o mesmo estado). Detecta pelo UUID do titã em que o jogador monta; a
+	 * primeira observação do jogador (entrou no servidor) só registra, para não restaurar ao reentrar já montado.
+	 */
+	private static void trackTransformation(ServerPlayer p) {
+		Entity v = p.getVehicle();
+		UUID current = v instanceof ShifterTitan ? v.getUUID() : NO_TITAN;
+		UUID previous = LAST_TITAN.put(p.getUUID(), current);
+		if (previous == null || previous.equals(current) || current.equals(NO_TITAN)) return;
+		LimbState st = p.getAttached(LimbData.ATTACHMENT);
+		if (st != null && !st.isPristine()) restore(p, null);
 	}
 
 	/**

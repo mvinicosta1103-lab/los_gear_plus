@@ -15,6 +15,7 @@
 		"ForceShiftMixin",
 		"LivingEntityMasteryMixin",
 		"LivingEntityLimbMixin",
+		"LivingEntityRiderInvisMixin",
 		"PlayerPoseLimbMixin",
 		"DaotBladeAttackLimbMixin",
 		"PlayerMainArmLimbMixin",
@@ -34,6 +35,7 @@
 		"client.CreativeInventoryHolsterMixin",
 		"client.GuiOverlayMessageMixin",
 		"client.PlayerRendererLimbMixin",
+		"client.PlayerRendererRiderHideMixin",
 		"client.GeoModelLimbMixin",
 		"client.DaotOdmNoArmsMixin"
 	],

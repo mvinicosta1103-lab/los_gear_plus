@@ -7,6 +7,7 @@ import com.example.losgearplus.limb.LimbState;
 import com.example.losgearplus.limb.LimbStatus;
 import java.util.HashMap;
 import java.util.HashSet;
+import java.util.IdentityHashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
@@ -52,6 +53,19 @@ public final class TitanLimbBones {
 	/** Máscara de partes ausentes no quadro anterior, por titã (detecta o instante do corte). */
 	private static final Map<Integer, Integer> MASKS = new HashMap<>();
 	private static final Map<Integer, Kneel> KNEEL = new HashMap<>();
+	/** Vida de cada peça solta (por titã): quando nasceu, último vapor e escala-base. Chave por identidade. */
+	private static final Map<Integer, Map<Object, Life>> LIVES = new HashMap<>();
+
+	private static final class Life {
+		final float born;
+		float lastSteam;
+		float[] baseScale;
+
+		Life(float born) {
+			this.born = born;
+			this.lastSteam = born;
+		}
+	}
 
 	static {
 		Limb[] std = {
@@ -82,6 +96,7 @@ public final class TitanLimbBones {
 		TOUCHED.clear();
 		MASKS.clear();
 		KNEEL.clear();
+		LIVES.clear();
 	}
 
 	/** Chamado depois das animações do GeckoLib, uma vez por quadro, para cada titã shifter. */
@@ -203,20 +218,38 @@ public final class TitanLimbBones {
 
 	private static void debrisFrame(GeoModel<?> model, LivingEntity titan, Rig rig, LimbState st, float partialTick) {
 		List<Object> pieces = TitanDebrisBridge.piecesOf(titan.getId());
-		if (pieces.isEmpty()) return;
+		if (pieces.isEmpty()) {
+			LIVES.remove(titan.getId());
+			return;
+		}
+		Map<Object, Life> lives = LIVES.computeIfAbsent(titan.getId(), k -> new IdentityHashMap<>());
+		float now = titan.level().getGameTime() + partialTick;
+		int lifetime = LimbRules.DEBRIS_LIFETIME_TICKS;
+		int fade = Math.min(LimbRules.DEBRIS_FADE_TICKS, Math.max(1, lifetime));
 		try {
-			// o membro começou a crescer (toco): a peça solta evapora
 			pieces.removeIf(piece -> {
 				try {
+					Life life = lives.computeIfAbsent(piece, k -> new Life(now));
 					LimbPart part = LimbPart.VALUES[TitanDebrisBridge.partOf(piece)];
-					if (st.status(part) == LimbStatus.LOST) return false;
-					TitanDebrisBridge.steam(titan, piece);
-					return true;
+					// 1) o membro começou a crescer (toco): a peça solta evapora de uma vez
+					boolean regrowing = st.status(part) != LimbStatus.LOST;
+					// 2) passou o tempo de vida: evaporou por completo
+					boolean expired = lifetime > 0 && now - life.born >= lifetime;
+					if (regrowing || expired) {
+						TitanDebrisBridge.steam(titan, piece);
+						lives.remove(piece);
+						return true;
+					}
+					return false;
 				} catch (Throwable t) {
+					lives.remove(piece);
 					return true;
 				}
 			});
-			if (pieces.isEmpty()) return;
+			if (pieces.isEmpty()) {
+				LIVES.remove(titan.getId());
+				return;
+			}
 			Object frames = TitanDebrisBridge.frames(model.getAnimationProcessor().getRegisteredBones());
 			for (Object piece : pieces) {
 				LimbPart part = LimbPart.VALUES[TitanDebrisBridge.partOf(piece)];
@@ -233,9 +266,37 @@ public final class TitanLimbBones {
 						child.setScaleZ(bind.getScaleZ());
 					}
 				}
+				Life life = lives.get(piece);
+				if (life != null && bone != null) evaporate(titan, piece, bone, life, now, lifetime, fade);
 			}
 		} catch (Throwable t) {
 			LOG.warn("Falha ao animar a peca solta do titan: {}", t.toString());
+		}
+	}
+
+	/**
+	 * Fase final da peça solta: nos últimos {@code fade} ticks ela encolhe (em torno do pivô do osso) e solta vapor
+	 * cada vez mais seguido. A escala é sempre "base x fator", com a base guardada no primeiro quadro (logo após o
+	 * {@code pose()}), para não acumular caso o DAOT não reponha a escala a cada quadro.
+	 */
+	private static void evaporate(LivingEntity titan, Object piece, GeoBone bone, Life life, float now, int lifetime, int fade)
+			throws ReflectiveOperationException {
+		if (life.baseScale == null) {
+			life.baseScale = new float[] { bone.getScaleX(), bone.getScaleY(), bone.getScaleZ() };
+		}
+		if (lifetime <= 0) return;
+		float t = (now - life.born - (lifetime - fade)) / fade; // 0 antes do fade, 1 no fim
+		if (t <= 0f) return;
+		t = Math.min(1f, t);
+		float k = Math.max(0.02f, 1f - t * t * (3f - 2f * t)); // 1 -> ~0, suave
+		bone.setScaleX(life.baseScale[0] * k);
+		bone.setScaleY(life.baseScale[1] * k);
+		bone.setScaleZ(life.baseScale[2] * k);
+		float interval = LimbRules.DEBRIS_STEAM_INTERVAL_START
+				+ (LimbRules.DEBRIS_STEAM_INTERVAL_END - LimbRules.DEBRIS_STEAM_INTERVAL_START) * t;
+		if (now - life.lastSteam >= interval) {
+			life.lastSteam = now;
+			TitanDebrisBridge.steam(titan, piece);
 		}
 	}
 

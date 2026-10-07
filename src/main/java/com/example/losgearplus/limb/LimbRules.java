@@ -9,11 +9,43 @@ public final class LimbRules {
 	private LimbRules() {}
 
 	// ---- gatilho de dano (chance por golpe que acerta) ----------------------------------------------------
-	public static final float BLADE_VS_HUMAN = 0.25f;
+	// Humanos SÓ perdem membro para titãs (puros ou shifters). Titãs de shifter perdem para lâmina, titã,
+	// explosão (lança do trovão, canhão) e qualquer outro dano forte, e o ponto atingido decide a parte.
+	/** Chance base (por golpe que acerta um membro) de um titã de shifter perder a parte, conforme a origem. */
 	public static final float BLADE_VS_TITAN = 0.20f;
+	public static final float BLAST_VS_TITAN = 0.35f;
+	/** Outros danos (soco, flecha, mob...): só entram pelo bônus de dano abaixo. */
+	public static final float OTHER_VS_TITAN = 0.0f;
+	/** Titã (puro ou shifter) acertando alguém: vale para humano e para titã de shifter. */
 	public static final float TITAN_HIT = 0.15f;
+	/** Bônus de chance = (dano / vida máxima) x escala, limitado ao máximo. Só vale contra titã de shifter. */
+	public static final float DAMAGE_CHANCE_SCALE = 2.0f;
+	public static final float DAMAGE_CHANCE_MAX_BONUS = 0.35f;
+	/** Dano "OTHER" abaixo desta fração da vida máxima do titã nunca decepa. */
+	public static final float OTHER_MIN_DAMAGE_FRACTION = 0.03f;
+	/** Dano EXTRA (antes da armadura) que o humano leva ao perder um membro (braço/perna inteiro; metade+ no antebraço/canela/olho). 0 = sem dano extra. */
+	public static final float HUMAN_LOSS_EXTRA_DAMAGE = 6.0f;
 	/** Ticks mínimos entre duas perdas da mesma vítima (evita arrancar tudo num golpe em área). */
 	public static final int LOSS_COOLDOWN_TICKS = 40;
+
+	// ---- onde o titã foi atingido (altura relativa ao corpo: 0 = pés, 1 = topo da cabeça) -------------------
+	/** Acima disto é cabeça: só o olho (golpe de lâmina pela frente) pode ser decepado. */
+	public static final float HIT_HEAD_MIN = 0.88f;
+	/** Faixa dos braços: de HIT_ARM_MIN até a cabeça. Acima de HIT_ARM_UPPER_MIN é o braço inteiro (ombro), abaixo é o antebraço. */
+	public static final float HIT_ARM_MIN = 0.45f;
+	public static final float HIT_ARM_UPPER_MIN = 0.65f;
+	/** Na faixa dos braços, o golpe precisa estar a pelo menos esta fração da meia-largura para o lado (|lado| 0..1); no meio é tronco. */
+	public static final float HIT_ARM_SIDE_MIN = 0.40f;
+	/** Abaixo da faixa dos braços são as pernas. Acima disto é a coxa (perna inteira); abaixo, a canela. */
+	public static final float HIT_LEG_UPPER_MIN = 0.22f;
+	/** Se o esquerdo/direito sair invertido nos testes, troque para true. */
+	public static final boolean HIT_SWAP_SIDES = false;
+
+	/** Chance final de perda contra titã de shifter: base da origem + bônus pelo dano relativo à vida máxima. */
+	public static float titanVictimChance(float base, float amount, float maxHealth) {
+		float frac = maxHealth > 0f ? amount / maxHealth : 0f;
+		return Math.min(1f, base + Math.min(DAMAGE_CHANCE_MAX_BONUS, frac * DAMAGE_CHANCE_SCALE));
+	}
 
 	/** Peso de cada parte no sorteio (só entram partes ainda inteiras). */
 	public static int dropWeight(LimbPart p) {
@@ -43,6 +75,15 @@ public final class LimbRules {
 	public static float regrowSpeed(int masteryLevel) {
 		return MASTERY_REGROW[Math.max(0, Math.min(MASTERY_REGROW.length - 1, masteryLevel))];
 	}
+
+	// ---- membro decepado no chão (peça solta do titã) -----------------------------------------------------
+	/** Ticks que a peça solta fica no chão antes de sumir sozinha (20 ticks = 1 s). Use 0 ou menos para nunca sumir. */
+	public static final int DEBRIS_LIFETIME_TICKS = 20 * 30;
+	/** Ticks finais em que a peça encolhe e solta vapor até desaparecer (precisa ser menor que o tempo de vida). */
+	public static final int DEBRIS_FADE_TICKS = 20 * 6;
+	/** Intervalo (ticks) entre vapores no começo e no fim da evaporação: vai ficando mais denso. */
+	public static final int DEBRIS_STEAM_INTERVAL_START = 8;
+	public static final int DEBRIS_STEAM_INTERVAL_END = 2;
 
 	// ---- stamina da regeneração ---------------------------------------------------------------------------
 	/** Fração da stamina MÁXIMA gasta para uma parte crescer de 0 a 1 (sem desconto de maestria). */
