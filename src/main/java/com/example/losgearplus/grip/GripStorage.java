@@ -3,6 +3,7 @@ package com.example.losgearplus.grip;
 import com.example.losgearplus.LosGearPlus;
 import com.example.losgearplus.compat.DaotBridge;
 import com.example.losgearplus.compat.DaotBridge.Loadout;
+import com.example.losgearplus.limb.LimbRules;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
@@ -17,6 +18,7 @@ import net.fabricmc.fabric.api.networking.v1.PlayerLookup;
 import net.fabricmc.fabric.api.networking.v1.ServerPlayNetworking;
 import net.minecraft.network.protocol.game.ClientboundSetCarriedItemPacket;
 import net.minecraft.server.level.ServerPlayer;
+import net.minecraft.world.InteractionHand;
 import net.minecraft.world.entity.item.ItemEntity;
 import net.minecraft.world.entity.player.Inventory;
 import net.minecraft.world.inventory.AbstractContainerMenu;
@@ -317,6 +319,7 @@ public final class GripStorage {
 		writeAlt(player, remainingAlt);
 		LOCK_SLOT.put(player.getUUID(), slot);
 		RECORD.put(player.getUUID(), new ItemStack[] {main.copy(), off.copy()});
+		enforce(player); // se faltar um braço, o grip dessa mão já nasce estacionado
 		sync(player);
 		return true;
 	}
@@ -326,14 +329,28 @@ public final class GripStorage {
 	 * para o storage. Seguro de chamar a qualquer momento.
 	 */
 	public static void stow(ServerPlayer player) {
-		LOCK_SLOT.remove(player.getUUID());
-		RECORD.remove(player.getUUID());
+		Integer lockedSlot = LOCK_SLOT.remove(player.getUUID());
+		ItemStack[] parked = RECORD.remove(player.getUUID());
 
 		List<ItemStack> stored = read(player);
 		List<ItemStack> alt = readAlt(player);
 		boolean changed = false;
 		boolean changedAlt = false;
 		Inventory inv = player.getInventory();
+
+		// Grip estacionado (mão sem braço): volta ao slot para a varredura abaixo guardá-lo como os demais. Sem isso
+		// ele sumiria ao desligar o modo, relogar ou morrer, já que só existia na referência.
+		if (parked != null) {
+			for (int index = 0; index < 2; index++) {
+				InteractionHand hand = index == MAIN ? InteractionHand.MAIN_HAND : InteractionHand.OFF_HAND;
+				int invSlot = index == MAIN ? (lockedSlot != null ? lockedSlot : inv.selected) : OFFHAND_SLOT;
+				if (parked[index].isEmpty() || LimbRules.handUsable(player, hand)) continue;
+				if (GripMarker.isBound(inv.getItem(invSlot))) continue;
+				ItemStack displaced = inv.getItem(invSlot);
+				inv.setItem(invSlot, parked[index].copy());
+				giveOrDrop(player, displaced);
+			}
+		}
 		for (int i = 0; i < inv.getContainerSize(); i++) {
 			ItemStack stack = inv.getItem(i);
 			if (!GripMarker.isBound(stack)) continue;
@@ -408,8 +425,22 @@ public final class GripStorage {
 		sweepStrays(player, slot);
 
 		// 3) repõe o que faltar e guarda o estado atual (durabilidade, lâminas...) como nova referência
-		ensure(player, slot, MAIN, record);
-		ensure(player, OFFHAND_SLOT, OFF, record);
+		// Limb Dismemberment: mão sem braço não recebe grip. O grip dela fica "estacionado" na referência (RECORD) e
+		// volta sozinho quando o braço cresce de novo. Com um braço só, só um grip é usado.
+		if (LimbRules.handUsable(player, InteractionHand.MAIN_HAND)) ensure(player, slot, MAIN, record);
+		else park(player, slot, MAIN, record);
+		if (LimbRules.handUsable(player, InteractionHand.OFF_HAND)) ensure(player, OFFHAND_SLOT, OFF, record);
+		else park(player, OFFHAND_SLOT, OFF, record);
+	}
+
+	/** Tira o grip da mão sem braço, guardando o estado atual (durabilidade, lâminas) na referência. */
+	private static void park(ServerPlayer player, int invSlot, int index, ItemStack[] record) {
+		Inventory inv = player.getInventory();
+		ItemStack current = inv.getItem(invSlot);
+		if (GripMarker.isBound(current)) {
+			record[index] = current.copy();
+			inv.setItem(invSlot, ItemStack.EMPTY);
+		}
 	}
 
 	private static void ensure(ServerPlayer player, int invSlot, int index, ItemStack[] record) {

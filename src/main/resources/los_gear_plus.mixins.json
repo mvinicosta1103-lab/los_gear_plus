@@ -16,7 +16,12 @@
 		"LivingEntityMasteryMixin",
 		"LivingEntityLimbMixin",
 		"PlayerPoseLimbMixin",
-		"DaotBladeAttackLimbMixin"
+		"DaotBladeAttackLimbMixin",
+		"PlayerMainArmLimbMixin",
+		"EntitySprintLimbMixin",
+		"DaotTitanActionsLimbMixin",
+		"DaotTitanJumpLimbMixin",
+		"DaotDodgeLimbMixin"
 	],
 	"client": [
 		"client.KeyMappingAccessor",
@@ -28,7 +33,9 @@
 		"client.InventoryScreenHolsterMixin",
 		"client.CreativeInventoryHolsterMixin",
 		"client.GuiOverlayMessageMixin",
-		"client.PlayerRendererLimbMixin"
+		"client.PlayerRendererLimbMixin",
+		"client.GeoModelLimbMixin",
+		"client.DaotOdmNoArmsMixin"
 	],
 	"injectors": {
 		"defaultRequire": 1

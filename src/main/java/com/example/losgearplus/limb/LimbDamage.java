@@ -50,7 +50,7 @@ public final class LimbDamage {
 		if (rnd.nextFloat() >= chance) return amount;
 
 		LimbPart part = pick(rnd, LimbData.of(owner), kind == Source.BLADE);
-		if (part == null || !LimbManager.lose(owner, part, true)) return amount;
+		if (part == null || !LimbManager.lose(owner, part, victim, true)) return amount;
 		LAST_LOSS.put(owner.getUUID(), now);
 
 		// "Sem morrer": o golpe que decepa nunca mata (deixa pelo menos 1 de vida).

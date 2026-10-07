@@ -47,5 +47,8 @@
 	"los_gear_plus.limb.lost.leg_lower_left": "Você perdeu a canela esquerda!",
 	"los_gear_plus.limb.lost.leg_lower_right": "Você perdeu a canela direita!",
 	"los_gear_plus.limb.lost.eye_left": "Você perdeu o olho esquerdo!",
-	"los_gear_plus.limb.lost.eye_right": "Você perdeu o olho direito!"
+	"los_gear_plus.limb.lost.eye_right": "Você perdeu o olho direito!",
+	"los_gear_plus.limb.no_stamina": "Sem stamina de shifter para regenerar!",
+	"los_gear_plus.limb.titan_no_arms": "Seu titã está sem braços para isso!",
+	"los_gear_plus.limb.titan_no_legs": "Seu titã não consegue fazer isso ajoelhado!"
 }

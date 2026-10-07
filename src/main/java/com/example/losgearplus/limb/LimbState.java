@@ -21,7 +21,7 @@ public final class LimbState {
 	).apply(i, LimbState::fromLists));
 
 	/** Menor tamanho visual de um toco que acabou de começar a crescer. */
-	public static final float STUMP_MIN = 0.2f;
+	public static final float STUMP_MIN = 0.3f;
 
 	private final LimbStatus[] status = new LimbStatus[LimbPart.COUNT];
 	private final float[] progress = new float[LimbPart.COUNT];
@@ -66,6 +66,27 @@ public final class LimbState {
 	}
 
 	public boolean blind() { return isMissing(LimbPart.EYE_LEFT) && isMissing(LimbPart.EYE_RIGHT); }
+
+	/** Muda só quando muda o STATUS de alguma parte (ignora o progresso). */
+	public int statusSignature() {
+		int h = 0;
+		for (LimbStatus s : status) h = h * 3 + s.ordinal();
+		return h;
+	}
+
+	/**
+	 * Espessura visual do braço: enquanto o braço (upper) cresce ele é um mini-braço inteiro, que engrossa junto
+	 * com o comprimento. Nos outros estados é 1 (o antebraço não dá para engrossar separado do braço).
+	 */
+	public float armThickness(boolean left) {
+		LimbPart upper = LimbPart.of(LimbPart.Kind.ARM, left, true);
+		return status(upper) == LimbStatus.REGROWING ? fraction(upper) : 1f;
+	}
+
+	public float legThickness(boolean left) {
+		LimbPart upper = LimbPart.of(LimbPart.Kind.LEG, left, true);
+		return status(upper) == LimbStatus.REGROWING ? fraction(upper) : 1f;
+	}
 
 	/** Comprimento visual do braço (0..1 do braço inteiro; o cotovelo fica em 0.5). */
 	public float armLength(boolean left) {
@@ -150,6 +171,22 @@ public final class LimbState {
 			}
 		}
 		return changed;
+	}
+
+	/**
+	 * Custo em stamina (fração da máxima) do próximo tick de {@link #regrow(float)} com este {@code speed}:
+	 * só partes que estão realmente crescendo (toco) e liberadas pelo UPPER, sem o desconto de maestria.
+	 */
+	public float regrowCost(float speed) {
+		float cost = 0f;
+		for (LimbPart p : LimbPart.VALUES) {
+			int i = p.ordinal();
+			if (status[i] != LimbStatus.REGROWING) continue;
+			LimbPart parent = p.parent();
+			if (parent != null && status[parent.ordinal()] != LimbStatus.INTACT) continue;
+			cost += LimbRules.staminaFraction(p) * speed / LimbRules.regrowTicks(p);
+		}
+		return cost;
 	}
 
 	public void copyFrom(LimbState o) {

@@ -44,12 +44,44 @@ public final class LimbRules {
 		return MASTERY_REGROW[Math.max(0, Math.min(MASTERY_REGROW.length - 1, masteryLevel))];
 	}
 
+	// ---- stamina da regeneração ---------------------------------------------------------------------------
+	/** Fração da stamina MÁXIMA gasta para uma parte crescer de 0 a 1 (sem desconto de maestria). */
+	private static final float[] STAMINA_FRACTION = {
+			0.20f, 0.20f,   // braço
+			0.12f, 0.12f,   // antebraço
+			0.25f, 0.25f,   // perna
+			0.15f, 0.15f,   // canela
+			0.15f, 0.15f    // olhos
+	};
+
+	/** Desconto por maestria: 1 = custo cheio, 0 = de graça (nível 9 não gasta stamina). */
+	private static final float[] STAMINA_MASTERY_FACTOR = { 1.0f, 0.85f, 0.70f, 0.58f, 0.46f, 0.35f, 0.25f, 0.16f, 0.08f, 0f };
+
+	public static float staminaFraction(LimbPart p) {
+		return STAMINA_FRACTION[p.ordinal()];
+	}
+
+	public static float staminaFactor(int ruleLevel) {
+		return STAMINA_MASTERY_FACTOR[Math.max(0, Math.min(STAMINA_MASTERY_FACTOR.length - 1, ruleLevel))];
+	}
+
 	// ---- mãos ---------------------------------------------------------------------------------------------
 
 	/** A mão {@code hand} funciona? (depende de qual braço é o principal nas opções do jogador). */
 	public static boolean handUsable(Player p, InteractionHand hand) {
 		boolean right = (hand == InteractionHand.MAIN_HAND) == (p.getMainArm() == HumanoidArm.RIGHT);
 		return LimbData.of(p).armUsable(!right);
+	}
+
+	/**
+	 * Se SÓ UM braço funciona, ele vira o principal por obrigação (a outra mão fica inutilizável). Com os dois
+	 * funcionando (ou nenhum) vale a escolha normal do jogador. Volta ao normal sozinho quando o braço cresce.
+	 */
+	public static HumanoidArm forcedMainArm(LimbState s) {
+		boolean left = s.armUsable(true);
+		boolean right = s.armUsable(false);
+		if (left == right) return null;
+		return left ? HumanoidArm.LEFT : HumanoidArm.RIGHT;
 	}
 
 	/** Sem nenhum braço funcionando. */
@@ -63,6 +95,43 @@ public final class LimbRules {
 	/** Média das duas pernas: 1 = normal, 0 = sem pernas. */
 	public static float mobility(LimbState s) {
 		return (s.legValue(true) + s.legValue(false)) / 2f;
+	}
+
+	/** Titã que ajoelha até recuperar as pernas: uma perna inteira perdida, ou as duas canelas. */
+	public static boolean mustKneel(LimbState s) {
+		return mobility(s) <= 0.5f;
+	}
+
+	/** Velocidade do titã: ajoelhado quase não sai do lugar. */
+	public static float titanSpeedMultiplier(LimbState s) {
+		return mustKneel(s) ? 0.10f : speedMultiplier(s);
+	}
+
+	// ---- braços do titã -----------------------------------------------------------------------------------
+	/** true = qualquer braço perdido já impede socar/defender/habilidades de braço; false = basta UM braço. */
+	public static final boolean TITAN_ARM_ACTIONS_NEED_BOTH_ARMS = true;
+
+	public static boolean titanArmsOk(LimbState s) {
+		boolean l = s.armUsable(true);
+		boolean r = s.armUsable(false);
+		return TITAN_ARM_ACTIONS_NEED_BOTH_ARMS ? (l && r) : (l || r);
+	}
+
+	/**
+	 * A habilidade {@code n} deste titã usa os braços? Padrão: sim. Exceções (não usam braço): Colossal 1 (vapor),
+	 * 2 (chute) e 4 (calor infernal); Beast 4 (rugido).
+	 */
+	public static boolean titanAbilityNeedsArms(String titanClass, int n) {
+		switch (titanClass) {
+			case "ColossalTitanEntity": return n == 3;
+			case "BeastTitanEntity": return n != 4;
+			default: return true;
+		}
+	}
+
+	/** Habilidades que usam as pernas (não funcionam ajoelhado): Colossal 2 (chute). */
+	public static boolean titanAbilityNeedsLegs(String titanClass, int n) {
+		return titanClass.equals("ColossalTitanEntity") && n == 2;
 	}
 
 	/** Só rasteja: as duas pernas com pelo menos metade perdida. */

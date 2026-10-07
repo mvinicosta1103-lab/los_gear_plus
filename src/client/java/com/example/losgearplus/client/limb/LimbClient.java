@@ -12,7 +12,10 @@ public final class LimbClient {
 	public static void init() {
 		ClientPlayNetworking.registerGlobalReceiver(LimbSyncPayload.TYPE,
 				(payload, context) -> context.client().execute(() -> LimbClientCache.put(payload.id(), payload.toState())));
-		ClientPlayConnectionEvents.DISCONNECT.register((handler, client) -> LimbClientCache.clear());
+		ClientPlayConnectionEvents.DISCONNECT.register((handler, client) -> {
+			LimbClientCache.clear();
+			TitanLimbBones.clear();
+		});
 		LimbVisionHud.init();
 	}
 }

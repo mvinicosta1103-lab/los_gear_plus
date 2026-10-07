@@ -47,5 +47,8 @@
 	"los_gear_plus.limb.lost.leg_lower_left": "You lost your left lower leg!",
 	"los_gear_plus.limb.lost.leg_lower_right": "You lost your right lower leg!",
 	"los_gear_plus.limb.lost.eye_left": "You lost your left eye!",
-	"los_gear_plus.limb.lost.eye_right": "You lost your right eye!"
+	"los_gear_plus.limb.lost.eye_right": "You lost your right eye!",
+	"los_gear_plus.limb.no_stamina": "Not enough shifter stamina to regrow!",
+	"los_gear_plus.limb.titan_no_arms": "Your titan has no arms for that!",
+	"los_gear_plus.limb.titan_no_legs": "Your titan can't do that while kneeling!"
 }

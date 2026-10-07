@@ -16,7 +16,8 @@ public final class LimbSync {
 	private LimbSync() {}
 
 	private static final Map<UUID, byte[]> LAST = new HashMap<>();
-	private static final Map<UUID, Long> LAST_TICK = new HashMap<>();
+	/** Ticks desde o último envio, contados por nós (nada de comparar relógios diferentes). */
+	private static final Map<UUID, Integer> SINCE = new HashMap<>();
 	/** Enquanto algo cresce, manda no máximo a cada N ticks. */
 	private static final int THROTTLE = 4;
 
@@ -24,7 +25,7 @@ public final class LimbSync {
 		ServerPlayConnectionEvents.JOIN.register((handler, sender, server) -> send(handler.getPlayer(), true));
 		ServerPlayConnectionEvents.DISCONNECT.register((handler, server) -> {
 			LAST.remove(handler.getPlayer().getUUID());
-			LAST_TICK.remove(handler.getPlayer().getUUID());
+			SINCE.remove(handler.getPlayer().getUUID());
 		});
 		ServerPlayerEvents.AFTER_RESPAWN.register((oldPlayer, newPlayer, alive) -> send(newPlayer, true));
 		EntityTrackingEvents.START_TRACKING.register((tracked, viewer) -> {
@@ -44,15 +45,21 @@ public final class LimbSync {
 			if (prev == null && state.isPristine()) return;
 		}
 		LAST.put(owner.getUUID(), pl.data());
-		LAST_TICK.put(owner.getUUID(), owner.level().getGameTime());
+		SINCE.put(owner.getUUID(), 0);
 		push(owner, pl);
 		for (ServerPlayer viewer : PlayerLookup.tracking(owner)) push(viewer, pl);
 	}
 
 	/** Chamado todo tick para quem tem perdas: reenvia só se mudou e respeitando o intervalo. */
-	public static void tick(ServerPlayer owner, long now) {
-		Long last = LAST_TICK.get(owner.getUUID());
-		if (last != null && now - last < THROTTLE) return;
+	public static void tick(ServerPlayer owner) {
+		UUID id = owner.getUUID();
+		int since = SINCE.merge(id, 1, Integer::sum);
+		byte[] prev = LAST.get(id);
+		byte[] cur = LimbSyncPayload.of(id, LimbData.of(owner)).data();
+		// mudou quem está perdido/crescendo/inteiro: manda já; só o progresso (barra de crescimento): a cada THROTTLE ticks
+		boolean statusChanged = prev == null || !Arrays.equals(
+				Arrays.copyOf(cur, LimbPart.COUNT), Arrays.copyOf(prev, LimbPart.COUNT));
+		if (!statusChanged && since < THROTTLE) return;
 		send(owner, false);
 	}
 
