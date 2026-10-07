@@ -1,6 +1,8 @@
 package com.example.losgearplus;
 
 import com.example.losgearplus.compat.LosGearCompat;
+import com.example.losgearplus.limb.LimbCommand;
+import com.example.losgearplus.limb.LimbManager;
 import com.example.losgearplus.mode.OdmgModeNetworking;
 import com.example.losgearplus.shifter.ShifterForceShift;
 import com.example.losgearplus.shifter.ShifterMastery;
@@ -28,6 +30,8 @@ public class LosGearPlus implements ModInitializer {
 		ShifterMasterySync.init();
 		ShifterMasteryStats.init();
 		ShifterForceShift.init();
+		LimbManager.init();
+		LimbCommand.init();
 
 		// los_gear é "recommends": só toca nas classes dele se estiver instalado.
 		if (FabricLoader.getInstance().isModLoaded("los_gear")) {

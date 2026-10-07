@@ -36,5 +36,16 @@
 	"los_gear_plus.mastery.resets_in": "Resets in %s",
 	"los_gear_plus.mastery_hud.on": "Mastery HUD: ON",
 	"los_gear_plus.mastery_hud.off": "Mastery HUD: OFF",
-	"key.los_gear_plus.mastery_hud": "Toggle Mastery HUD"
+	"key.los_gear_plus.mastery_hud": "Toggle Mastery HUD",
+	"los_gear_plus.limb.hand_lost": "You can't use that hand!",
+	"los_gear_plus.limb.lost.arm_upper_left": "You lost your left arm!",
+	"los_gear_plus.limb.lost.arm_upper_right": "You lost your right arm!",
+	"los_gear_plus.limb.lost.arm_lower_left": "You lost your left forearm!",
+	"los_gear_plus.limb.lost.arm_lower_right": "You lost your right forearm!",
+	"los_gear_plus.limb.lost.leg_upper_left": "You lost your left leg!",
+	"los_gear_plus.limb.lost.leg_upper_right": "You lost your right leg!",
+	"los_gear_plus.limb.lost.leg_lower_left": "You lost your left lower leg!",
+	"los_gear_plus.limb.lost.leg_lower_right": "You lost your right lower leg!",
+	"los_gear_plus.limb.lost.eye_left": "You lost your left eye!",
+	"los_gear_plus.limb.lost.eye_right": "You lost your right eye!"
 }

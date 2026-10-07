@@ -13,7 +13,10 @@
 		"AbstractContainerMenuAddSlotInvoker",
 		"InventoryMenuHolsterSlotMixin",
 		"ForceShiftMixin",
-		"LivingEntityMasteryMixin"
+		"LivingEntityMasteryMixin",
+		"LivingEntityLimbMixin",
+		"PlayerPoseLimbMixin",
+		"DaotBladeAttackLimbMixin"
 	],
 	"client": [
 		"client.KeyMappingAccessor",
@@ -24,7 +27,8 @@
 		"client.CreativeSlotWrapperTargetAccessor",
 		"client.InventoryScreenHolsterMixin",
 		"client.CreativeInventoryHolsterMixin",
-		"client.GuiOverlayMessageMixin"
+		"client.GuiOverlayMessageMixin",
+		"client.PlayerRendererLimbMixin"
 	],
 	"injectors": {
 		"defaultRequire": 1
