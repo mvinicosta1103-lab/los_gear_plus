@@ -1,6 +1,7 @@
 package com.example.losgearplus;
 
 import com.example.losgearplus.compat.LosGearCompat;
+import com.example.losgearplus.evap.TitanEvaporation;
 import com.example.losgearplus.limb.LimbCommand;
 import com.example.losgearplus.limb.LimbManager;
 import com.example.losgearplus.mode.OdmgModeNetworking;
@@ -32,6 +33,7 @@ public class LosGearPlus implements ModInitializer {
 		ShifterForceShift.init();
 		LimbManager.init();
 		LimbCommand.init();
+		TitanEvaporation.init();
 
 		// los_gear é "recommends": só toca nas classes dele se estiver instalado.
 		if (FabricLoader.getInstance().isModLoaded("los_gear")) {

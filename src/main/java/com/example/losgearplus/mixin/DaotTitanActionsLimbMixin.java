@@ -11,7 +11,8 @@ import org.spongepowered.asm.mixin.injection.Inject;
 import org.spongepowered.asm.mixin.injection.callback.CallbackInfo;
 
 /**
- * Titã shifter sem braço não soca, não defende e não usa habilidade de braço; ajoelhado também não usa as de perna.
+ * Titã shifter sem braço não soca nem defende; habilidades só ficam impossíveis com os DOIS braços removidos (gritos,
+ * impulsos e berserk nunca dependem de braço); ajoelhado também não usa as de perna.
  * Os três handlers são {@code private static} em {@code ModNetworking}; alvo só pelo NOME (todos únicos).
  */
 @Mixin(targets = "daot.network.ModNetworking", remap = false)
@@ -32,7 +33,7 @@ public abstract class DaotTitanActionsLimbMixin {
 		LimbState st = LimbLookup.riderState(player);
 		if (st == null) return;
 		String cls = player.getVehicle().getClass().getSimpleName();
-		if (LimbRules.titanAbilityNeedsArms(cls, abilityNumber) && !LimbRules.titanArmsOk(st)) {
+		if (LimbRules.titanAbilityNeedsArms(cls, abilityNumber) && !LimbRules.titanAbilitiesOk(st)) {
 			player.displayClientMessage(Component.translatable("los_gear_plus.limb.titan_no_arms"), true);
 			ci.cancel();
 		} else if (LimbRules.titanAbilityNeedsLegs(cls, abilityNumber) && LimbRules.mustKneel(st)) {

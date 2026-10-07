@@ -176,8 +176,17 @@ public final class LimbManager {
 
 			boolean changed = false;
 			if (p.isAlive() && ShifterTypes.isShifter(p)) {
-				float steam = SteamHealServer.isActive(p) ? 1f : LimbRules.PASSIVE_REGROW;
-				if (steam > 0f) changed = regrowWithStamina(p, st, steam, now);
+				boolean steamOn = SteamHealServer.isActive(p);
+				Entity ride = p.getVehicle();
+				LivingEntity titanBody = ride instanceof ShifterTitan && ride instanceof LivingEntity le ? le : null;
+				// Passiva só na forma de titã; na forma humana só o Steam Heal regenera.
+				float steam = steamOn ? 1f : (titanBody != null ? LimbRules.PASSIVE_REGROW : 0f);
+				if (steam > 0f) {
+					changed = regrowWithStamina(p, st, steam, now);
+					if (changed && !steamOn && now % LimbRules.PASSIVE_SMOKE_INTERVAL_TICKS == 0) {
+						SteamHealServer.passiveSmoke(p.serverLevel(), titanBody);
+					}
+				}
 			}
 
 			MODDED.add(id);

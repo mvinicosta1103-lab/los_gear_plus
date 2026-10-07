@@ -65,8 +65,14 @@ public final class LimbRules {
 	/** Multiplicador por nível de maestria (0..9): quanto mais maestria, mais rápido. */
 	private static final float[] MASTERY_REGROW = { 0.5f, 0.6f, 0.75f, 0.9f, 1.1f, 1.3f, 1.6f, 2.0f, 2.5f, 3.5f };
 
-	/** Fração da velocidade que um shifter regenera SEM Steam Heal (0 = só com Steam Heal ligado). */
-	public static final float PASSIVE_REGROW = 0f;
+	/**
+	 * Passiva: fração da velocidade com que um shifter regenera os membros SEM Steam Heal, mas só na forma de titã
+	 * (montado no titã dele). Solta fumaça enquanto cresce. O Steam Heal ligado regenera na velocidade cheia (1.0).
+	 * Na forma humana vale 0: ali só o Steam Heal regenera. Use 0 para desligar a passiva.
+	 */
+	public static final float PASSIVE_REGROW = 0.15f;
+	/** Ticks entre as baforadas de fumaça da regeneração passiva. */
+	public static final int PASSIVE_SMOKE_INTERVAL_TICKS = 6;
 
 	public static int regrowTicks(LimbPart p) {
 		return REGROW_TICKS[p.ordinal()];
@@ -149,23 +155,40 @@ public final class LimbRules {
 	}
 
 	// ---- braços do titã -----------------------------------------------------------------------------------
-	/** true = qualquer braço perdido já impede socar/defender/habilidades de braço; false = basta UM braço. */
+	/** true = qualquer braço perdido já impede socar/defender; false = basta UM braço. (Soco e guarda, não habilidades.) */
 	public static final boolean TITAN_ARM_ACTIONS_NEED_BOTH_ARMS = true;
+	/**
+	 * true = qualquer braço perdido já impede as habilidades de braço; false (padrão) = só ficam impossíveis quando
+	 * os DOIS braços foram removidos (com um braço o titã ainda usa as habilidades).
+	 */
+	public static final boolean TITAN_ABILITIES_NEED_BOTH_ARMS = false;
 
+	/** Soco / guarda: respeita {@link #TITAN_ARM_ACTIONS_NEED_BOTH_ARMS}. */
 	public static boolean titanArmsOk(LimbState s) {
 		boolean l = s.armUsable(true);
 		boolean r = s.armUsable(false);
 		return TITAN_ARM_ACTIONS_NEED_BOTH_ARMS ? (l && r) : (l || r);
 	}
 
+	/** Habilidades: respeita {@link #TITAN_ABILITIES_NEED_BOTH_ARMS}. Sem nenhum braço funcionando nunca passa. */
+	public static boolean titanAbilitiesOk(LimbState s) {
+		boolean l = s.armUsable(true);
+		boolean r = s.armUsable(false);
+		return TITAN_ABILITIES_NEED_BOTH_ARMS ? (l && r) : (l || r);
+	}
+
 	/**
-	 * A habilidade {@code n} deste titã usa os braços? Padrão: sim. Exceções (não usam braço): Colossal 1 (vapor),
-	 * 2 (chute) e 4 (calor infernal); Beast 4 (rugido).
+	 * A habilidade {@code n} deste titã usa os braços? Padrão: sim. Exceções (funcionam até SEM braços):
+	 * gritos e berserk; Colossal 1 (vapor), 2 (chute) e 4 (calor infernal); Beast 4 (rugido); Female 3 (grito
+	 * convocador); Attack 9 (berserk). O grito do Attack/Female/Royal e o impulso (dash) do titã não passam por
+	 * aqui (têm payload próprio) e nunca são bloqueados por braços.
 	 */
 	public static boolean titanAbilityNeedsArms(String titanClass, int n) {
 		switch (titanClass) {
 			case "ColossalTitanEntity": return n == 3;
 			case "BeastTitanEntity": return n != 4;
+			case "FemaleTitanEntity": return n != 3;
+			case "AttackTitanEntity": return n != 9;
 			default: return true;
 		}
 	}

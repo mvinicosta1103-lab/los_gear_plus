@@ -210,4 +210,9 @@ public final class SteamHealServer {
 			level.sendParticles(ParticleTypes.CAMPFIRE_COSY_SMOKE, x, y, z, 0, 0.0, 1.0, 0.0, 0.07);
 		}
 	}
+
+	/** Fumaça leve da regeneração passiva do titã (sem o vapor e o chiado do Steam Heal ligado). */
+	public static void passiveSmoke(ServerLevel level, LivingEntity body) {
+		smoke(level, body);
+	}
 }

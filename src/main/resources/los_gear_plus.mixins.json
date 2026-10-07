@@ -22,7 +22,8 @@
 		"EntitySprintLimbMixin",
 		"DaotTitanActionsLimbMixin",
 		"DaotTitanJumpLimbMixin",
-		"DaotDodgeLimbMixin"
+		"DaotDodgeLimbMixin",
+		"DaotTitanCorpseEvaporationMixin"
 	],
 	"client": [
 		"client.KeyMappingAccessor",
@@ -37,7 +38,8 @@
 		"client.PlayerRendererLimbMixin",
 		"client.PlayerRendererRiderHideMixin",
 		"client.GeoModelLimbMixin",
-		"client.DaotOdmNoArmsMixin"
+		"client.DaotOdmNoArmsMixin",
+		"client.GeoEntityRendererEvaporationMixin"
 	],
 	"injectors": {
 		"defaultRequire": 1
