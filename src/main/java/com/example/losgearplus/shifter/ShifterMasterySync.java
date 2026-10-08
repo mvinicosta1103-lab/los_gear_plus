@@ -22,9 +22,7 @@ public final class ShifterMasterySync {
 	private ShifterMasterySync() {}
 
 	/** DAOT shifter tags (same list as Steam Heal). */
-	public static final Set<String> SHIFTER_TAGS = Set.of(
-			"attack", "colossal", "armored", "beast", "female", "warhammer",
-			"founder", "triple_t", "ogre_shifter", "jaw", "cart_shifter");
+	public static final Set<String> SHIFTER_TAGS = ShifterTypes.TAGS;
 
 	private static final Map<UUID, ShifterMasterySyncPayload> LAST = new HashMap<>();
 

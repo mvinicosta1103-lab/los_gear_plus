@@ -54,9 +54,7 @@ public final class SteamHealServer {
 	private static final int REGEN_RENEW_BELOW = 40;
 
 	/** Tags de shifter do DAOT (conferidas em ModNetworking.tickShifterRegeneration, jar 2.5.0). */
-	private static final Set<String> SHIFTER_TAGS = Set.of(
-			"attack", "colossal", "armored", "beast", "female", "warhammer",
-			"founder", "triple_t", "ogre_shifter", "jaw", "cart_shifter");
+	private static final Set<String> SHIFTER_TAGS = com.example.losgearplus.shifter.ShifterTypes.TAGS;
 
 	private static final Class<?> SHIFTER_TITAN = findShifterTitan();
 

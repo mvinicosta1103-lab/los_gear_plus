@@ -102,13 +102,10 @@ public final class LimbDamage {
 		Entity attacker = src.getEntity();
 		Entity direct = src.getDirectEntity();
 		if (attacker instanceof ShifterTitan) return Source.TITAN;
-		if (attacker != null) {
-			String cls = attacker.getClass().getName();
-			if (cls.startsWith("daot.") && attacker.getClass().getSimpleName().contains("Titan")) return Source.TITAN;
-		}
+		if (attacker != null && isDaotTitanClass(attacker.getClass())) return Source.TITAN;
 		// explosão (tag do jogo) ou projétil/arma explosiva do DAOT (lança do trovão, canhão): heurística pelo nome
 		if (src.is(DamageTypeTags.IS_EXPLOSION)) return Source.BLAST;
-		if (direct != null && direct != attacker && direct.getClass().getName().startsWith("daot.")) {
+		if (direct != null && direct != attacker && isDaotClass(direct.getClass())) {
 			String n = direct.getClass().getSimpleName().toLowerCase(java.util.Locale.ROOT);
 			if (n.contains("spear") || n.contains("cannon") || n.contains("thunder")) return Source.BLAST;
 		}
@@ -118,6 +115,22 @@ public final class LimbDamage {
 			return Source.BLADE;
 		}
 		return Source.OTHER;
+	}
+
+	/** Algum ancestral da classe está no pacote do DAOT e tem "Titan" no nome (cobre titãs puros de addons). */
+	private static boolean isDaotTitanClass(Class<?> c) {
+		for (Class<?> k = c; k != null && k != Object.class; k = k.getSuperclass()) {
+			if (k.getName().startsWith("daot.") && k.getSimpleName().contains("Titan")) return true;
+		}
+		return false;
+	}
+
+	/** Algum ancestral da classe está no pacote do DAOT (cobre projéteis/armas de addons que estendem os do DAOT). */
+	private static boolean isDaotClass(Class<?> c) {
+		for (Class<?> k = c; k != null && k != Object.class; k = k.getSuperclass()) {
+			if (k.getName().startsWith("daot.")) return true;
+		}
+		return false;
 	}
 
 	/** Sorteio ponderado entre as partes que ainda estão inteiras (humanos). Olhos só quando {@code eyes}. */

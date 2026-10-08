@@ -195,6 +195,33 @@ public final class LimbRules {
 		return TITAN_ABILITIES_NEED_BOTH_ARMS ? (l && r) : (l || r);
 	}
 
+	private static final java.util.Set<String> KNOWN_TITAN_CLASSES = java.util.Set.of(
+			"ColossalTitanEntity", "BeastTitanEntity", "FemaleTitanEntity", "AttackTitanEntity");
+	private static final java.util.Map<String, String> TITAN_CLASS_ALIASES = new java.util.concurrent.ConcurrentHashMap<>();
+
+	/**
+	 * API para addons: o titã de classe {@code addonSimpleName} usa as regras de habilidade de
+	 * {@code baseSimpleName} (ex.: "MyColossalTitanEntity" -> "ColossalTitanEntity"). Só é necessário se a classe
+	 * NÃO estende o titã base (quem estende já é resolvido pela hierarquia).
+	 */
+	public static void registerTitanClassAlias(String addonSimpleName, String baseSimpleName) {
+		TITAN_CLASS_ALIASES.put(addonSimpleName, baseSimpleName);
+	}
+
+	/**
+	 * Sobe a hierarquia da classe até achar um titã conhecido (ou um alias registrado). Assim uma subclasse/skin
+	 * herda as regras do titã pai. Sem nada conhecido, devolve o nome simples da própria classe.
+	 */
+	public static String resolveTitanClass(Class<?> c) {
+		for (Class<?> k = c; k != null && k != Object.class; k = k.getSuperclass()) {
+			String n = k.getSimpleName();
+			String alias = TITAN_CLASS_ALIASES.get(n);
+			if (alias != null) return alias;
+			if (KNOWN_TITAN_CLASSES.contains(n)) return n;
+		}
+		return c.getSimpleName();
+	}
+
 	/**
 	 * A habilidade {@code n} deste titã usa os braços? Padrão: sim. Exceções (funcionam até SEM braços):
 	 * gritos e berserk; Colossal 1 (vapor), 2 (chute) e 4 (calor infernal); Beast 4 (rugido); Female 3 (grito

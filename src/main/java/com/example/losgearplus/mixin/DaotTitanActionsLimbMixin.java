@@ -32,7 +32,7 @@ public abstract class DaotTitanActionsLimbMixin {
 	private static void los_gear_plus$noAbility(ServerPlayer player, int abilityNumber, CallbackInfo ci) {
 		LimbState st = LimbLookup.riderState(player);
 		if (st == null) return;
-		String cls = player.getVehicle().getClass().getSimpleName();
+		String cls = LimbRules.resolveTitanClass(player.getVehicle().getClass());
 		if (LimbRules.titanAbilityNeedsArms(cls, abilityNumber) && !LimbRules.titanAbilitiesOk(st)) {
 			player.displayClientMessage(Component.translatable("los_gear_plus.limb.titan_no_arms"), true);
 			ci.cancel();

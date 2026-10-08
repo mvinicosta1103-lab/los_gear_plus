@@ -48,6 +48,12 @@ public final class TitanLimbBones {
 
 	private static final Map<String, Rig> RIGS = new HashMap<>();
 	private static final Map<ResourceLocation, Rig> BY_MODEL = new HashMap<>();
+	/** Modelos de addon que reaproveitam o rig de outro: nome do arquivo (sem extensão) -> nome do rig existente. */
+	private static final Map<String, String> ALIASES = new HashMap<>();
+	/** Rigs tentados, em ordem, quando o modelo não está registrado: vale o primeiro cujos ossos existem todos. */
+	private static final java.util.List<Rig> PROBE = new java.util.ArrayList<>();
+	/** Marca "já procurei e não achei": evita refazer a busca a cada quadro. */
+	private static final Rig NO_RIG = new Rig(null, null, null, null, "", 0f);
 	/** Titãs (id) que tiveram ossos alterados: precisam ser restaurados quando tudo voltar. */
 	private static final Set<Integer> TOUCHED = new HashSet<>();
 	/** Máscara de partes ausentes no quadro anterior, por titã (detecta o instante do corte). */
@@ -90,6 +96,62 @@ public final class TitanLimbBones {
 		// A família Cart tem o modelo espelhado (frente em +Z), igual ao "flippedRoot" dos rigs do DAOT.
 		Rig cart = new Rig(num[0], num[1], num[2], num[3], "body", +1f);
 		for (String n : new String[] { "cart", "cart_cannon", "cart_cargo", "cart_turret" }) RIGS.put(n, cart);
+
+		// Ordem da detecção automática (modelo desconhecido). O rig "cart" é espelhado e usa os mesmos nomes do
+		// "jawtitan": não dá para distinguir pelos ossos, então modelo espelhado precisa de registerAlias/registerRig.
+		PROBE.add(attackLike);
+		PROBE.add(RIGS.get("colossal"));
+		PROBE.add(RIGS.get("warhammertitan"));
+		PROBE.add(RIGS.get("jawtitan"));
+	}
+
+	// ---- API para addons -------------------------------------------------------------------------------------
+
+	/**
+	 * Skin/titã de addon cujo {@code .geo.json} tem OUTRO nome mas os mesmos ossos de um titã existente.
+	 * {@code newModelName} = nome do arquivo do modelo sem extensão (ex.: "my_attack_titan");
+	 * {@code existingModelName} = o rig a copiar (ex.: "attacktitan2", "colossal", "cart").
+	 */
+	public static void registerAlias(String newModelName, String existingModelName) {
+		ALIASES.put(newModelName, existingModelName);
+		BY_MODEL.clear();
+	}
+
+	/**
+	 * Rig próprio para um modelo de addon com ossos diferentes. Cada array é {osso de cima, osso de baixo, osso da
+	 * ponta}: braço esquerdo/direito e perna esquerda/direita. {@code fz} = -1 modelo normal, +1 modelo espelhado
+	 * (frente em +Z, como a família Cart).
+	 */
+	public static void registerRig(String modelName, String root, float fz,
+			String[] armL, String[] armR, String[] legL, String[] legR) {
+		RIGS.put(modelName, new Rig(
+				new Limb(armL[0], armL[1], armL[2]), new Limb(armR[0], armR[1], armR[2]),
+				new Limb(legL[0], legL[1], legL[2]), new Limb(legR[0], legR[1], legR[2]), root, fz));
+		BY_MODEL.clear();
+	}
+
+	private static Rig findRig(GeoModel<?> model, ResourceLocation res) {
+		String file = res.getPath().substring(res.getPath().lastIndexOf('/') + 1);
+		int dot = file.indexOf('.');
+		String name = dot < 0 ? file : file.substring(0, dot);
+		Rig rig = RIGS.get(name);
+		if (rig != null) return rig;
+		String alias = ALIASES.get(name);
+		if (alias != null && (rig = RIGS.get(alias)) != null) return rig;
+		for (Rig candidate : PROBE) {
+			if (hasAllBones(model, candidate)) return candidate;
+		}
+		LOG.warn("Modelo de titan sem rig de membros: {} (use TitanLimbBones.registerAlias/registerRig)", res);
+		return NO_RIG;
+	}
+
+	private static boolean hasAllBones(GeoModel<?> model, Rig rig) {
+		for (Limb l : new Limb[] { rig.armLeft, rig.armRight, rig.legLeft, rig.legRight }) {
+			if (model.getBone(l.upper).isEmpty() || model.getBone(l.lower).isEmpty() || model.getBone(l.end).isEmpty()) {
+				return false;
+			}
+		}
+		return model.getBone(rig.root).isPresent();
 	}
 
 	public static void clear() {
@@ -110,12 +172,8 @@ public final class TitanLimbBones {
 		if (idle) return;
 
 		ResourceLocation res = ((GeoModel<GeoAnimatable>) model).getModelResource((GeoAnimatable) titan);
-		Rig rig = BY_MODEL.computeIfAbsent(res, r -> {
-			String file = r.getPath().substring(r.getPath().lastIndexOf('/') + 1);
-			int dot = file.indexOf('.');
-			return RIGS.get(dot < 0 ? file : file.substring(0, dot));
-		});
-		if (rig == null) return;
+		Rig rig = BY_MODEL.computeIfAbsent(res, r -> findRig(model, r));
+		if (rig == null || rig == NO_RIG) return;
 
 		// 1) o instante do corte vira peça solta (antes de esconder, com os ossos ainda na pose da animação)
 		if (prev != null && (mask & ~prev) != 0 && TitanDebrisBridge.ready()) {
