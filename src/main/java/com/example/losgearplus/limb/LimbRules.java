@@ -99,6 +99,16 @@ public final class LimbRules {
 	public static final int DEBRIS_STEAM_INTERVAL_START = 8;
 	public static final int DEBRIS_STEAM_INTERVAL_END = 2;
 
+	// ---- membro decepado no chão (corpo humano) -----------------------------------------------------------
+	/**
+	 * Humano que perde braço/perna solta a peça decepada no chão (só visual, no cliente). Ela some com vapor depois de
+	 * {@link #DEBRIS_LIFETIME_TICKS} (mesmos tempos do titã) ou na hora em que o membro começa a crescer de volta.
+	 * Use false para só remover o membro do corpo, sem a peça no chão.
+	 */
+	public static final boolean HUMAN_DEBRIS_ENABLED = true;
+	/** Máximo de peças soltas ao mesmo tempo no cliente (as mais antigas somem primeiro). */
+	public static final int HUMAN_DEBRIS_MAX = 48;
+
 	// ---- stamina da regeneração ---------------------------------------------------------------------------
 	/** Fração da stamina MÁXIMA gasta para uma parte crescer de 0 a 1 (sem desconto de maestria). */
 	private static final float[] STAMINA_FRACTION = {

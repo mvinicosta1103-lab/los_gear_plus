@@ -36,6 +36,7 @@
 		"client.CreativeInventoryHolsterMixin",
 		"client.GuiOverlayMessageMixin",
 		"client.PlayerRendererLimbMixin",
+		"client.HumanoidArmorLimbMixin",
 		"client.PlayerRendererRiderHideMixin",
 		"client.GeoModelLimbMixin",
 		"client.DaotOdmNoArmsMixin",

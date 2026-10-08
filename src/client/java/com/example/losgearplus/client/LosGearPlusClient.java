@@ -53,6 +53,8 @@ public class LosGearPlusClient implements ClientModInitializer {
 		LivingEntityFeatureRendererRegistrationCallback.EVENT.register((entityType, renderer, helper, context) -> {
 			if (renderer instanceof PlayerRenderer playerRenderer) {
 				helper.register(new GripHolsterLayer(playerRenderer, context.getItemRenderer()));
+				// Braço/perna cortado ou crescendo no corpo humano (o membro vanilla fica escondido).
+				helper.register(new com.example.losgearplus.client.limb.HumanLimbLayer(playerRenderer));
 			}
 		});
 	}

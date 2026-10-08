@@ -104,6 +104,14 @@ public final class LimbState {
 		return 0.5f + 0.5f * fraction(lower);
 	}
 
+	/**
+	 * Tamanho visual (escala uniforme) de uma parte: 1 inteira, 0 perdida e, enquanto cresce, de {@link #STUMP_MIN}
+	 * até 1 (o mesmo crescimento que o osso do titã faz no steam heal). Usado pela renderização do corpo humano.
+	 */
+	public float growth(LimbPart p) {
+		return fraction(p);
+	}
+
 	private float fraction(LimbPart p) {
 		switch (status(p)) {
 			case INTACT: return 1f;

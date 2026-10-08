@@ -10,7 +10,8 @@ public final class LimbClientCache {
 
 	private static final Map<UUID, LimbState> MAP = new ConcurrentHashMap<>();
 
-	public static void put(UUID id, LimbState state) { MAP.put(id, state); }
+	/** Guarda o estado novo e devolve o anterior (null na primeira vez que este jogador é visto). */
+	public static LimbState put(UUID id, LimbState state) { return MAP.put(id, state); }
 
 	public static LimbState get(UUID id) {
 		LimbState s = MAP.get(id);
