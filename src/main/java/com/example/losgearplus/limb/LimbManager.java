@@ -22,6 +22,7 @@ import net.minecraft.core.Holder;
 import net.minecraft.core.particles.BlockParticleOption;
 import net.minecraft.core.particles.ParticleTypes;
 import net.minecraft.network.chat.Component;
+import net.minecraft.network.chat.MutableComponent;
 import net.minecraft.resources.ResourceLocation;
 import net.minecraft.server.MinecraftServer;
 import net.minecraft.server.level.ServerPlayer;
@@ -39,6 +40,7 @@ import net.minecraft.world.entity.ai.attributes.Attributes;
 import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.level.Level;
+import net.minecraft.world.level.GameRules;
 import net.minecraft.world.level.block.Blocks;
 
 /**
@@ -58,6 +60,15 @@ public final class LimbManager {
 	private static final Set<UUID> MODDED = new HashSet<>();
 	private static final java.util.Map<UUID, Integer> SIGNATURES = new java.util.HashMap<>();
 
+	/** Último estado visto de cada jogador, para avisar "começou a crescer / X% / recuperado". */
+	private static final java.util.Map<UUID, AlertSnap> ALERTS = new java.util.HashMap<>();
+
+	private static final class AlertSnap {
+		final LimbStatus[] status = new LimbStatus[LimbPart.COUNT];
+		/** Último marco de % já avisado por parte (-1 = nenhum). */
+		final int[] bucket = new int[LimbPart.COUNT];
+	}
+
 	/** Último titã de shifter em que cada jogador estava montado ({@link #NO_TITAN} = nenhum). Detecta transformação nova. */
 	private static final java.util.Map<UUID, UUID> LAST_TITAN = new java.util.HashMap<>();
 	private static final UUID NO_TITAN = new UUID(0L, 0L);
@@ -67,12 +78,14 @@ public final class LimbManager {
 
 	public static void init() {
 		LimbData.init();
+		LimbGameRules.init();
 		PayloadTypeRegistry.playS2C().register(LimbSyncPayload.TYPE, LimbSyncPayload.CODEC);
 		LimbSync.init();
 		ServerTickEvents.END_SERVER_TICK.register(LimbManager::tick);
 		ServerPlayConnectionEvents.DISCONNECT.register((handler, server) -> {
 			MODDED.remove(handler.getPlayer().getUUID());
 			SIGNATURES.remove(handler.getPlayer().getUUID());
+			ALERTS.remove(handler.getPlayer().getUUID());
 			LAST_TITAN.remove(handler.getPlayer().getUUID());
 		});
 		registerHandBlocks();
@@ -165,6 +178,7 @@ public final class LimbManager {
 			LimbState st = p.getAttached(LimbData.ATTACHMENT);
 			if (st == null || st.isPristine()) {
 				SIGNATURES.remove(id);
+				ALERTS.remove(id);
 				if (MODDED.remove(id)) {
 					clearMods(p);
 					Entity v = p.getVehicle();
@@ -179,15 +193,33 @@ public final class LimbManager {
 				boolean steamOn = SteamHealServer.isActive(p);
 				Entity ride = p.getVehicle();
 				LivingEntity titanBody = ride instanceof ShifterTitan && ride instanceof LivingEntity le ? le : null;
-				// Passiva só na forma de titã; na forma humana só o Steam Heal regenera.
-				float steam = steamOn ? 1f : (titanBody != null ? LimbRules.PASSIVE_REGROW : 0f);
+				GameRules rules = p.serverLevel().getGameRules();
+				boolean passiveOn = rules.getBoolean(LimbGameRules.PASSIVE_REGEN);
+				int minMastery = rules.getInt(LimbGameRules.PASSIVE_REGEN_MASTERY);
+				boolean passiveAllowed = passiveOn && ShifterMastery.ruleLevel(id) >= minMastery;
+				// Steam Heal ligado: velocidade cheia, na forma humana E na de titã, em qualquer maestria (acelera a passiva).
+				// Passiva: PASSIVE_REGROW, só na forma de titã e só se as gamerules liberarem. Senão: 0 (travado).
+				float steam = steamOn ? 1f : (titanBody != null && passiveAllowed ? LimbRules.PASSIVE_REGROW : 0f);
 				if (steam > 0f) {
 					changed = regrowWithStamina(p, st, steam, now);
 					if (changed && !steamOn && now % LimbRules.PASSIVE_SMOKE_INTERVAL_TICKS == 0) {
+						SteamHealServer.passiveSmoke(p.serverLevel(), titanBody); // sem Steam Heal aqui só há passiva (titã)
+					}
+				} else {
+					// Travado: o membro não aparece nem começa a crescer até ligar o Steam Heal. No titã também fumaça.
+					if (titanBody != null && now % LimbRules.PASSIVE_SMOKE_INTERVAL_TICKS == 0) {
 						SteamHealServer.passiveSmoke(p.serverLevel(), titanBody);
+					}
+					if (now % LimbRules.PASSIVE_HINT_INTERVAL_TICKS == 0) {
+						// Na forma humana não existe passiva: o aviso é sempre "use o Steam Heal".
+						p.displayClientMessage(titanBody != null && passiveOn
+								? Component.translatable("los_gear_plus.limb.passive_locked", minMastery)
+								: Component.translatable("los_gear_plus.limb.passive_off"), true);
 					}
 				}
 			}
+
+			alertLimbs(p, st); // roda também no tick em que o último membro fica inteiro (aviso de "recuperado")
 
 			MODDED.add(id);
 			// atributos só mudam quando muda QUEM está faltando; reaplica de vez em quando por segurança
@@ -233,6 +265,66 @@ public final class LimbManager {
 		boolean changed = st.regrow(speed);
 		if (changed && amount > 0f) ModNetworking.drainStamina(id, amount);
 		return changed;
+	}
+
+	// ---- avisos de regeneração -------------------------------------------------------------------------------
+
+	/** Marco de % atual de uma parte que está crescendo (0, STEP, 2*STEP, ...). */
+	private static int bucketOf(LimbState st, LimbPart part) {
+		int step = Math.max(1, Math.min(100, LimbRules.REGROW_ALERT_STEP_PERCENT));
+		return Math.min(99, (int) (st.progress(part) * 100f)) / step;
+	}
+
+	private static Component limbName(LimbPart part) {
+		return Component.translatable("los_gear_plus.limb.name." + part.id());
+	}
+
+	/**
+	 * Banner rápido (o mesmo toast do mod, que some sozinho) quando um membro começa a crescer, passa de um marco de %
+	 * ou fica recuperado. A perda continua avisada por {@link #effects}. Várias partes no mesmo tick saem numa linha só.
+	 */
+	private static void alertLimbs(ServerPlayer p, LimbState st) {
+		AlertSnap snap = ALERTS.get(p.getUUID());
+		if (snap == null) { // primeira observação: só memoriza, sem avisar
+			snap = new AlertSnap();
+			for (LimbPart part : LimbPart.VALUES) {
+				int i = part.ordinal();
+				snap.status[i] = st.status(part);
+				snap.bucket[i] = st.status(part) == LimbStatus.REGROWING ? bucketOf(st, part) : -1;
+			}
+			ALERTS.put(p.getUUID(), snap);
+			return;
+		}
+		int step = Math.max(1, Math.min(100, LimbRules.REGROW_ALERT_STEP_PERCENT));
+		MutableComponent line = null;
+		boolean recovered = false;
+		for (LimbPart part : LimbPart.VALUES) {
+			int i = part.ordinal();
+			LimbStatus now = st.status(part);
+			LimbStatus before = snap.status[i];
+			MutableComponent entry = null;
+			if (now == LimbStatus.REGROWING) {
+				if (before != LimbStatus.REGROWING) snap.bucket[i] = -1; // começou a crescer agora
+				int b = bucketOf(st, part);
+				if (b > snap.bucket[i]) {
+					snap.bucket[i] = b;
+					entry = Component.translatable("los_gear_plus.limb.regrowing", limbName(part), b * step);
+				}
+			} else {
+				snap.bucket[i] = -1;
+				if (now == LimbStatus.INTACT && before == LimbStatus.REGROWING) {
+					entry = Component.translatable("los_gear_plus.limb.recovered", limbName(part));
+					recovered = true;
+				}
+			}
+			snap.status[i] = now;
+			if (entry != null) line = line == null ? entry : line.append(Component.literal("  |  ")).append(entry);
+		}
+		if (line != null) {
+			// A chave decide a cor do banner (ver OdmgHud.accentFor): recuperado = verde, regenerando = dourado.
+			p.displayClientMessage(Component.translatable(
+					recovered ? "los_gear_plus.limb.alert.recovered" : "los_gear_plus.limb.alert.regrowing", line), true);
+		}
 	}
 
 	/** Aplica nos dois corpos: o jogador e, se estiver montado, o titã dele. */

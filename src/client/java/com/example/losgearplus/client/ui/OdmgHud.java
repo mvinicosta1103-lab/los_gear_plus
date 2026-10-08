@@ -47,6 +47,8 @@ public final class OdmgHud {
 
 	private static int accentFor(Component c) {
 		String key = c.getContents() instanceof TranslatableContents tc ? tc.getKey() : "";
+		if (key.endsWith("limb.alert.recovered")) return Palette.GREEN; // membro recuperado
+		if (key.contains(".limb.lost.")) return Palette.CRIMSON; // membro perdido
 		if (key.endsWith("odmg_on") || key.endsWith(".on")) return Palette.GREEN;
 		if (key.endsWith("odmg_off") || key.endsWith(".off")) return Palette.STEEL;
 		if (key.contains("no_") || key.contains("unavailable") || key.contains("not_")) return Palette.CRIMSON;

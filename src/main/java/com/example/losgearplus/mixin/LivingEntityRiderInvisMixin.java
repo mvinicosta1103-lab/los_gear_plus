@@ -26,7 +26,9 @@ public abstract class LivingEntityRiderInvisMixin {
     @Inject(method = "updateInvisibilityStatus", at = @At("HEAD"), require = 0)
     private void los_gear_plus$rememberInvisible(CallbackInfo ci) {
         LivingEntity self = (LivingEntity) (Object) this;
-        this.los_gear_plus$wasInvisible = self instanceof Player && self.isInvisible() && self.getVehicle() instanceof ShifterTitan;
+        // Durante o dismount (B) o DAOT deixa o jogador visível de propósito: não preservar a invisibilidade.
+        this.los_gear_plus$wasInvisible = self instanceof Player && self.isInvisible()
+                && self.getVehicle() instanceof ShifterTitan titan && !titan.isDismounting();
     }
 
     @Inject(method = "updateInvisibilityStatus", at = @At("TAIL"), require = 0)

@@ -68,9 +68,17 @@ public final class LimbRules {
 	/**
 	 * Passiva: fração da velocidade com que um shifter regenera os membros SEM Steam Heal, mas só na forma de titã
 	 * (montado no titã dele). Solta fumaça enquanto cresce. O Steam Heal ligado regenera na velocidade cheia (1.0).
-	 * Na forma humana vale 0: ali só o Steam Heal regenera. Use 0 para desligar a passiva.
+	 * Só vale com a passiva liberada pelas gamerules ({@link LimbGameRules}: ligada e maestria >= mínima); senão o
+	 * membro só volta com o Steam Heal (J), que funciona na forma humana e na de titã. Use 0 para desligar a passiva.
 	 */
 	public static final float PASSIVE_REGROW = 0.15f;
+	/**
+	 * Aviso de progresso: a cada quantos % de regeneração o jogador recebe o banner "Regenerando Braço esquerdo: 50%".
+	 * Também avisa quando o membro começa a crescer (0%) e quando fica recuperado. Menor = mais avisos (1..100).
+	 */
+	public static final int REGROW_ALERT_STEP_PERCENT = 25;
+	/** Ticks entre os avisos "use o Steam Heal" enquanto o membro está travado (sem passiva liberada). */
+	public static final int PASSIVE_HINT_INTERVAL_TICKS = 200;
 	/** Ticks entre as baforadas de fumaça da regeneração passiva. */
 	public static final int PASSIVE_SMOKE_INTERVAL_TICKS = 6;
 

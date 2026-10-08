@@ -14,6 +14,7 @@ import org.spongepowered.asm.mixin.injection.callback.CallbackInfo;
  * Cinto de segurança no cliente: quem está montado num titã de shifter (ou seja, dentro dele) nunca é desenhado.
  * Evita o corpo humano aparecer flutuando por cima do titã (principalmente com o titã ajoelhado, quando o ponto
  * de montaria fica bem acima do corpo desenhado) em qualquer momento em que o esconderijo do DAOT falhe.
+ * Não vale durante o dismount (B): {@code ShifterTitan.isDismounting()} deixa o jogador aparecer.
  */
 @Mixin(PlayerRenderer.class)
 public abstract class PlayerRendererRiderHideMixin {
@@ -21,6 +22,7 @@ public abstract class PlayerRendererRiderHideMixin {
             at = @At("HEAD"), cancellable = true, require = 0)
     private void los_gear_plus$hideRider(AbstractClientPlayer player, float yaw, float partialTick, PoseStack poseStack,
                                          MultiBufferSource buffer, int light, CallbackInfo ci) {
-        if (player.getVehicle() instanceof ShifterTitan) ci.cancel();
+        // Exceto durante o "dismount" (tecla B do DAOT): aí o jogador sai pela nuca e DEVE ser visto.
+        if (player.getVehicle() instanceof ShifterTitan titan && !titan.isDismounting()) ci.cancel();
     }
 }
