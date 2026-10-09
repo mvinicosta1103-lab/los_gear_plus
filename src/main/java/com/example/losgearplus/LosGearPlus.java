@@ -5,6 +5,8 @@ import com.example.losgearplus.evap.TitanEvaporation;
 import com.example.losgearplus.limb.LimbCommand;
 import com.example.losgearplus.limb.LimbManager;
 import com.example.losgearplus.mode.OdmgModeNetworking;
+import com.example.losgearplus.partial.PartialEntities;
+import com.example.losgearplus.partial.PartialShiftManager;
 import com.example.losgearplus.shifter.ShifterForceShift;
 import com.example.losgearplus.shifter.ShifterMastery;
 import com.example.losgearplus.shifter.ShifterMasteryCommand;
@@ -24,6 +26,8 @@ public class LosGearPlus implements ModInitializer {
 	@Override
 	public void onInitialize() {
 		ModItems.init();
+		PartialEntities.init();
+		PartialShiftManager.init();
 		OdmgModeNetworking.init();
 		SteamHealServer.init();
 		ShifterMastery.init();

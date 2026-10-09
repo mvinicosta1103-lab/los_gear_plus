@@ -18,6 +18,7 @@
 		"java": ">=21",
 		"fabric-api": "*",
 		"dannys-aot": ">=2.4.1",
+		"geckolib": ">=4.8.3",
 		"player_animation_library": ">=1.1.6"
 	},
 	"recommends": {

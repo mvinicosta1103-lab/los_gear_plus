@@ -1,0 +1,17 @@
+{
+  "format_version": "1.8.0",
+  "animations": {
+    "animation.partial_titan.idle": {
+      "loop": true,
+      "animation_length": 4.0,
+      "bones": {
+        "spine": {
+          "rotation": { "0.0": [0, 0, 0], "2.0": [1.2, 0, 0], "4.0": [0, 0, 0] }
+        },
+        "head": {
+          "rotation": { "0.0": [0, 0, 0], "2.0": [-0.8, 0, 0], "4.0": [0, 0, 0] }
+        }
+      }
+    }
+  }
+}
