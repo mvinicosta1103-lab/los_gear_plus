@@ -1,6 +1,7 @@
 package com.example.losgearplus.mixin;
 
 import daot.ShifterMarkTracker.MarkState;
+import com.example.losgearplus.partial.PartialShiftManager;
 import java.util.HashMap;
 import java.util.Iterator;
 import java.util.Map;
@@ -66,7 +67,8 @@ public abstract class DaotShifterMarkFadeMixin {
                 continue;
             }
             ServerPlayer player = server.getPlayerList().getPlayer(id);
-            if (player == null || player.getVehicle() != null) {
+            // Fora do titã parcial (saída parcial) o shifter continua "transformado": a marca não pode esmaecer.
+            if (player == null || player.getVehicle() != null || PartialShiftManager.hasPartial(id)) {
                 losgearplus$notRidingTicks.remove(id);
                 continue;
             }

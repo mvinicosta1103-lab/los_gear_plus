@@ -2,6 +2,8 @@ package com.example.losgearplus.mixin;
 
 import com.example.losgearplus.shifter.ShifterMastery;
 import com.example.losgearplus.shifter.ShifterMasterySync;
+import com.example.losgearplus.partial.PartialShiftManager;
+import com.example.losgearplus.partial.PartialShifterTitanEntity;
 import daot.ShifterTitan;
 import java.util.HashMap;
 import java.util.Map;
@@ -73,6 +75,13 @@ public abstract class DaotShifterMasteryMixin {
 		losgearplus$staminaBeforeShift = playerStamina.get(id);
 
 		if (player.isSpectator()) return;
+		// Partial Shifting is already a shift: no full transformation while a partial titan is active (inside or
+		// outside it). Leave it completely first (O + sneak) and then transform.
+		if (PartialShiftManager.hasPartial(id)) {
+			player.displayClientMessage(Component.translatable("los_gear_plus.partial.no_transform"), true);
+			ci.cancel();
+			return;
+		}
 		if (player.getVehicle() instanceof ShifterTitan) return; // leaving titan form: never blocked or counted
 		if (losgearplus$hadBite || pendingShifts.containsKey(id)) return; // already transforming
 
@@ -133,6 +142,7 @@ public abstract class DaotShifterMasteryMixin {
 
 		for (ServerPlayer p : server.getPlayerList().getPlayers()) {
 			if (!(p.getVehicle() instanceof ShifterTitan)) continue;
+			if (p.getVehicle() instanceof PartialShifterTitanEntity) continue; // partial shift is not a transformation for mastery
 			UUID id = p.getUUID();
 			float mult = ShifterMastery.drainMultiplier(id);
 			if (mult <= 0f) continue; // level 9: infinite time, stamina is not touched

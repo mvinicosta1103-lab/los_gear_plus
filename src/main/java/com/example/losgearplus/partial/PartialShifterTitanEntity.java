@@ -1,6 +1,10 @@
 package com.example.losgearplus.partial;
 
+import com.example.losgearplus.evap.TitanEvaporation;
 import com.example.losgearplus.steam.SteamHealServer;
+import daot.DannysAot;
+import daot.DismountSmokeHelper;
+import daot.ShifterMarkTracker;
 import daot.ShifterTitan;
 import java.util.List;
 import java.util.UUID;
@@ -52,19 +56,23 @@ import software.bernie.geckolib.util.GeckoLibUtil;
  *   <li>imóvel (sem movimento, empurrão ou controle), hitbox sólida: serve de muralha;</li>
  *   <li>o dano que o jogador montado receberia é absorvido por ela ({@code PartialRiderProtectionMixin});</li>
  *   <li>dano de contato em mobs hostis colados nela;</li>
- *   <li>sobe do chão ao surgir e afunda ao acabar (animação feita no renderer);</li>
- *   <li>ao morrer só expulsa o dono (com a vida cheia) e afunda: o jogador não morre junto.</li>
+ *   <li>sobe do chão ao surgir; K/O alterna entre dentro e emergido pela nuca (como o dismount do DAOT: o dono
+ *       continua montado, porém visível, com vapor); emergido, o sneak sai de vez e o titã evapora, pelo
+ *       {@link TitanEvaporation} do mod, como o titã normal;</li>
+ *   <li>ao morrer só expulsa o dono (com a vida cheia) e evapora: o jogador não morre junto.</li>
  * </ul>
  */
 public class PartialShifterTitanEntity extends PathfinderMob implements GeoEntity, ShifterTitan {
+    /** Ativo: com o dono dentro OU fora (saída parcial). Evaporando: saída total, o TitanEvaporation do mod assume. */
     public static final int PHASE_ACTIVE = 0;
-    public static final int PHASE_SINKING = 1;
+    public static final int PHASE_EVAPORATING = 1;
 
     private static final EntityDataAccessor<String> DATA_VARIANT =
             SynchedEntityData.defineId(PartialShifterTitanEntity.class, EntityDataSerializers.STRING);
+    /** Emergido pela nuca (como o "dismounting" dos titãs do DAOT): jogador montado, porém visível e fora do corpo. */
+    private static final EntityDataAccessor<Boolean> DATA_EMERGED =
+            SynchedEntityData.defineId(PartialShifterTitanEntity.class, EntityDataSerializers.BOOLEAN);
     private static final EntityDataAccessor<Integer> DATA_PHASE =
-            SynchedEntityData.defineId(PartialShifterTitanEntity.class, EntityDataSerializers.INT);
-    private static final EntityDataAccessor<Integer> DATA_SINK_TICKS =
             SynchedEntityData.defineId(PartialShifterTitanEntity.class, EntityDataSerializers.INT);
 
     private static final RawAnimation IDLE = RawAnimation.begin().thenLoop("animation.partial_titan.idle");
@@ -74,6 +82,10 @@ public class PartialShifterTitanEntity extends PathfinderMob implements GeoEntit
             new ServerBossEvent(Component.empty(), BossEvent.BossBarColor.RED, BossEvent.BossBarOverlay.PROGRESS);
 
     private UUID ownerId;
+    /** Só servidor: libera o sneak do dono (o DAOT chama isto de allowDismount). Ligado ao emergir e ao evaporar. */
+    private boolean allowDismount;
+    /** Só servidor: ticks até poder alternar de novo entre dentro e emergido (20 como no DAOT). */
+    private int emergeCooldown;
 
     public PartialShifterTitanEntity(EntityType<? extends PathfinderMob> type, Level level) {
         super(type, level);
@@ -96,8 +108,8 @@ public class PartialShifterTitanEntity extends PathfinderMob implements GeoEntit
     protected void defineSynchedData(SynchedEntityData.Builder builder) {
         super.defineSynchedData(builder);
         builder.define(DATA_VARIANT, PartialTitanVariant.ATTACK.id());
+        builder.define(DATA_EMERGED, false);
         builder.define(DATA_PHASE, PHASE_ACTIVE);
-        builder.define(DATA_SINK_TICKS, 0);
     }
 
     // ---- dono / variante -------------------------------------------------------------------------------------
@@ -125,20 +137,67 @@ public class PartialShifterTitanEntity extends PathfinderMob implements GeoEntit
         return this.entityData.get(DATA_PHASE);
     }
 
-    /** Pedido do dono (tecla ou sneak): sai do titã parcial. */
-    public void requestDismount() {
-        beginSink();
+    // ---- emergir / voltar / sair --------------------------------------------------------------------------
+
+    public boolean isEmerged() {
+        return this.entityData.get(DATA_EMERGED);
+    }
+
+    /** Usado pelo {@code PartialDismountVetoMixin}: o sneak do dono só funciona com ele emergido (igual ao DAOT). */
+    public boolean isDismountAllowed() {
+        return this.allowDismount || isEmerged();
+    }
+
+    /**
+     * Tecla K/O: alterna entre dentro do titã e emergido pela nuca (jogador montado, visível, com vapor).
+     * Emergido, o sneak sai de vez e o titã evapora.
+     */
+    public void toggleEmerge(ServerPlayer owner) {
+        if (phase() != PHASE_ACTIVE || owner.getVehicle() != this) return;
+        if (this.tickCount < PartialShiftConfig.RISE_TICKS) return; // ainda subindo do chão
+        if (this.emergeCooldown > 0) return;
+        this.emergeCooldown = PartialShiftConfig.EMERGE_COOLDOWN_TICKS;
+
+        boolean emerge = !isEmerged();
+        this.entityData.set(DATA_EMERGED, emerge);
+        if (emerge) {
+            if (!owner.hasEffect(MobEffects.INVISIBILITY)) owner.setInvisible(false);
+            owner.displayClientMessage(Component.translatable("los_gear_plus.partial.emerged"), true);
+        } else {
+            owner.setInvisible(true);
+            owner.displayClientMessage(Component.translatable("los_gear_plus.partial.reentered"), true);
+        }
+    }
+
+    /** Vapor saindo da nuca enquanto o dono está emergido (o mesmo efeito de partícula do DAOT ao desmontar). */
+    private void napeSteam(ServerLevel level) {
+        if (this.tickCount % 2 != 0) return;
+        double yaw = Math.toRadians(this.getYRot());
+        double fx = -Math.sin(yaw), fz = Math.cos(yaw); // frente do titã
+        double x = this.getX() + fx * PartialShiftConfig.EMERGE_FORWARD;
+        double z = this.getZ() + fz * PartialShiftConfig.EMERGE_FORWARD;
+        double y = this.getY() + PartialShiftConfig.EMERGE_Y + 0.8;
+        level.sendParticles(DannysAot.PLAYER_DISMOUNT_PARTICLE, x, y, z, 3, 0.25, 0.25, 0.25, 0.02);
+        if (this.tickCount % 10 == 0) {
+            level.playSound(null, x, y, z, SoundEvents.FIRE_EXTINGUISH, SoundSource.PLAYERS, 0.15f, 1.0f);
+        }
     }
 
     // ---- ShifterTitan (interface do DAOT) ------------------------------------------------------------------
 
     @Override
     public boolean isDismounting() {
-        return phase() == PHASE_SINKING;
+        // Emergido ou evaporando: o jogador aparece (os mixins de esconder o rider checam isso), como no DAOT.
+        return isEmerged() || phase() == PHASE_EVAPORATING;
     }
 
+    /**
+     * Enquanto ativo (dono dentro ou fora) devolve o dono; depois da saída total devolve null, exatamente como os
+     * titãs do DAOT, e é isso que faz o {@link TitanEvaporation} começar a evaporar o corpo.
+     */
     @Override
     public UUID getShifterUUID() {
+        if (phase() != PHASE_ACTIVE) return null;
         return ownerId != null ? ownerId : new UUID(0L, 0L);
     }
 
@@ -177,7 +236,7 @@ public class PartialShifterTitanEntity extends PathfinderMob implements GeoEntit
 
     @Override
     public boolean canBeCollidedWith() {
-        // sólida (muralha) enquanto ativa; ao afundar deixa de colidir para o dono sair sem ficar preso
+        // sólida (muralha) enquanto ativa; evaporando deixa de colidir
         return phase() == PHASE_ACTIVE;
     }
 
@@ -207,6 +266,9 @@ public class PartialShifterTitanEntity extends PathfinderMob implements GeoEntit
     @Override
     protected Vec3 getPassengerAttachmentPoint(Entity passenger, EntityDimensions dimensions, float scale) {
         // Referencial local da entidade: +Z é a frente (a cabeça do modelo fica à frente).
+        if (isEmerged()) {
+            return new Vec3(0.0, PartialShiftConfig.EMERGE_Y, PartialShiftConfig.EMERGE_FORWARD); // pela nuca
+        }
         return new Vec3(0.0, PartialShiftConfig.SEAT_Y, PartialShiftConfig.SEAT_FORWARD);
     }
 
@@ -215,17 +277,17 @@ public class PartialShifterTitanEntity extends PathfinderMob implements GeoEntit
     @Override
     public boolean hurt(DamageSource source, float amount) {
         if (this.level().isClientSide) return false;
-        if (phase() != PHASE_ACTIVE || this.tickCount < PartialShiftConfig.RISE_TICKS) return false; // subindo/afundando
+        if (phase() != PHASE_ACTIVE || this.tickCount < PartialShiftConfig.RISE_TICKS) return false; // subindo/evaporando
         if (isOwnedBy(source.getEntity())) return false; // o dono não fere o próprio titã
         return super.hurt(source, amount);
     }
 
     @Override
     public void die(DamageSource source) {
-        if (this.level().isClientSide || phase() == PHASE_SINKING) return;
-        // Não morre de verdade (sem animação de morte do vanilla): expulsa o dono e afunda.
+        if (this.level().isClientSide || phase() != PHASE_ACTIVE) return;
+        // Não morre de verdade (sem animação de morte do vanilla): vida mínima, expulsa o dono e evapora.
         this.setHealth(1.0f);
-        beginSink();
+        beginEvaporate(owner((ServerLevel) this.level()));
     }
 
     // ---- ciclo de vida -------------------------------------------------------------------------------------
@@ -243,38 +305,42 @@ public class PartialShifterTitanEntity extends PathfinderMob implements GeoEntit
     }
 
     private void serverTick(ServerLevel level) {
+        if (phase() != PHASE_ACTIVE) {
+            this.bossEvent.removeAllPlayers();
+            return; // evaporando: o TitanEvaporation do mod cuida da fumaça, do escurecimento e do discard
+        }
         ServerPlayer owner = owner(level);
+        if (owner == null || !owner.isAlive() || owner.level() != level) {
+            beginEvaporate(owner);
+            return;
+        }
 
-        if (phase() == PHASE_ACTIVE) {
-            boolean ownerGone = owner == null || !owner.isAlive() || owner.level() != level;
-            boolean ownerLeft = !ownerGone && this.tickCount > 10 && owner.getVehicle() != this;
-            if (ownerGone || ownerLeft) {
-                beginSink();
-            } else if (this.tickCount < PartialShiftConfig.RISE_TICKS) {
-                riseEffects(level);
-            } else {
-                if (this.getHealth() < this.getMaxHealth()) {
-                    this.heal(PartialShiftConfig.PASSIVE_HEAL_PER_TICK);
-                }
-                if (this.tickCount % PartialShiftConfig.CONTACT_INTERVAL_TICKS == 0) {
-                    contactDamage(level, owner);
-                }
-            }
+        if (this.emergeCooldown > 0) this.emergeCooldown--;
+
+        // O dono sempre fica montado. Se deixou de estar (sneak já emergido = saída total, ou teleporte/outro
+        // motivo) depois do começo, é saída total: o titã evapora.
+        if (owner.getVehicle() != this && this.tickCount > 10) {
+            beginEvaporate(owner);
+            return;
+        }
+        if (isEmerged()) napeSteam(level);
+
+        if (this.tickCount < PartialShiftConfig.RISE_TICKS) {
+            riseEffects(level);
         } else {
-            int t = this.entityData.get(DATA_SINK_TICKS) + 1;
-            this.entityData.set(DATA_SINK_TICKS, t);
-            if (t % 2 == 0) riseEffects(level);
-            if (t >= PartialShiftConfig.SINK_TICKS) {
-                this.discard();
-                return;
+            if (this.getHealth() < this.getMaxHealth()) {
+                this.heal(PartialShiftConfig.PASSIVE_HEAL_PER_TICK);
+            }
+            if (this.tickCount % PartialShiftConfig.CONTACT_INTERVAL_TICKS == 0) {
+                contactDamage(level, owner);
             }
         }
         updateBossBar(level);
     }
 
-    /** Terra voando e vapor na base enquanto sobe/afunda. */
+    /** Terra voando e vapor na base enquanto sobe. */
     private void riseEffects(ServerLevel level) {
-        if (this.tickCount % 2 != 0 && phase() == PHASE_ACTIVE) return;
+        if (this.tickCount % 2 != 0) return;
         BlockPos below = this.blockPosition().below();
         level.sendParticles(new BlockParticleOption(ParticleTypes.BLOCK, level.getBlockState(below)),
                 this.getX(), this.getY() + 0.2, this.getZ(), 24, 1.6, 0.3, 1.6, 0.15);
@@ -300,41 +366,45 @@ public class PartialShifterTitanEntity extends PathfinderMob implements GeoEntit
         }
     }
 
-    /** Começa a afundar: devolve o dono (com a vida cheia, ele não foi ferido enquanto montado) e solta vapor. */
-    private void beginSink() {
-        if (this.level().isClientSide || phase() == PHASE_SINKING) return;
-        this.entityData.set(DATA_PHASE, PHASE_SINKING);
-        this.entityData.set(DATA_SINK_TICKS, 0);
-
-        ServerLevel level = (ServerLevel) this.level();
-        ServerPlayer owner = owner(level);
+    /**
+     * Saída total: devolve o dono ao chão (vida cheia: enquanto montado ele não foi ferido), registra a shifter mark
+     * como "desmontou por completo" e deixa o corpo evaporar pelo {@link TitanEvaporation} (como o titã normal).
+     */
+    private void beginEvaporate(ServerPlayer owner) {
+        if (this.level().isClientSide || phase() != PHASE_ACTIVE) return;
+        this.entityData.set(DATA_PHASE, PHASE_EVAPORATING);
+        this.addTag(TitanEvaporation.HAD_RIDER_TAG); // garante que o corpo conte como "já teve portador"
+        this.entityData.set(DATA_EMERGED, false);
+        this.allowDismount = true; // libera o stopRiding (o veto do mixin só vale enquanto não permitido)
         this.ejectPassengers();
-        if (owner != null && owner.isAlive() && owner.level() == level) {
-            owner.teleportTo(this.getX(), this.getY(), this.getZ());
-            owner.fallDistance = 0.0f;
+        this.bossEvent.removeAllPlayers();
+        PartialShiftManager.unbind(ownerId, this);
+
+        if (owner != null && owner.isAlive() && owner.level() == this.level()) {
             if (!owner.hasEffect(MobEffects.INVISIBILITY)) owner.setInvisible(false);
+            double yaw = Math.toRadians(this.getYRot());
+            owner.teleportTo(this.getX() + Math.sin(yaw) * PartialShiftConfig.GROUND_EXIT_BACK, this.getY(),
+                    this.getZ() - Math.cos(yaw) * PartialShiftConfig.GROUND_EXIT_BACK);
+            owner.fallDistance = 0.0f;
+            ShifterMarkTracker.markFullyDismounted(owner, this);
+            DismountSmokeHelper.armFullDismount(owner.getUUID(), owner.getX(), owner.getY(), owner.getZ(),
+                    owner.getServer().getTickCount());
         }
-        level.playSound(null, this.getX(), this.getY(), this.getZ(),
-                SoundEvents.FIRE_EXTINGUISH, SoundSource.PLAYERS, 3.0f, 0.7f);
-        for (int i = 0; i < 3; i++) SteamHealServer.passiveSmoke(level, this);
     }
 
     @Override
     public void remove(Entity.RemovalReason reason) {
+        this.allowDismount = true;
         this.bossEvent.removeAllPlayers();
+        PartialShiftManager.unbind(ownerId, this);
         super.remove(reason);
     }
 
     // ---- visual (cliente) ----------------------------------------------------------------------------------
 
-    /** 0 = totalmente enterrado, 1 = totalmente emergido. Usado pelo renderer para subir/afundar. */
+    /** 0 = totalmente enterrado, 1 = totalmente emergido. Só a subida do chão; o fim é a evaporação. */
     public float getRise(float partialTick) {
-        float k;
-        if (phase() == PHASE_SINKING) {
-            k = 1.0f - Mth.clamp((this.entityData.get(DATA_SINK_TICKS) + partialTick) / PartialShiftConfig.SINK_TICKS, 0.0f, 1.0f);
-        } else {
-            k = Mth.clamp((this.tickCount + partialTick) / PartialShiftConfig.RISE_TICKS, 0.0f, 1.0f);
-        }
+        float k = Mth.clamp((this.tickCount + partialTick) / PartialShiftConfig.RISE_TICKS, 0.0f, 1.0f);
         return k * k * (3.0f - 2.0f * k); // smoothstep
     }
 

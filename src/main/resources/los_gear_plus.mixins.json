@@ -14,6 +14,8 @@
 		"InventoryMenuHolsterSlotMixin",
 		"ForceShiftMixin",
 		"PartialRiderProtectionMixin",
+		"PartialMarkTypeMixin",
+		"PartialDismountVetoMixin",
 		"LivingEntityMasteryMixin",
 		"LivingEntityLimbMixin",
 		"LivingEntityRiderInvisMixin",

@@ -12,7 +12,11 @@ import net.minecraft.client.CameraType;
 import net.minecraft.client.KeyMapping;
 import org.lwjgl.glfw.GLFW;
 
-/** Cliente do Partial Shifting: renderer, tecla (padrão K, reconfigurável em Controles) e câmera. */
+/**
+ * Cliente do Partial Shifting: renderer, câmera e duas teclas (reconfiguráveis em Controles):
+ * Uma só tecla (padrão O): transforma e, com o titã ativo, alterna dentro/emergido pela nuca.
+ * Emergido, o sneak sai de vez e o titã evapora (igual ao dismount do DAOT).
+ */
 public final class PartialShiftClient {
     private PartialShiftClient() {}
 
@@ -26,7 +30,7 @@ public final class PartialShiftClient {
         key = KeyBindingHelper.registerKeyBinding(new KeyMapping(
                 "key.los_gear_plus.partial_shift",
                 InputConstants.Type.KEYSYM,
-                GLFW.GLFW_KEY_K,
+                GLFW.GLFW_KEY_O,
                 "key.categories.los_gear_plus"));
 
         ClientTickEvents.END_CLIENT_TICK.register(mc -> {

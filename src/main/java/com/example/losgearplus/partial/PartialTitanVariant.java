@@ -12,29 +12,39 @@ import net.minecraft.server.level.ServerPlayer;
  * outros modelos, crie {@code geo/<nome>.geo.json} + {@code textures/entity/<nome>.png} e troque o nome da variante.
  */
 public enum PartialTitanVariant {
-    JAW("jaw", "jawTitanHealth", "partial_titan_attack"),
-    CART("cart_shifter", "cartTitanHealth", "partial_titan_attack"),
-    OGRE("ogre_shifter", null, "partial_titan_attack"),
-    FOUNDER("founder", null, "partial_titan_attack"),
-    TRIPLE_T("triple_t", null, "partial_titan_attack"),
-    ATTACK("attack", "attackTitanHealth", "partial_titan_attack"),
-    FEMALE("female", "femaleTitanHealth", "partial_titan_attack"),
-    ARMORED("armored", "armoredTitanHealth", "partial_titan_attack"),
-    BEAST("beast", "beastTitanHealth", "partial_titan_attack"),
-    WARHAMMER("warhammer", "warhammerTitanHealth", "partial_titan_attack"),
-    COLOSSAL("colossal", "colossalTitanHealth", "partial_titan_attack");
+    JAW("jaw", "jawTitanHealth", "partial_titan_attack", 0, "jaw"),
+    CART("cart_shifter", "cartTitanHealth", "partial_titan_attack", 0, "jaw"),
+    OGRE("ogre_shifter", null, "partial_titan_attack", 1, "attack"),
+    FOUNDER("founder", null, "partial_titan_attack", 1, "attack"),
+    TRIPLE_T("triple_t", null, "partial_titan_attack", 1, "attack"),
+    ATTACK("attack", "attackTitanHealth", "partial_titan_attack", 1, "attack"),
+    FEMALE("female", "femaleTitanHealth", "partial_titan_attack", 3, "female"),
+    ARMORED("armored", "armoredTitanHealth", "partial_titan_attack", 2, "armored"),
+    BEAST("beast", "beastTitanHealth", "partial_titan_attack", 4, "beast"),
+    WARHAMMER("warhammer", "warhammerTitanHealth", "partial_titan_attack", 5, "warhammer"),
+    COLOSSAL("colossal", "colossalTitanHealth", "partial_titan_attack", 6, "colossal");
 
     private static final double DEFAULT_FULL_HEALTH = 400.0;
 
     private final String tag;
     private final String healthField;
     private final String modelName;
+    private final int spawnType;
+    private final String markType;
 
-    PartialTitanVariant(String tag, String healthField, String modelName) {
+    PartialTitanVariant(String tag, String healthField, String modelName, int spawnType, String markType) {
         this.tag = tag;
         this.healthField = healthField;
         this.modelName = modelName;
+        this.spawnType = spawnType;
+        this.markType = markType;
     }
+
+    /** Tipo enviado no TitanSpawnPayload do DAOT (define som/partículas da transformação). Igual ao do titã completo. */
+    public int spawnType() { return spawnType; }
+
+    /** Tipo da shifter mark (ShifterMarkTracker) que o titã completo deste shifter daria; null = sem marca. */
+    public String markType() { return markType; }
 
     public String tag() { return tag; }
 

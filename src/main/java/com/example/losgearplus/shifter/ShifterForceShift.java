@@ -231,6 +231,7 @@ public final class ShifterForceShift {
         if (!p.isAlive() || p.isCreative() || p.isSpectator()) return false;
         if (!isEnabled(p) || !eligible(p)) return false;
         if (p.getVehicle() instanceof ShifterTitan) return false;
+        if (com.example.losgearplus.partial.PartialShiftManager.hasPartial(p.getUUID())) return false; // already shifted (partial)
         Integer cd = COOLDOWN_UNTIL.get(p.getUUID());
         if (!isInfinite(p) && cd != null && now < cd) return false;
         return isInfinite(p) || ShifterMastery.canShift(p);

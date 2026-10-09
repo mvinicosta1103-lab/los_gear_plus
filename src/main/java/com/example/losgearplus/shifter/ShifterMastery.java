@@ -87,7 +87,10 @@ public final class ShifterMastery {
 		ServerTickEvents.END_SERVER_TICK.register(s -> {
 			if (data == null || s.getTickCount() % 20 != 0) return;
 			for (ServerPlayer p : s.getPlayerList().getPlayers()) {
-				if (p.getVehicle() instanceof ShifterTitan) addXp(p, XP_PER_SECOND_TRANSFORMED);
+				if (p.getVehicle() instanceof ShifterTitan
+						&& !(p.getVehicle() instanceof com.example.losgearplus.partial.PartialShifterTitanEntity)) {
+					addXp(p, XP_PER_SECOND_TRANSFORMED); // partial shifting does not count as transformed time
+				}
 			}
 		});
 	}

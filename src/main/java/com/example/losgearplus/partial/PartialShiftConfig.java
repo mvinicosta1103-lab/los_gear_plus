@@ -10,11 +10,19 @@ public final class PartialShiftConfig {
     /** Fração da vida do titã COMPLETO (config do DAOT) que o titã parcial tem. */
     public static final double HEALTH_FRACTION = 0.5;
 
-    /** Ticks da animação de "subir do chão" e de "afundar" (20 ticks = 1 s). */
+    /** Ticks da animação de "subir do chão" (20 ticks = 1 s). O fim é a evaporação padrão (EvaporationRules). */
     public static final int RISE_TICKS = 30;
-    public static final int SINK_TICKS = 30;
-    /** Quantos blocos o modelo fica enterrado no começo da subida / no fim do afundar. */
+    /** Quantos blocos o modelo fica enterrado no começo da subida. */
     public static final float RISE_DEPTH = 4.6f;
+
+    /** Saída total: distância (para trás) do chão onde o jogador é colocado. */
+    public static final double GROUND_EXIT_BACK = 2.8;
+
+    /** Emergido pela nuca: altura e distância à frente do centro onde o jogador fica (nuca = costas da cabeça). */
+    public static final double EMERGE_Y = 2.9;
+    public static final double EMERGE_FORWARD = -0.2;
+    /** Ticks entre alternar dentro/emergido (20 como o DAOT). */
+    public static final int EMERGE_COOLDOWN_TICKS = 20;
 
     /** Recarga após transformar (600 = 30 s). Criativo ignora. */
     public static final int COOLDOWN_TICKS = 600;

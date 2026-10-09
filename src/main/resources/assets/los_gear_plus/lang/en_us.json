@@ -71,7 +71,7 @@
 	"los_gear_plus.limb.passive_off": "Automatic regrowth is disabled. Use Steam Heal (J)!",
 	"los_gear_plus.limb.titan_no_arms": "Your titan has no arms for that!",
 	"los_gear_plus.limb.titan_no_legs": "Your titan can't do that while kneeling!",
-	"key.los_gear_plus.partial_shift": "Partial Shifting",
+	"key.los_gear_plus.partial_shift": "Partial Shifting (transform / emerge / go back in)",
 	"los_gear_plus.partial.on": "Partial Shifting: %s",
 	"los_gear_plus.partial.not_shifter": "Only shifters can use Partial Shifting",
 	"los_gear_plus.partial.already_titan": "You are already in titan form",
@@ -90,5 +90,8 @@
 	"los_gear_plus.partial.titan.cart": "Cart Titan",
 	"los_gear_plus.partial.titan.ogre": "Ogre Titan",
 	"los_gear_plus.partial.titan.founder": "Founding Titan",
-	"los_gear_plus.partial.titan.triple_t": "Triple T Titan"
+	"los_gear_plus.partial.titan.triple_t": "Triple T Titan",
+	"los_gear_plus.partial.reentered": "You went back inside the titan",
+	"los_gear_plus.partial.no_transform": "You are already shifted (partial). Emerge and Sneak to leave the titan first",
+	"los_gear_plus.partial.emerged": "You emerged from the nape. Sneak to leave completely, or press the key again to go back in"
 }
