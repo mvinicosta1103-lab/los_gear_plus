@@ -1,5 +1,6 @@
 package com.example.losgearplus.client.partial;
 
+import com.example.losgearplus.client.limb.TitanLimbBones;
 import com.example.losgearplus.partial.PartialEntities;
 import com.example.losgearplus.partial.PartialShiftPayload;
 import com.example.losgearplus.partial.PartialShifterTitanEntity;
@@ -26,6 +27,16 @@ public final class PartialShiftClient {
 
     public static void init() {
         EntityRendererRegistry.register(PartialEntities.PARTIAL_SHIFTER_TITAN, PartialShifterTitanRenderer::new);
+
+        // Membros do titã parcial (decepar/regenerar/peça solta): braços com ombro > antebraço > mão. O modelo não
+        // tem pernas (os nomes de perna abaixo não existem no geo e são ignorados). O estado de membros é do JOGADOR:
+        // se ele perdeu as pernas como humano, o rig tentaria ajoelhar o titã. A raiz abaixo não existe no geo de
+        // propósito, o que torna o ajoelhar um no-op (o titã parcial não tem pernas nem anda).
+        TitanLimbBones.registerRig("partial_titan_attack", "no_kneel_root", -1f,
+                new String[] { "arm_l", "forearm_l", "hand_l" },
+                new String[] { "arm_r", "forearm_r", "hand_r" },
+                new String[] { "leg_l", "leg2_l", "heel_l" },
+                new String[] { "leg_r", "leg2_r", "heel_r" });
 
         key = KeyBindingHelper.registerKeyBinding(new KeyMapping(
                 "key.los_gear_plus.partial_shift",

@@ -143,9 +143,13 @@ public class PartialShifterTitanEntity extends PathfinderMob implements GeoEntit
         return this.entityData.get(DATA_EMERGED);
     }
 
-    /** Usado pelo {@code PartialDismountVetoMixin}: o sneak do dono só funciona com ele emergido (igual ao DAOT). */
-    public boolean isDismountAllowed() {
-        return this.allowDismount || isEmerged();
+    /**
+     * Usado pelo {@code PartialDismountVetoMixin}: o dono só desce do titã por vontade própria (agachar já emergido
+     * pela nuca) ou quando o titã vai evaporar (saída total, vida zerada). Qualquer outra tentativa de tirá-lo do
+     * titã (titãs puros agarrando, outros mods, comandos de montaria) é vetada.
+     */
+    public boolean permitsDismount(ServerPlayer rider) {
+        return this.allowDismount || (isEmerged() && rider.isShiftKeyDown());
     }
 
     /**

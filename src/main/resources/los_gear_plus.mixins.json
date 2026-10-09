@@ -16,6 +16,8 @@
 		"PartialRiderProtectionMixin",
 		"PartialMarkTypeMixin",
 		"PartialDismountVetoMixin",
+		"PartialTitanGrabImmunityMixin",
+		"PartialTitanPluckMixin",
 		"LivingEntityMasteryMixin",
 		"LivingEntityLimbMixin",
 		"LivingEntityRiderInvisMixin",

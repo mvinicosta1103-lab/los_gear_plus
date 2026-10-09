@@ -1,5 +1,6 @@
 package com.example.losgearplus.limb;
 
+import com.example.losgearplus.partial.PartialShifterTitanEntity;
 import net.minecraft.util.Mth;
 import net.minecraft.world.damagesource.DamageSource;
 import net.minecraft.world.entity.Entity;
@@ -42,14 +43,21 @@ public final class LimbHit {
         boolean front = dx * -Math.sin(yaw) + dz * Math.cos(yaw) > 0;
         boolean left = (side >= 0f) != LimbRules.HIT_SWAP_SIDES;
 
+        // O titã parcial só tem torso e braços: faixas próprias e nenhuma perna.
+        boolean partial = victim instanceof PartialShifterTitanEntity;
+        float armMin = partial ? LimbRules.HIT_PARTIAL_ARM_MIN : LimbRules.HIT_ARM_MIN;
+        float armUpperMin = partial ? LimbRules.HIT_PARTIAL_ARM_UPPER_MIN : LimbRules.HIT_ARM_UPPER_MIN;
+        float armSideMin = partial ? LimbRules.HIT_PARTIAL_ARM_SIDE_MIN : LimbRules.HIT_ARM_SIDE_MIN;
+
         LimbPart part;
         if (h >= LimbRules.HIT_HEAD_MIN) {
             if (!eyes || !front) return null;
             part = left ? LimbPart.EYE_LEFT : LimbPart.EYE_RIGHT;
-        } else if (h >= LimbRules.HIT_ARM_MIN) {
-            if (Math.abs(side) < LimbRules.HIT_ARM_SIDE_MIN) return null; // tronco
-            part = LimbPart.of(LimbPart.Kind.ARM, left, h >= LimbRules.HIT_ARM_UPPER_MIN);
+        } else if (h >= armMin) {
+            if (Math.abs(side) < armSideMin) return null; // tronco
+            part = LimbPart.of(LimbPart.Kind.ARM, left, h >= armUpperMin);
         } else {
+            if (partial) return null; // sem pernas
             part = LimbPart.of(LimbPart.Kind.LEG, left, h >= LimbRules.HIT_LEG_UPPER_MIN);
         }
         return st.isIntact(part) ? part : null;

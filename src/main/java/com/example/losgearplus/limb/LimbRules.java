@@ -41,6 +41,16 @@ public final class LimbRules {
 	/** Se o esquerdo/direito sair invertido nos testes, troque para true. */
 	public static final boolean HIT_SWAP_SIDES = false;
 
+	/**
+	 * Titã parcial (só o torso fora do chão, sem pernas): faixas em fração da altura da hitbox. Abaixo de
+	 * {@code HIT_PARTIAL_ARM_MIN} não há membro (o golpe não decepa nada); de {@code HIT_PARTIAL_ARM_UPPER_MIN} para
+	 * cima é o braço inteiro (ombro), abaixo é o antebraço. {@code HIT_PARTIAL_ARM_SIDE_MIN}: o quanto o golpe precisa
+	 * estar para o lado (0 = centro, 1 = borda) para contar como braço e não como tronco.
+	 */
+	public static final float HIT_PARTIAL_ARM_MIN = 0.30f;
+	public static final float HIT_PARTIAL_ARM_UPPER_MIN = 0.52f;
+	public static final float HIT_PARTIAL_ARM_SIDE_MIN = 0.30f;
+
 	/** Chance final de perda contra titã de shifter: base da origem + bônus pelo dano relativo à vida máxima. */
 	public static float titanVictimChance(float base, float amount, float maxHealth) {
 		float frac = maxHealth > 0f ? amount / maxHealth : 0f;
