@@ -25,7 +25,6 @@ public class LosGearPlus implements ModInitializer {
 
 	@Override
 	public void onInitialize() {
-		ModItems.init();
 		PartialEntities.init();
 		PartialShiftManager.init();
 		OdmgModeNetworking.init();
