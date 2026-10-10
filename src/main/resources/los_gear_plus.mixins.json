@@ -45,7 +45,9 @@
 		"client.PlayerRendererRiderHideMixin",
 		"client.GeoModelLimbMixin",
 		"client.DaotOdmNoArmsMixin",
-		"client.GeoEntityRendererEvaporationMixin"
+		"client.GeoEntityRendererEvaporationMixin",
+		"client.PartialTitanHudMixin",
+		"client.PartialColossalCameraMixin"
 	],
 	"injectors": {
 		"defaultRequire": 1

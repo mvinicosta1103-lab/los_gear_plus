@@ -1,6 +1,5 @@
 package com.example.losgearplus.client.partial;
 
-import com.example.losgearplus.partial.PartialShiftConfig;
 import com.example.losgearplus.partial.PartialShifterTitanEntity;
 import com.mojang.blaze3d.vertex.PoseStack;
 import com.mojang.blaze3d.vertex.VertexConsumer;
@@ -23,6 +22,6 @@ public class PartialShifterTitanRenderer extends GeoEntityRenderer<PartialShifte
         super.preRender(poseStack, animatable, model, bufferSource, buffer, isReRender, partialTick,
                 packedLight, packedOverlay, colour);
         float rise = animatable.getRise(partialTick);
-        poseStack.translate(0.0, -(1.0f - rise) * PartialShiftConfig.RISE_DEPTH, 0.0);
+        poseStack.translate(0.0, -(1.0f - rise) * animatable.riseDepth() + animatable.modelYOffset(partialTick), 0.0);
     }
 }

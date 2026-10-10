@@ -98,5 +98,8 @@
 	"los_gear_plus.mode.hands_one": "ODMG: One-Hand (1 grip in main hand)",
 	"los_gear_plus.mode.hands_two": "ODMG: Two-Hand (2 grips)",
 	"los_gear_plus.mode.hands_unavailable": "Can't switch hand mode (not enough grips)",
-	"los_gear_plus.mode.odmg_no_grip_one": "You need 1 ODM Grip in your inventory"
+	"los_gear_plus.mode.odmg_no_grip_one": "You need 1 ODM Grip in your inventory",
+	"entity.los_gear_plus.partial_colossal_titan": "Partial Colossal Titan",
+	"los_gear_plus.partial.colossal.no_kick": "The Partial Colossal has no legs: it cannot kick",
+	"los_gear_plus.partial.colossal.no_armdrag": "Arm Drag is not available in the Partial Colossal"
 }

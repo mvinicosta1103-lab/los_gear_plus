@@ -98,5 +98,8 @@
 	"los_gear_plus.mode.hands_one": "ODMG: One-Hand (1 grip na mão principal)",
 	"los_gear_plus.mode.hands_two": "ODMG: Two-Hand (2 grips)",
 	"los_gear_plus.mode.hands_unavailable": "Não foi possível trocar o modo de mãos (grips insuficientes)",
-	"los_gear_plus.mode.odmg_no_grip_one": "Você precisa de 1 ODM Grip no inventário"
+	"los_gear_plus.mode.odmg_no_grip_one": "Você precisa de 1 ODM Grip no inventário",
+	"entity.los_gear_plus.partial_colossal_titan": "Titã Colossal Parcial",
+	"los_gear_plus.partial.colossal.no_kick": "O Colossal Parcial não tem pernas: não pode chutar",
+	"los_gear_plus.partial.colossal.no_armdrag": "Arrastar Braço não está disponível no Colossal Parcial"
 }

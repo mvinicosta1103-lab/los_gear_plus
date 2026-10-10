@@ -66,6 +66,13 @@ public final class PartialShiftManager {
         PayloadTypeRegistry.playC2S().register(PartialShiftPayload.TYPE, PartialShiftPayload.CODEC);
         ServerPlayNetworking.registerGlobalReceiver(PartialShiftPayload.TYPE,
                 (payload, context) -> toggle(context.player()));
+        PayloadTypeRegistry.playC2S().register(PartialColossalActionPayload.TYPE, PartialColossalActionPayload.CODEC);
+        ServerPlayNetworking.registerGlobalReceiver(PartialColossalActionPayload.TYPE, (payload, context) -> {
+            ServerPlayer player = context.player();
+            if (player.getVehicle() instanceof PartialColossalTitanEntity colossal) {
+                colossal.handleAction(player, payload.action());
+            }
+        });
         ServerPlayConnectionEvents.DISCONNECT.register((handler, server) ->
                 COOLDOWN_UNTIL.remove(handler.getPlayer().getUUID()));
         ServerLifecycleEvents.SERVER_STOPPED.register(server -> {
@@ -113,7 +120,12 @@ public final class PartialShiftManager {
 
     private static void spawn(ServerPlayer p, PartialTitanVariant variant) {
         ServerLevel level = p.serverLevel();
-        PartialShifterTitanEntity titan = PartialEntities.PARTIAL_SHIFTER_TITAN.create(level);
+        PartialShifterTitanEntity titan;
+        if (variant.isColossal()) {
+            titan = PartialEntities.PARTIAL_COLOSSAL_TITAN.create(level);
+        } else {
+            titan = PartialEntities.PARTIAL_SHIFTER_TITAN.create(level);
+        }
         if (titan == null) return;
 
         double x = p.getX(), y = p.getY(), z = p.getZ();

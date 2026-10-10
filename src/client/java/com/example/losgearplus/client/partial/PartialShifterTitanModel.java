@@ -19,6 +19,6 @@ public class PartialShifterTitanModel extends GeoModel<PartialShifterTitanEntity
 
     @Override
     public ResourceLocation getAnimationResource(PartialShifterTitanEntity entity) {
-        return LosGearPlus.id("animations/partial_titan.animation.json");
+        return LosGearPlus.id("animations/" + entity.getVariant().animationFile());
     }
 }
