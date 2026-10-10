@@ -93,5 +93,10 @@
 	"los_gear_plus.partial.titan.triple_t": "Titã Triple T",
 	"los_gear_plus.partial.reentered": "Você voltou para dentro do titã",
 	"los_gear_plus.partial.no_transform": "Você já está transformado (parcial). Saia pela nuca e agache para deixar o titã antes",
-	"los_gear_plus.partial.emerged": "Você saiu pela nuca. Agache para sair de vez, ou aperte a tecla de novo para voltar"
+	"los_gear_plus.partial.emerged": "Você saiu pela nuca. Agache para sair de vez, ou aperte a tecla de novo para voltar",
+	"key.los_gear_plus.toggle_one_hand": "Alternar Uma Mão / Duas Mãos (ODMG)",
+	"los_gear_plus.mode.hands_one": "ODMG: One-Hand (1 grip na mão principal)",
+	"los_gear_plus.mode.hands_two": "ODMG: Two-Hand (2 grips)",
+	"los_gear_plus.mode.hands_unavailable": "Não foi possível trocar o modo de mãos (grips insuficientes)",
+	"los_gear_plus.mode.odmg_no_grip_one": "Você precisa de 1 ODM Grip no inventário"
 }
