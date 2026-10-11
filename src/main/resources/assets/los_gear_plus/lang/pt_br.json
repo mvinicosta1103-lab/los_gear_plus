@@ -127,5 +127,15 @@
 	"los_gear_plus.colossal_nuke.hint": "Aperte 1 ou 2, ou clique  •  Esc fecha",
 	"los_gear_plus.colossal_nuke.set_on": "Transformação do Colossal: COM nuke",
 	"los_gear_plus.colossal_nuke.set_off": "Transformação do Colossal: NORMAL (sem nuke)",
-	"los_gear_plus.colossal_nuke.not_colossal": "Só o shifter Colossal pode escolher isso."
+	"los_gear_plus.colossal_nuke.not_colossal": "Só o shifter Colossal pode escolher isso.",
+	"key.los_gear_plus.shifter_arm_grab": "Braço do Shifter: Agarrar / Soltar",
+	"los_gear_plus.shifter_arm.on": "Braço do Shifter: clique = soco / arremesso, G = agarrar. Abra o menu (H) e escolha Braço para recolher",
+	"los_gear_plus.shifter_arm.off": "Braço do Shifter recolhido",
+	"los_gear_plus.shifter_arm.not_shifter": "Só shifters podem usar o Braço do Shifter",
+	"los_gear_plus.shifter_arm.in_titan": "Você não pode usar o Braço do Shifter na forma de titã",
+	"los_gear_plus.shifter_arm.no_arm": "Você precisa do braço direito para usar o Braço do Shifter",
+	"los_gear_plus.shifter_arm.cooldown": "Braço do Shifter em recarga: %ss",
+	"los_gear_plus.shifter_arm.nothing_to_grab": "Nada para agarrar",
+	"los_gear_plus.armored.arm": "Braço",
+	"los_gear_plus.armored.arm.desc": "Só o braço se transforma. Você fica parado e o controla: socar, agarrar e arremessar. Escolha de novo para recolher."
 }

@@ -17,6 +17,8 @@ public abstract class PartialMarkTypeMixin {
     private static void losgearplus$partialMarkType(Entity entity, CallbackInfoReturnable<String> cir) {
         if (entity instanceof PartialShifterTitanEntity titan) {
             cir.setReturnValue(titan.getVariant().markType());
+        } else if (entity instanceof com.example.losgearplus.shiftarm.ShifterArmEntity arm) {
+            cir.setReturnValue(com.example.losgearplus.partial.PartialTitanVariant.byId(arm.variantId()).markType());
         }
     }
 }

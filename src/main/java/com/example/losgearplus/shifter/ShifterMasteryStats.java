@@ -27,11 +27,11 @@ import net.minecraft.world.entity.ai.attributes.Attributes;
  * Tune the constants below to balance.
  */
 public final class ShifterMasteryStats {
-    public static final double BASE_HP_BONUS = 20.0;        // 20 + 20 = 40 HP
-    public static final double HP_PER_LEVEL = 2.0;          // 1 extra heart per level: level 9 = 9 hearts = +18 HP
-    public static final double TITAN_HP_PER_LEVEL = 0.10;   // level 9 = +90% titan HP
-    public static final float STRENGTH_PER_LEVEL = 0.08f;   // level 9 = +72% damage
-    public static final float REDUCTION_PER_LEVEL = 0.05f;  // level 9 = 45% less damage
+    public static double BASE_HP_BONUS = 20.0;        // 20 + 20 = 40 HP
+    public static double HP_PER_LEVEL = 2.0;          // 1 extra heart per level: level 9 = 9 hearts = +18 HP
+    public static double TITAN_HP_PER_LEVEL = 0.10;   // level 9 = +90% titan HP
+    public static float STRENGTH_PER_LEVEL = 0.08f;   // level 9 = +72% damage
+    public static float REDUCTION_PER_LEVEL = 0.05f;  // level 9 = 45% less damage
 
     private static final ResourceLocation HP_ID =
             ResourceLocation.fromNamespaceAndPath("los_gear_plus", "mastery_hp");

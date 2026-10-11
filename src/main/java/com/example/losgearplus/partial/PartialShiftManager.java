@@ -50,6 +50,11 @@ public final class PartialShiftManager {
 
     /** O jogador tem um titã parcial ativo? (Bloqueia a transformação normal, o Force Shift e o fade das marcas.) */
     public static boolean hasPartial(UUID owner) {
+        return hasPartialTitan(owner) || com.example.losgearplus.shiftarm.ShifterArmManager.isBusy(owner);
+    }
+
+    /** Só o titã parcial (sem o Shifter Arm). */
+    public static boolean hasPartialTitan(UUID owner) {
         PartialShifterTitanEntity t = BOUND.get(owner);
         return t != null && !t.isRemoved() && t.phase() == PartialShifterTitanEntity.PHASE_ACTIVE;
     }
@@ -162,7 +167,7 @@ public final class PartialShiftManager {
      * "Dano de transformação": o mesmo cálculo do DAOT (dano com queda quadrática pela distância + empurrão),
      * que é privado lá e por isso replicado aqui. Poupa o próprio shifter e qualquer ShifterTitan / quem o monta.
      */
-    private static void transformationBlast(ServerLevel level, ServerPlayer shifter, Vec3 center) {
+    public static void transformationBlast(ServerLevel level, ServerPlayer shifter, Vec3 center) {
         double r = PartialShiftConfig.EXPLOSION_RADIUS;
         AABB box = new AABB(center.x - r, center.y - r, center.z - r, center.x + r, center.y + r, center.z + r);
         for (LivingEntity target : level.getEntitiesOfClass(LivingEntity.class, box)) {

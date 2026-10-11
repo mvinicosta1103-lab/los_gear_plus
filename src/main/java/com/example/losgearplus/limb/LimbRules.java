@@ -12,21 +12,21 @@ public final class LimbRules {
 	// Humanos SÓ perdem membro para titãs (puros ou shifters). Titãs de shifter perdem para lâmina, titã,
 	// explosão (lança do trovão, canhão) e qualquer outro dano forte, e o ponto atingido decide a parte.
 	/** Chance base (por golpe que acerta um membro) de um titã de shifter perder a parte, conforme a origem. */
-	public static final float BLADE_VS_TITAN = 0.20f;
-	public static final float BLAST_VS_TITAN = 0.35f;
+	public static float BLADE_VS_TITAN = 0.20f;
+	public static float BLAST_VS_TITAN = 0.35f;
 	/** Outros danos (soco, flecha, mob...): só entram pelo bônus de dano abaixo. */
-	public static final float OTHER_VS_TITAN = 0.0f;
+	public static float OTHER_VS_TITAN = 0.0f;
 	/** Titã (puro ou shifter) acertando alguém: vale para humano e para titã de shifter. */
-	public static final float TITAN_HIT = 0.15f;
+	public static float TITAN_HIT = 0.15f;
 	/** Bônus de chance = (dano / vida máxima) x escala, limitado ao máximo. Só vale contra titã de shifter. */
-	public static final float DAMAGE_CHANCE_SCALE = 2.0f;
-	public static final float DAMAGE_CHANCE_MAX_BONUS = 0.35f;
+	public static float DAMAGE_CHANCE_SCALE = 2.0f;
+	public static float DAMAGE_CHANCE_MAX_BONUS = 0.35f;
 	/** Dano "OTHER" abaixo desta fração da vida máxima do titã nunca decepa. */
 	public static final float OTHER_MIN_DAMAGE_FRACTION = 0.03f;
 	/** Dano EXTRA (antes da armadura) que o humano leva ao perder um membro (braço/perna inteiro; metade+ no antebraço/canela/olho). 0 = sem dano extra. */
-	public static final float HUMAN_LOSS_EXTRA_DAMAGE = 6.0f;
+	public static float HUMAN_LOSS_EXTRA_DAMAGE = 6.0f;
 	/** Ticks mínimos entre duas perdas da mesma vítima (evita arrancar tudo num golpe em área). */
-	public static final int LOSS_COOLDOWN_TICKS = 40;
+	public static int LOSS_COOLDOWN_TICKS = 40;
 
 	// ---- onde o titã foi atingido (altura relativa ao corpo: 0 = pés, 1 = topo da cabeça) -------------------
 	/** Acima disto é cabeça: só o olho (golpe de lâmina pela frente) pode ser decepado. */
@@ -81,7 +81,7 @@ public final class LimbRules {
 	 * Só vale com a passiva liberada pelas gamerules ({@link LimbGameRules}: ligada e maestria >= mínima); senão o
 	 * membro só volta com o Steam Heal (J), que funciona na forma humana e na de titã. Use 0 para desligar a passiva.
 	 */
-	public static final float PASSIVE_REGROW = 0.15f;
+	public static float PASSIVE_REGROW = 0.15f;
 	/**
 	 * Aviso de progresso: a cada quantos % de regeneração o jogador recebe o banner "Regenerando Braço esquerdo: 50%".
 	 * Também avisa quando o membro começa a crescer (0%) e quando fica recuperado. Menor = mais avisos (1..100).
@@ -184,12 +184,12 @@ public final class LimbRules {
 
 	// ---- braços do titã -----------------------------------------------------------------------------------
 	/** true = qualquer braço perdido já impede socar/defender; false = basta UM braço. (Soco e guarda, não habilidades.) */
-	public static final boolean TITAN_ARM_ACTIONS_NEED_BOTH_ARMS = true;
+	public static boolean TITAN_ARM_ACTIONS_NEED_BOTH_ARMS = true;
 	/**
 	 * true = qualquer braço perdido já impede as habilidades de braço; false (padrão) = só ficam impossíveis quando
 	 * os DOIS braços foram removidos (com um braço o titã ainda usa as habilidades).
 	 */
-	public static final boolean TITAN_ABILITIES_NEED_BOTH_ARMS = false;
+	public static boolean TITAN_ABILITIES_NEED_BOTH_ARMS = false;
 
 	/** Soco / guarda: respeita {@link #TITAN_ARM_ACTIONS_NEED_BOTH_ARMS}. */
 	public static boolean titanArmsOk(LimbState s) {

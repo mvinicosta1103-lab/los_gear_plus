@@ -48,15 +48,15 @@ public final class ShifterMastery {
 	public static final int UNLIMITED = Integer.MAX_VALUE;
 
 	/** Time until used transformations reset (12000 ticks = 10 minutes). */
-	public static final long RESET_TICKS = 12000L;
+	public static long RESET_TICKS = 12000L;
 
 	/** Seconds a full stamina bar lasts in titan form at a drain multiplier of 1.0 (level 5). */
-	public static final float BASE_TITAN_SECONDS = 120f;
+	public static float BASE_TITAN_SECONDS = 120f;
 
 	/** Mastery XP granted each time a transformation starts. */
-	public static final int XP_PER_TRANSFORMATION = 50;
+	public static int XP_PER_TRANSFORMATION = 50;
 	/** Mastery XP granted for each full second spent in titan form. */
-	public static final int XP_PER_SECOND_TRANSFORMED = 1;
+	public static int XP_PER_SECOND_TRANSFORMED = 1;
 
 	/** Total XP needed to REACH each level (index = level). */
 	public static final int[] XP_TO_REACH = { 0, 100, 300, 600, 1000, 1600, 2400, 3400, 4800, 7000 };

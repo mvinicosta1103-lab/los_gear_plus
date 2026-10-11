@@ -52,7 +52,7 @@ public final class WeakerArmoredManager {
                 return;
             }
             ShifterForm form = ShifterForm.byId(payload.form());
-            if (form == ShifterForm.PARTIAL) return; // o Partial tem tecla própria (PartialShiftPayload)
+            if (form == ShifterForm.PARTIAL || form == ShifterForm.ARM) return; // o Partial tem tecla própria (PartialShiftPayload)
             if (!ShifterTypes.isShifter(p)) {
                 p.displayClientMessage(Component.translatable("los_gear_plus.shifter.not_shifter"), true);
                 return;

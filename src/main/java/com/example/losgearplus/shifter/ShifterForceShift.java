@@ -44,15 +44,15 @@ import org.joml.Vector3f;
  * Tune the constants below to balance.
  */
 public final class ShifterForceShift {
-    public static final int MIN_LEVEL = 2;
+    public static int MIN_LEVEL = 2;
     /** Fraction of max HP: a hit that leaves the player at or under this triggers the force shift. */
-    public static final float HEALTH_THRESHOLD = 0.15f;
+    public static float HEALTH_THRESHOLD = 0.15f;
     /** Ticks before it can trigger again (3600 = 3 minutes). */
-    public static final int COOLDOWN_TICKS = 3600;
+    public static int COOLDOWN_TICKS = 3600;
     /** Safety limit for the invincibility if the titan never appears (300 = 15 s). */
-    public static final int MAX_PROTECT_TICKS = 300;
+    public static int MAX_PROTECT_TICKS = 300;
     /** Extra invincibility after the titan appears (40 = 2 s). */
-    public static final int GRACE_TICKS = 40;
+    public static int GRACE_TICKS = 40;
     /** Player tag that means "force shifting disabled" (default is enabled). */
     public static final String OFF_TAG = "los_forceshift_off";
     /** Player tag that means "infinite force shifting": no cooldown and no transformation limit. */

@@ -5,6 +5,7 @@ import com.example.losgearplus.client.ui.FancyButton;
 import com.example.losgearplus.client.ui.Palette;
 import com.example.losgearplus.client.ui.UiDraw;
 import com.example.losgearplus.partial.PartialShiftPayload;
+import com.example.losgearplus.shiftarm.ShifterArmActionPayload;
 import com.example.losgearplus.weaker.ShifterForm;
 import com.example.losgearplus.weaker.ShifterFormPayload;
 import java.util.ArrayList;
@@ -28,6 +29,7 @@ public final class ShifterFormScreen extends Screen {
 	private static final int CARD_H = 150;
 	private static final int GAP = 12;
 	private static final int PARTIAL_ACCENT = 0xFF5AA9E6;
+	private static final int ARM_ACCENT = 0xFFE6A23C;
 
 	private final String titanId;
 	private final boolean canWeaker;
@@ -50,6 +52,7 @@ public final class ShifterFormScreen extends Screen {
 		forms.add(ShifterForm.NORMAL);
 		if (canWeaker) forms.add(ShifterForm.WEAKER);
 		forms.add(ShifterForm.PARTIAL);
+		forms.add(ShifterForm.ARM);
 
 		int n = forms.size();
 		int x0 = this.width / 2 - (CARD_W * n + GAP * (n - 1)) / 2;
@@ -57,7 +60,8 @@ public final class ShifterFormScreen extends Screen {
 		for (int i = 0; i < n; i++) {
 			ShifterForm f = forms.get(i);
 			String badge = String.valueOf(i + 1);
-			int accent = f == ShifterForm.NORMAL ? Palette.CRIMSON : f == ShifterForm.WEAKER ? Palette.GOLD : PARTIAL_ACCENT;
+			int accent = f == ShifterForm.NORMAL ? Palette.CRIMSON : f == ShifterForm.WEAKER ? Palette.GOLD
+					: f == ShifterForm.ARM ? ARM_ACCENT : PARTIAL_ACCENT;
 			addRenderableWidget(new FancyButton(x0 + i * (CARD_W + GAP), y, CARD_W, CARD_H,
 					name(f), desc(f), ItemStack.EMPTY, badge, accent, 250 + 130L * i, b -> choose(f)));
 		}
@@ -73,7 +77,11 @@ public final class ShifterFormScreen extends Screen {
 	}
 
 	private void choose(ShifterForm form) {
-		if (form == ShifterForm.PARTIAL) {
+		if (form == ShifterForm.ARM) {
+			if (ClientPlayNetworking.canSend(ShifterArmActionPayload.TYPE)) {
+				ClientPlayNetworking.send(new ShifterArmActionPayload(ShifterArmActionPayload.TOGGLE));
+			}
+		} else if (form == ShifterForm.PARTIAL) {
 			if (ClientPlayNetworking.canSend(PartialShiftPayload.TYPE)) ClientPlayNetworking.send(new PartialShiftPayload());
 		} else if (ClientPlayNetworking.canSend(ShifterFormPayload.TYPE)) {
 			ClientPlayNetworking.send(new ShifterFormPayload(form.ordinal()));

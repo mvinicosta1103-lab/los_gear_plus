@@ -2,7 +2,7 @@ package com.example.losgearplus.weaker;
 
 /** Formas de um shifter (o Weaker só existe para o Armored). PARTIAL usa a tecla própria do Partial Shifting (não é guardada). */
 public enum ShifterForm {
-    NORMAL, WEAKER, PARTIAL;
+    NORMAL, WEAKER, PARTIAL, ARM;
 
     public static ShifterForm byId(int id) {
         ShifterForm[] v = values();

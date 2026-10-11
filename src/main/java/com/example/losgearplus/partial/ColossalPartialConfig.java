@@ -30,44 +30,44 @@ public final class ColossalPartialConfig {
 
     // ---- ataque (botão de ataque do mouse enquanto montado, não emergido) -------------------------------
     /** Alcance do golpe à frente. O do DAOT (50) é para o titã de 60 blocos inteiro; o torso parcial usa menos. */
-    public static final double ATTACK_RANGE = 28.0;
+    public static double ATTACK_RANGE = 28.0;
     /** Dano = colossalTitanAttackDamage (config do DAOT) x este fator. */
-    public static final double ATTACK_DAMAGE_FACTOR = 0.6;
+    public static double ATTACK_DAMAGE_FACTOR = 0.6;
     /** attack_1 dura 2,75 s e attack_2 3,0 s; o golpe acerta no tick indicado (contado desde o início da animação). */
     public static final int ATTACK_1_TICKS = 55;
     public static final int ATTACK_1_HIT_TICK = 44;
     public static final int ATTACK_2_TICKS = 60;
     public static final int ATTACK_2_HIT_TICK = 50;
     /** Folga depois da animação antes de poder atacar de novo. */
-    public static final int ATTACK_EXTRA_COOLDOWN = 8;
+    public static int ATTACK_EXTRA_COOLDOWN = 8;
 
     // ---- habilidades do Colossal (mesmas teclas 1 e 4 do DAOT) ------------------------------------------
     /** Habilidade 1: vapor (empurra todo mundo em volta). */
-    public static final int STEAM_TICKS = 100;
+    public static int STEAM_TICKS = 100;
     public static final int STEAM_EFFECT_START_TICK = 20;
-    public static final double STEAM_RADIUS = 45.0;
-    public static final int STEAM_COOLDOWN = 400;
+    public static double STEAM_RADIUS = 45.0;
+    public static int STEAM_COOLDOWN = 400;
     /** Habilidade 4: calor infernal (vapor com fogo: incendeia quem está no raio). */
-    public static final int INFERNAL_TICKS = 160;
-    public static final int INFERNAL_COOLDOWN = 700;
-    public static final int INFERNAL_FIRE_TICKS = 80;
+    public static int INFERNAL_TICKS = 160;
+    public static int INFERNAL_COOLDOWN = 700;
+    public static int INFERNAL_FIRE_TICKS = 80;
 
     // ---- queda (titã derrotado ou shifter saiu do partial) ----------------------------------------------
     /** Duração da animação fall (11,5 s). Ao fim, o corpo passa a evaporar (EvaporationRules). */
     public static final int FALL_TOTAL_TICKS = 230;
     /** Tick da animação em que o corpo bate no chão (a queda forte do body acontece de 2,0 s a 3,08 s). */
     public static final int FALL_IMPACT_TICK = 62;
-    public static final double FALL_RADIUS = 45.0;
-    public static final float FALL_DAMAGE = 80.0f;
-    public static final double FALL_KNOCKBACK = 3.0;
+    public static double FALL_RADIUS = 45.0;
+    public static float FALL_DAMAGE = 80.0f;
+    public static double FALL_KNOCKBACK = 3.0;
     /** Quem está a menos de (raio x este fator) do impacto também pega fogo. */
-    public static final double FALL_FIRE_RADIUS_FACTOR = 0.6;
-    public static final int FALL_FIRE_TICKS = 100;
+    public static double FALL_FIRE_RADIUS_FACTOR = 0.6;
+    public static int FALL_FIRE_TICKS = 100;
     /** Tentativas de acender fogo no chão em volta do impacto (respeita a gamerule mobGriefing). */
-    public static final int FALL_FIRE_PATCHES = 70;
+    public static int FALL_FIRE_PATCHES = 70;
     /** true = o impacto também explode blocos (usa mobGriefing). Padrão false: só fogo, sem destruir o terreno. */
-    public static final boolean FALL_BREAKS_BLOCKS = false;
-    public static final float FALL_EXPLOSION_POWER = 8.0f;
+    public static boolean FALL_BREAKS_BLOCKS = false;
+    public static float FALL_EXPLOSION_POWER = 8.0f;
 
     /**
      * Ajuste vertical do modelo durante a queda, em UNIDADES do Blockbench (16 = 1 bloco; positivo sobe).
