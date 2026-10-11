@@ -56,4 +56,17 @@ public final class ShifterArmConfig {
 
     /** false = players cannot be grabbed (punch still follows the server's PvP setting). */
     public static final boolean CAN_GRAB_PLAYERS = true;
+
+    // ------------------------------------------------------------------ leaving the arm (B / L): evaporation
+    // The arm stays where it was, turns black and smokes until it vanishes, like a titan body. How long it takes and
+    // how fast it darkens is shared with the titans: see evap.EvaporationRules (DURATION_TICKS, FULL_BLACK_AT...).
+
+    /** Centre of the smoke along the arm (blocks forward / up from the owner's feet) and how far it spreads. */
+    public static final double EVAP_SMOKE_FORWARD = 2.2;
+    public static final double EVAP_SMOKE_UP = 1.3;
+    public static final double EVAP_SMOKE_SPREAD_XZ = 1.8;
+    public static final double EVAP_SMOKE_SPREAD_Y = 0.8;
+
+    /** First person: the evaporating arm is only drawn once the owner is at least this far (blocks) from it. */
+    public static final double EVAP_SHOW_IN_FIRST_PERSON_DISTANCE = 6.0;
 }

@@ -129,13 +129,16 @@
 	"los_gear_plus.colossal_nuke.set_off": "Colossal transformation: NORMAL (no nuke)",
 	"los_gear_plus.colossal_nuke.not_colossal": "Only the Colossal shifter can choose this.",
 	"key.los_gear_plus.shifter_arm_grab": "Shifter Arm: Grab / Release",
-	"los_gear_plus.shifter_arm.on": "Shifter Arm: click = punch / throw, G = grab. Open the form menu (H) and pick Arm to retract",
-	"los_gear_plus.shifter_arm.off": "Shifter Arm retracted",
+	"key.los_gear_plus.shifter_arm_exit": "Shifter Arm: Leave (evaporate)",
+	"los_gear_plus.shifter_arm.on": "Shifter Arm: click = punch / throw, G = grab, B or L = leave (the arm evaporates)",
+	"los_gear_plus.shifter_arm.off": "You left the arm: it turns black and evaporates",
 	"los_gear_plus.shifter_arm.not_shifter": "Only shifters can use the Shifter Arm",
 	"los_gear_plus.shifter_arm.in_titan": "You cannot use the Shifter Arm in titan form",
 	"los_gear_plus.shifter_arm.no_arm": "You need your right arm to use the Shifter Arm",
 	"los_gear_plus.shifter_arm.cooldown": "Shifter Arm on cooldown: %ss",
 	"los_gear_plus.shifter_arm.nothing_to_grab": "Nothing to grab",
+	"los_gear_plus.shifter_arm.no_partial": "The Shifter Arm is already a transformation: leave it (B or L) before using the Partial",
+	"los_gear_plus.shifter_arm.no_transform": "The Shifter Arm is already a transformation: you cannot turn into a titan now",
 	"los_gear_plus.armored.arm": "Arm",
-	"los_gear_plus.armored.arm.desc": "Only the arm transforms. You stay still and control it: punch, grab and throw. Pick again to retract."
+	"los_gear_plus.armored.arm.desc": "A transformation of its own: only the arm transforms. You stand still and control it (punch, grab, throw) and cannot turn into the Partial or the normal titan while in it. Leave with B or L: the arm turns black and evaporates."
 }

@@ -53,7 +53,12 @@ import net.minecraft.world.phys.Vec3;
  *   <li>after {@link ShifterArmConfig#PRESHIFT_TICKS} ticks: lightning, ground particles, transformation blast + camera
  *       shake, the DAOT spawn effects (TitanSpawnPayload: sound, particles, roar of the variant), body smoke, a brief
  *       Resistance, and the shifter mark;</li>
- *   <li>the arm entity appears; pick "Arm" again (or die / enter a titan / leave) to retract it: steam like a dismount.</li>
+ *   <li>the arm entity appears. It is a transformation of its own: while it is out (or the pre-shift runs) the
+ *       shifter can NOT turn into the Partial or the normal titan, nor Force Shift;</li>
+ *   <li>leave it with B (the DAOT transform key, handled in {@code DaotShifterMasteryMixin}), L (own key,
+ *       {@link ShifterArmActionPayload#EXIT}) or by picking "Arm" again in the menu: the owner is freed (steam like a
+ *       dismount) and the arm stays behind, turns black and evaporates like a titan body ({@link ShifterArmEntity#beginEvaporation}).
+ *       Dying / entering a titan / quitting still just removes it.</li>
  * </ol>
  * Any shifter (tags in {@link ShifterTypes}) can use it. No stamina cost and no mastery count, like Partial Shifting.
  */
@@ -77,6 +82,7 @@ public final class ShifterArmManager {
         }
     }
 
+    /** The owner has an arm out (a released, evaporating arm does not count: it is no longer in {@code ACTIVE}). */
     public static boolean hasArm(UUID owner) {
         ShifterArmEntity a = ACTIVE.get(owner);
         return a != null && !a.isRemoved();
@@ -120,6 +126,10 @@ public final class ShifterArmManager {
             toggle(p);
             return;
         }
+        if (action == ShifterArmActionPayload.EXIT) {
+            release(p);
+            return;
+        }
         ShifterArmEntity arm = ACTIVE.get(p.getUUID());
         if (arm == null || arm.isRemoved()) return;
         if (action == ShifterArmActionPayload.PRIMARY) arm.primary(p);
@@ -131,10 +141,8 @@ public final class ShifterArmManager {
     private static void toggle(ServerPlayer p) {
         UUID id = p.getUUID();
         if (PENDING.containsKey(id)) return; // already transforming
-        ShifterArmEntity existing = ACTIVE.get(id);
-        if (existing != null && !existing.isRemoved()) {
-            existing.discard(); // onArmRemoved does the rest (steam, mark, unroot)
-            msg(p, "los_gear_plus.shifter_arm.off");
+        if (hasArm(id)) {
+            release(p); // picking "Arm" again leaves the form the same way as B / L
             return;
         }
         if (!ShifterTypes.isShifter(p)) {
@@ -158,6 +166,21 @@ public final class ShifterArmManager {
         }
         startPreshift(p);
         TOGGLE_COOLDOWN_UNTIL.put(id, now + ShifterArmConfig.TOGGLE_COOLDOWN_TICKS);
+    }
+
+    /**
+     * Leave the arm transformation (B, L or the menu): the arm turns black and evaporates where it stands and the
+     * owner is free again. Does nothing (returns false) if there is no arm out, e.g. during the pre-shift.
+     */
+    public static boolean release(ServerPlayer p) {
+        UUID id = p.getUUID();
+        ShifterArmEntity arm = ACTIVE.get(id);
+        if (arm == null || arm.isRemoved()) return false;
+        arm.beginEvaporation(); // calls onArmReleased: unroot, mark, steam
+        // leaving counts like entering for the cooldown, so the form cannot be spammed on/off
+        TOGGLE_COOLDOWN_UNTIL.put(id, p.getServer().getTickCount() + ShifterArmConfig.TOGGLE_COOLDOWN_TICKS);
+        msg(p, "los_gear_plus.shifter_arm.off");
+        return true;
     }
 
     /** Same pre-shift the DAOT does (tease flavour: particles + sounds, no titan cinematic), and the shifter is rooted. */
@@ -229,8 +252,18 @@ public final class ShifterArmManager {
         p.displayClientMessage(Component.translatable("los_gear_plus.shifter_arm.on"), true);
     }
 
-    /** Server-side cleanup when the arm entity goes away for any reason (retract, death, titan form, quit). */
+    /** Server-side cleanup when the arm entity goes away for any reason (death, titan form, quit...). */
     static void onArmRemoved(ShifterArmEntity arm) {
+        cleanup(arm);
+    }
+
+    /** The owner left the form (B / L / menu): same cleanup, but the entity lives on as an evaporating husk. */
+    static void onArmReleased(ShifterArmEntity arm) {
+        cleanup(arm);
+    }
+
+    /** Idempotent: only the first call for an arm does anything (it leaves {@code ACTIVE}), so releasing and then removing the husk is fine. */
+    private static void cleanup(ShifterArmEntity arm) {
         UUID id = arm.ownerId();
         if (id == null) return;
         if (ACTIVE.get(id) != arm) return;

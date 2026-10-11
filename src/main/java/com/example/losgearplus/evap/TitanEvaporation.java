@@ -120,7 +120,8 @@ public final class TitanEvaporation {
 		return false;
 	}
 
-	private static void broadcast(Entity titan, int remainingTicks) {
+	/** Avisa os clientes que {@code titan} (qualquer entidade GeckoLib: titã, Shifter Arm...) evapora; 0 cancela. */
+	public static void broadcast(Entity titan, int remainingTicks) {
 		EvaporateSyncPayload payload = new EvaporateSyncPayload(titan.getId(), remainingTicks);
 		for (ServerPlayer sp : PlayerLookup.tracking(titan)) ServerPlayNetworking.send(sp, payload);
 	}
@@ -152,16 +153,21 @@ public final class TitanEvaporation {
 	/** Fumaça espalhada pelo corpo todo; mais densa conforme evapora. {@code boost} multiplica a quantidade. */
 	private static void smoke(ServerLevel level, LivingEntity titan, float progress, int boost) {
 		AABB box = titan.getBoundingBox();
-		double cx = (box.minX + box.maxX) * 0.5;
-		double cy = box.minY + box.getYsize() * 0.5;
-		double cz = (box.minZ + box.maxZ) * 0.5;
-		double dx = box.getXsize() * 0.35;
-		double dy = box.getYsize() * 0.45;
-		double dz = box.getZsize() * 0.35;
+		smokeAt(level, titan,
+				(box.minX + box.maxX) * 0.5, box.minY + box.getYsize() * 0.5, (box.minZ + box.maxZ) * 0.5,
+				box.getXsize() * 0.35, box.getYsize() * 0.45, box.getZsize() * 0.35, progress, boost);
+	}
+
+	/**
+	 * Mesma fumaça, mas com centro e espalhamento escolhidos (para entidades cuja hitbox não representa o modelo, como
+	 * o Shifter Arm). Vai para quem rastreia {@code tracked}.
+	 */
+	public static void smokeAt(ServerLevel level, Entity tracked, double cx, double cy, double cz,
+			double dx, double dy, double dz, float progress, int boost) {
 		int big = Math.round((6 + 22 * progress) * boost);
 		int cosy = Math.round((2 + 6 * progress) * boost);
 		int ash = Math.round((3 + 10 * progress) * boost);
-		for (ServerPlayer sp : PlayerLookup.tracking(titan)) {
+		for (ServerPlayer sp : PlayerLookup.tracking(tracked)) {
 			send(level, sp, ParticleTypes.LARGE_SMOKE, cx, cy, cz, big, dx, dy, dz, 0.01);
 			send(level, sp, ParticleTypes.CAMPFIRE_COSY_SMOKE, cx, cy, cz, cosy, dx, dy, dz, 0.02);
 			send(level, sp, ParticleTypes.ASH, cx, cy, cz, ash, dx, dy, dz, 0.0);
@@ -174,7 +180,7 @@ public final class TitanEvaporation {
 		level.sendParticles(sp, type, true, x, y, z, count, dx, dy, dz, speed);
 	}
 
-	private static void hiss(ServerLevel level, LivingEntity titan, float volume) {
+	public static void hiss(ServerLevel level, Entity titan, float volume) {
 		level.playSound(null, titan.getX(), titan.getY() + titan.getBbHeight() * 0.5, titan.getZ(),
 				SoundEvents.FIRE_EXTINGUISH, SoundSource.HOSTILE, volume, 0.5f);
 	}

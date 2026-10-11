@@ -1,5 +1,7 @@
 package com.example.losgearplus.shiftarm;
 
+import com.example.losgearplus.evap.EvaporationRules;
+import com.example.losgearplus.evap.TitanEvaporation;
 import com.example.losgearplus.limb.LimbData;
 import daot.ShifterTitan;
 import java.util.Comparator;
@@ -44,6 +46,8 @@ public class ShifterArmEntity extends Entity implements GeoEntity {
     public static final int GRAB = 2;
     public static final int HOLDING = 3;
     public static final int THROW = 4;
+    /** The owner left the arm form: the arm stays in place, turns black and evaporates like a titan body, then vanishes. */
+    public static final int EVAPORATING = 5;
 
     private static final EntityDataAccessor<Integer> DATA_STATE =
             SynchedEntityData.defineId(ShifterArmEntity.class, EntityDataSerializers.INT);
@@ -66,6 +70,7 @@ public class ShifterArmEntity extends Entity implements GeoEntity {
     private int holdTicks;
     private LivingEntity held;
     private boolean effectDone;
+    private int evapTicks;
 
     public ShifterArmEntity(EntityType<?> type, Level level) {
         super(type, level);
@@ -155,6 +160,11 @@ public class ShifterArmEntity extends Entity implements GeoEntity {
     public void tick() {
         super.tick();
         if (level().isClientSide) return;
+
+        if (armState() == EVAPORATING) {
+            tickEvaporation(); // detached from the owner: no following, no actions
+            return;
+        }
 
         ServerPlayer owner = ownerPlayer();
         if (owner == null || !owner.isAlive() || owner.isSpectator()
@@ -257,6 +267,55 @@ public class ShifterArmEntity extends Entity implements GeoEntity {
         if (stateTicks >= ShifterArmConfig.THROW_TICKS) {
             setState(IDLE);
             cooldown = ShifterArmConfig.ACTION_COOLDOWN_TICKS;
+        }
+    }
+
+    // ------------------------------------------------------------------ leaving the form (evaporation)
+
+    public boolean isEvaporating() {
+        return armState() == EVAPORATING;
+    }
+
+    /**
+     * Leave the arm transformation: lets go of whatever it holds, frees the owner (unroot, shifter mark, steam: see
+     * {@link ShifterArmManager#onArmReleased}) and turns the arm into an inert husk that stays where it is, goes black
+     * and smokes for {@link EvaporationRules#DURATION_TICKS} ticks (the same system and numbers as the titan bodies).
+     */
+    public void beginEvaporation() {
+        if (level().isClientSide || isEvaporating() || isRemoved()) return;
+        releaseHeld();
+        setState(EVAPORATING);
+        evapTicks = 0;
+        ShifterArmManager.onArmReleased(this);
+    }
+
+    private Vec3 evapCenter() {
+        return position().add(forward(this).scale(ShifterArmConfig.EVAP_SMOKE_FORWARD))
+                .add(0.0, ShifterArmConfig.EVAP_SMOKE_UP, 0.0);
+    }
+
+    private void tickEvaporation() {
+        if (!(level() instanceof ServerLevel sl)) return;
+        int total = EvaporationRules.DURATION_TICKS;
+        int elapsed = evapTicks++;
+        Vec3 c = evapCenter();
+        double dxz = ShifterArmConfig.EVAP_SMOKE_SPREAD_XZ;
+        double dy = ShifterArmConfig.EVAP_SMOKE_SPREAD_Y;
+        if (elapsed >= total) {
+            TitanEvaporation.smokeAt(sl, this, c.x, c.y, c.z, dxz, dy, dxz, 1.0f, 4); // last puff
+            TitanEvaporation.hiss(sl, this, 8.0f);
+            this.discard();
+            return;
+        }
+        if (elapsed == 0) {
+            TitanEvaporation.broadcast(this, total); // clients darken the model from this
+            TitanEvaporation.hiss(sl, this, 6.0f);
+        } else if (elapsed % 20 == 0) {
+            TitanEvaporation.broadcast(this, total - elapsed); // for whoever came into range later
+            TitanEvaporation.hiss(sl, this, 3.0f);
+        }
+        if ((elapsed & 1) == 0) {
+            TitanEvaporation.smokeAt(sl, this, c.x, c.y, c.z, dxz, dy, dxz, elapsed / (float) total, 2);
         }
     }
 

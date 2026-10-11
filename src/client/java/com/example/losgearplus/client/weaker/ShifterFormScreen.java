@@ -5,7 +5,7 @@ import com.example.losgearplus.client.ui.FancyButton;
 import com.example.losgearplus.client.ui.Palette;
 import com.example.losgearplus.client.ui.UiDraw;
 import com.example.losgearplus.partial.PartialShiftPayload;
-import com.example.losgearplus.shiftarm.ShifterArmActionPayload;
+import com.example.losgearplus.client.shiftarm.ShifterArmClient;
 import com.example.losgearplus.weaker.ShifterForm;
 import com.example.losgearplus.weaker.ShifterFormPayload;
 import java.util.ArrayList;
@@ -78,9 +78,7 @@ public final class ShifterFormScreen extends Screen {
 
 	private void choose(ShifterForm form) {
 		if (form == ShifterForm.ARM) {
-			if (ClientPlayNetworking.canSend(ShifterArmActionPayload.TYPE)) {
-				ClientPlayNetworking.send(new ShifterArmActionPayload(ShifterArmActionPayload.TOGGLE));
-			}
+			ShifterArmClient.requestToggle();
 		} else if (form == ShifterForm.PARTIAL) {
 			if (ClientPlayNetworking.canSend(PartialShiftPayload.TYPE)) ClientPlayNetworking.send(new PartialShiftPayload());
 		} else if (ClientPlayNetworking.canSend(ShifterFormPayload.TYPE)) {

@@ -89,6 +89,12 @@ public final class PartialShiftManager {
     private static void toggle(ServerPlayer p) {
         if (!p.isAlive() || p.isSpectator()) return;
 
+        // O Shifter Arm já é uma transformação (parcial) própria: sem Partial Shifting com ele ativo (nem na pré-shift).
+        if (com.example.losgearplus.shiftarm.ShifterArmManager.isBusy(p.getUUID())) {
+            msg(p, "los_gear_plus.shifter_arm.no_partial");
+            return;
+        }
+
         PartialShifterTitanEntity existing = bound(p.getUUID());
         if (existing != null) {
             existing.toggleEmerge(p); // dentro <-> emergido pela nuca (o sneak emergido sai de vez)

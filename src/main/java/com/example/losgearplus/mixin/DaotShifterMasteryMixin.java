@@ -4,6 +4,7 @@ import com.example.losgearplus.shifter.ShifterMastery;
 import com.example.losgearplus.shifter.ShifterMasterySync;
 import com.example.losgearplus.partial.PartialShiftManager;
 import com.example.losgearplus.partial.PartialShifterTitanEntity;
+import com.example.losgearplus.shiftarm.ShifterArmManager;
 import daot.ShifterTitan;
 import java.util.HashMap;
 import java.util.Map;
@@ -27,7 +28,7 @@ import org.spongepowered.asm.mixin.injection.callback.CallbackInfoReturnable;
  *   <li>{@code handleTitanShift} (transform key): blocks the transformation when the level's transformations are
  *       used up, counts it when it really starts (the player enters {@code pendingBites}), grants mastery XP and
  *       refunds part of the stamina cost according to the level. Leaving titan form (player riding a
- *       {@code ShifterTitan}) is never blocked or counted.</li>
+ *       {@code ShifterTitan}) is never blocked or counted. While the Shifter Arm is out, this key leaves the arm instead.</li>
  *   <li>{@code tickShifterStamina}: lowers the stamina drain while in titan form (stay transformed longer).</li>
  *   <li>{@code isBeastStaminaImmune}: at level 9 the player is immune to every stamina cost (transforming,
  *       titan form, Awaken, abilities that use {@code drainStamina}).</li>
@@ -75,6 +76,15 @@ public abstract class DaotShifterMasteryMixin {
 		losgearplus$staminaBeforeShift = playerStamina.get(id);
 
 		if (player.isSpectator()) return;
+		// Shifter Arm: it is a transformation of its own, so B (this transform key) does not start a titan shift but
+		// LEAVES the arm form (the arm turns black and evaporates). During its pre-shift B only explains why not.
+		if (ShifterArmManager.isBusy(id)) {
+			if (!ShifterArmManager.release(player)) {
+				player.displayClientMessage(Component.translatable("los_gear_plus.shifter_arm.no_transform"), true);
+			}
+			ci.cancel();
+			return;
+		}
 		// Partial Shifting is already a shift: no full transformation while a partial titan is active (inside or
 		// outside it). Leave it completely first (O + sneak) and then transform.
 		if (PartialShiftManager.hasPartial(id)) {

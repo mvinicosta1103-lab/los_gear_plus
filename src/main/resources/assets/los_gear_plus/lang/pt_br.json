@@ -129,13 +129,16 @@
 	"los_gear_plus.colossal_nuke.set_off": "Transformação do Colossal: NORMAL (sem nuke)",
 	"los_gear_plus.colossal_nuke.not_colossal": "Só o shifter Colossal pode escolher isso.",
 	"key.los_gear_plus.shifter_arm_grab": "Braço do Shifter: Agarrar / Soltar",
-	"los_gear_plus.shifter_arm.on": "Braço do Shifter: clique = soco / arremesso, G = agarrar. Abra o menu (H) e escolha Braço para recolher",
-	"los_gear_plus.shifter_arm.off": "Braço do Shifter recolhido",
+	"key.los_gear_plus.shifter_arm_exit": "Braço do Shifter: Sair (evaporar)",
+	"los_gear_plus.shifter_arm.on": "Braço do Shifter: clique = soco / arremesso, G = agarrar, B ou L = sair (o braço evapora)",
+	"los_gear_plus.shifter_arm.off": "Você saiu do braço: ele escurece e evapora",
 	"los_gear_plus.shifter_arm.not_shifter": "Só shifters podem usar o Braço do Shifter",
 	"los_gear_plus.shifter_arm.in_titan": "Você não pode usar o Braço do Shifter na forma de titã",
 	"los_gear_plus.shifter_arm.no_arm": "Você precisa do braço direito para usar o Braço do Shifter",
 	"los_gear_plus.shifter_arm.cooldown": "Braço do Shifter em recarga: %ss",
 	"los_gear_plus.shifter_arm.nothing_to_grab": "Nada para agarrar",
+	"los_gear_plus.shifter_arm.no_partial": "O Braço do Shifter já é uma transformação: saia dele (B ou L) antes de usar o Partial",
+	"los_gear_plus.shifter_arm.no_transform": "O Braço do Shifter já é uma transformação: não dá para virar titã agora",
 	"los_gear_plus.armored.arm": "Braço",
-	"los_gear_plus.armored.arm.desc": "Só o braço se transforma. Você fica parado e o controla: socar, agarrar e arremessar. Escolha de novo para recolher."
+	"los_gear_plus.armored.arm.desc": "Transformação própria: só o braço se transforma. Você fica parado e o controla (socar, agarrar, arremessar) e não vira Partial nem titã normal enquanto estiver nela. Saia com B ou L: o braço escurece e evapora."
 }

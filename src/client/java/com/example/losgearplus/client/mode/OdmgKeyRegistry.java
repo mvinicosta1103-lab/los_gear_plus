@@ -96,6 +96,8 @@ public final class OdmgKeyRegistry {
 
 	/** True se esta tecla deve ser ignorada AGORA (papel + estado do modo). */
 	public static boolean isSuppressed(KeyMapping mapping) {
+		// Shifter Arm fora: a tecla de sair (L) não pode abrir também o vanilla (Conquistas) que divide a tecla física.
+		if (com.example.losgearplus.client.shiftarm.ShifterArmClient.suppressesKey(mapping)) return true;
 		return switch (roleOf(mapping)) {
 			case GEAR -> !OdmgModeClient.isActive();
 			case LOCKED -> OdmgModeClient.isActive();

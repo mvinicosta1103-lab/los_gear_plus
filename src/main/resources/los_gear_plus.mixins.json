@@ -56,6 +56,7 @@
 		"client.GeoEntityRendererEvaporationMixin",
 		"client.PartialTitanHudMixin",
 		"client.PartialColossalCameraMixin",
+		"client.DaotArmSpawnZoomMixin",
 		"client.DaotWeakModelNamedMixin",
 		"client.DaotWeakModelIntermediaryMixin",
 		"client.DaotWeakGlowNamedMixin",
