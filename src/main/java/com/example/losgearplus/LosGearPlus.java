@@ -36,6 +36,7 @@ public class LosGearPlus implements ModInitializer {
 		ShifterMasterySync.init();
 		ShifterMasteryStats.init();
 		ShifterForceShift.init();
+		com.example.losgearplus.colossal.ColossalNukeMode.init();
 		LimbManager.init();
 		LimbCommand.init();
 		TitanEvaporation.init();

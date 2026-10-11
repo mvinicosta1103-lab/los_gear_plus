@@ -116,5 +116,16 @@
 	"los_gear_plus.shifter.title": "Forma do %s",
 	"los_gear_plus.shifter.normal.desc": "Transformação completa padrão.",
 	"los_gear_plus.shifter.not_shifter": "Você não é um shifter.",
-	"los_gear_plus.shifter.esc": "Esc fecha"
+	"los_gear_plus.shifter.esc": "Esc fecha",
+	"key.los_gear_plus.colossal_nuke": "Modo de Transformação do Colossal",
+	"los_gear_plus.colossal_nuke.title": "Transformação do Colossal",
+	"los_gear_plus.colossal_nuke.nuke": "Com Nuke",
+	"los_gear_plus.colossal_nuke.nuke.desc": "A grande explosão. Vale para a transformação e para o Tease Shift.",
+	"los_gear_plus.colossal_nuke.normal": "Normal",
+	"los_gear_plus.colossal_nuke.normal.desc": "Transforma como os outros titãs, sem a explosão gigante.",
+	"los_gear_plus.colossal_nuke.current": "Modo atual: %s",
+	"los_gear_plus.colossal_nuke.hint": "Aperte 1 ou 2, ou clique  •  Esc fecha",
+	"los_gear_plus.colossal_nuke.set_on": "Transformação do Colossal: COM nuke",
+	"los_gear_plus.colossal_nuke.set_off": "Transformação do Colossal: NORMAL (sem nuke)",
+	"los_gear_plus.colossal_nuke.not_colossal": "Só o shifter Colossal pode escolher isso."
 }

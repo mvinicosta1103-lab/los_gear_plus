@@ -9,6 +9,8 @@
 		"DaotOdmHarnessIntermediaryMixin",
 		"DaotTeaseShiftStaminaMixin",
 		"DaotShifterMasteryMixin",
+		"DaotColossalNukeMixin",
+		"DaotColossalTitanNukeMixin",
 		"DaotShifterMarkFadeMixin",
 		"AbstractContainerMenuAddSlotInvoker",
 		"InventoryMenuHolsterSlotMixin",

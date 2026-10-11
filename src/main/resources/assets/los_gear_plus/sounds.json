@@ -3,5 +3,15 @@
 		"sounds": [
 			{ "name": "los_gear_plus:hange_titan_spotted", "stream": false }
 		]
+	},
+	"transformation_colossal": {
+		"sounds": [
+			{ "name": "los_gear_plus:transformation_colossal", "stream": false, "attenuation_distance": 128 }
+		]
+	},
+	"transformation_standard": {
+		"sounds": [
+			{ "name": "los_gear_plus:transformation_standard", "stream": false, "attenuation_distance": 64 }
+		]
 	}
 }
