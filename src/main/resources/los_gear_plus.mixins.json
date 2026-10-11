@@ -28,7 +28,13 @@
 		"DaotTitanActionsLimbMixin",
 		"DaotTitanJumpLimbMixin",
 		"DaotDodgeLimbMixin",
-		"DaotTitanCorpseEvaporationMixin"
+		"DaotTitanCorpseEvaporationMixin",
+		"DaotWeakerSpawnMixin",
+		"DaotWeakerStaminaMixin",
+		"DaotWeakNapeNamedMixin",
+		"DaotWeakNapeIntermediaryMixin",
+		"DaotWeakLegNamedMixin",
+		"DaotWeakLegIntermediaryMixin"
 	],
 	"client": [
 		"client.KeyMappingAccessor",
@@ -47,7 +53,11 @@
 		"client.DaotOdmNoArmsMixin",
 		"client.GeoEntityRendererEvaporationMixin",
 		"client.PartialTitanHudMixin",
-		"client.PartialColossalCameraMixin"
+		"client.PartialColossalCameraMixin",
+		"client.DaotWeakModelNamedMixin",
+		"client.DaotWeakModelIntermediaryMixin",
+		"client.DaotWeakGlowNamedMixin",
+		"client.DaotWeakGlowIntermediaryMixin"
 	],
 	"injectors": {
 		"defaultRequire": 1

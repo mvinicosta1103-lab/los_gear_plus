@@ -27,6 +27,8 @@ public class LosGearPlus implements ModInitializer {
 	public void onInitialize() {
 		PartialEntities.init();
 		PartialShiftManager.init();
+		com.example.losgearplus.weaker.WeakerEntities.init();
+		com.example.losgearplus.weaker.WeakerArmoredManager.init();
 		OdmgModeNetworking.init();
 		SteamHealServer.init();
 		ShifterMastery.init();

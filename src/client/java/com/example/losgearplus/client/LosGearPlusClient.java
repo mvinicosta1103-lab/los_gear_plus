@@ -31,6 +31,7 @@ public class LosGearPlusClient implements ClientModInitializer {
 		com.example.losgearplus.client.limb.LimbClient.init();
 		com.example.losgearplus.client.evap.EvaporationClient.init();
 		com.example.losgearplus.client.partial.PartialShiftClient.init();
+		com.example.losgearplus.client.weaker.WeakerArmoredClient.init();
 
 		// SFX quando os óculos da Hange (los_gear) avistam titans + comando /hangesfx para ligar/desligar.
 		HangeSfxConfig.load();

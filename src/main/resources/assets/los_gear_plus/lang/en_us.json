@@ -101,5 +101,20 @@
 	"los_gear_plus.mode.odmg_no_grip_one": "You need 1 ODM Grip in your inventory",
 	"entity.los_gear_plus.partial_colossal_titan": "Partial Colossal Titan",
 	"los_gear_plus.partial.colossal.no_kick": "The Partial Colossal has no legs: it cannot kick",
-	"los_gear_plus.partial.colossal.no_armdrag": "Arm Drag is not available in the Partial Colossal"
+	"los_gear_plus.partial.colossal.no_armdrag": "Arm Drag is not available in the Partial Colossal",
+	"key.los_gear_plus.shifter_form": "Shifter Titan Form Selection",
+	"entity.los_gear_plus.weak_armored_titan": "Armored Titan (Weaker)",
+	"los_gear_plus.armored.normal": "Normal",
+	"los_gear_plus.armored.normal.desc": "Full armor. Must shatter the leg armor to run.",
+	"los_gear_plus.armored.weaker": "Weaker",
+	"los_gear_plus.armored.weaker.desc": "Runs freely. Nape and leg tendons exposed. Less health, cheaper.",
+	"los_gear_plus.armored.partial": "Partial",
+	"los_gear_plus.armored.partial.desc": "Torso only. Shifts right away.",
+	"los_gear_plus.armored.current": "Current form: %s",
+	"los_gear_plus.armored.selected": "Armored form: %s",
+	"los_gear_plus.armored.not_armored": "Only the Armored Titan shifter can choose a form.",
+	"los_gear_plus.shifter.title": "%s Form",
+	"los_gear_plus.shifter.normal.desc": "Standard full transformation.",
+	"los_gear_plus.shifter.not_shifter": "You are not a titan shifter.",
+	"los_gear_plus.shifter.esc": "Esc to close"
 }

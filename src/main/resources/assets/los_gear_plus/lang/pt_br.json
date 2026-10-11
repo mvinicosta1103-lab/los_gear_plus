@@ -101,5 +101,20 @@
 	"los_gear_plus.mode.odmg_no_grip_one": "Você precisa de 1 ODM Grip no inventário",
 	"entity.los_gear_plus.partial_colossal_titan": "Titã Colossal Parcial",
 	"los_gear_plus.partial.colossal.no_kick": "O Colossal Parcial não tem pernas: não pode chutar",
-	"los_gear_plus.partial.colossal.no_armdrag": "Arrastar Braço não está disponível no Colossal Parcial"
+	"los_gear_plus.partial.colossal.no_armdrag": "Arrastar Braço não está disponível no Colossal Parcial",
+	"key.los_gear_plus.shifter_form": "Seleção de Forma do Armored Titan",
+	"entity.los_gear_plus.weak_armored_titan": "Armored Titan (Weaker)",
+	"los_gear_plus.armored.normal": "Normal",
+	"los_gear_plus.armored.normal.desc": "Couraça completa. Precisa quebrar a armadura das pernas para correr.",
+	"los_gear_plus.armored.weaker": "Weaker",
+	"los_gear_plus.armored.weaker.desc": "Corre livre. Nuca e tendões expostos. Menos vida, mais barato.",
+	"los_gear_plus.armored.partial": "Partial",
+	"los_gear_plus.armored.partial.desc": "Só o torso. Transforma na hora.",
+	"los_gear_plus.armored.current": "Forma atual: %s",
+	"los_gear_plus.armored.selected": "Forma do Armored: %s",
+	"los_gear_plus.armored.not_armored": "Só o shifter do Armored Titan pode escolher a forma.",
+	"los_gear_plus.shifter.title": "Forma do %s",
+	"los_gear_plus.shifter.normal.desc": "Transformação completa padrão.",
+	"los_gear_plus.shifter.not_shifter": "Você não é um shifter.",
+	"los_gear_plus.shifter.esc": "Esc fecha"
 }

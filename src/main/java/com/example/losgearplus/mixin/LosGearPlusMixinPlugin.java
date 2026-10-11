@@ -32,8 +32,8 @@ public final class LosGearPlusMixinPlugin implements IMixinConfigPlugin {
 
 	@Override
 	public boolean shouldApplyMixin(String targetClassName, String mixinClassName) {
-		if (mixinClassName.endsWith(".DaotOdmHarnessIntermediaryMixin")) return intermediary;
-		if (mixinClassName.endsWith(".DaotOdmHarnessNamedMixin")) return !intermediary;
+		if (mixinClassName.endsWith("IntermediaryMixin")) return intermediary;
+		if (mixinClassName.endsWith("NamedMixin")) return !intermediary;
 		return true;
 	}
 
