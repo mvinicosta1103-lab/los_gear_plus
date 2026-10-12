@@ -60,7 +60,9 @@
 		"client.DaotWeakModelNamedMixin",
 		"client.DaotWeakModelIntermediaryMixin",
 		"client.DaotWeakGlowNamedMixin",
-		"client.DaotWeakGlowIntermediaryMixin"
+		"client.DaotWeakGlowIntermediaryMixin",
+		"client.DaotColossalV2ModelIntermediaryMixin",
+		"client.DaotColossalV2ModelNamedMixin"
 	],
 	"injectors": {
 		"defaultRequire": 1

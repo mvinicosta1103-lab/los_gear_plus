@@ -19,7 +19,7 @@ public final class ShifterTypes {
     static {
         TAGS.addAll(Set.of(
                 "attack", "colossal", "armored", "beast", "female", "warhammer",
-                "founder", "triple_t", "ogre_shifter", "jaw", "cart_shifter"));
+				"founder", "triple_t", "ogre_shifter", "jaw", "cart_shifter", "colossal_v2", "colossalv2"));
     }
 
     private ShifterTypes() {}

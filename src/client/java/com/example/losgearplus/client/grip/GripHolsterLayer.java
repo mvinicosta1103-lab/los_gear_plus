@@ -1,5 +1,6 @@
 package com.example.losgearplus.client.grip;
 
+import com.example.losgearplus.compat.DaotBridge;
 import com.example.losgearplus.grip.GripBlade;
 import com.example.losgearplus.grip.HolsterWeapons;
 import com.mojang.blaze3d.vertex.PoseStack;
@@ -33,9 +34,14 @@ import net.minecraft.world.item.ItemStack;
  * ItemInHandLayer (rotX -90, rotY 180, translate ±1/16, 2/16), mas ancorado no corpo em vez do braço.
  * O ponto (sideX, y, z) é onde fica o CABO do grip.
  *
+ * O New ODM Harness usa uma calibração própria, pois seu coldre tem outro formato e tamanho. Os storages são os
+ * mesmos: somente a transformação visual muda conforme o harness equipado.
+ *
  * CALIBRAÇÃO AO VIVO (sem recompilar), no jogo:
  *   /gripholster sidex 3.2      /gripholster y 2      /gripholster z -2.8
  *   /gripholster pitch 90       /gripholster yaw 0    /gripholster tilt 8      /gripholster scale 0.6
+	 *   /gripholster nsidex 3.2     /gripholster ny 4     /gripholster ngx 3.5     /gripholster ngscale 0.7
+	 *   /gripholster dsidex 4.0    /gripholster dy 4     /gripholster dgx 4.0    /gripholster dgy 4
  *   /gripholster show           (imprime os valores no chat para copiar para os DEFAULTS abaixo)
  *   /gripholster reset
  *   Armas (APG/pistola) na cintura: /gripholster wx 4.8   wy 9.5   wz 0   wpitch 90   wyaw 0   wtilt 0   wscale 0.6
@@ -45,7 +51,10 @@ import net.minecraft.world.item.ItemStack;
  */
 public class GripHolsterLayer extends RenderLayer<AbstractClientPlayer, PlayerModel<AbstractClientPlayer>> {
 
-	/** 0..6: cabo no peito. 14..20: APG Gun / Automatic Pistol na lateral do torso, na altura da cintura
+	/** 0..6: cabo padrão; 7..13: grip com lâmina padrão; 14..20: APG Gun / Automatic Pistol.
+	 * 21..27: cabo no New ODM Harness; 28..34: grip com lâmina no New ODM Harness.
+	 * 35..41: cabo no ODM Harness do DAOT; 42..48: grip com lâmina no ODM Harness do DAOT.
+	 * 14..20: APG Gun / Automatic Pistol na lateral do torso, na altura da cintura
 	 * (wx = distância do centro do torso, wy = para baixo a partir do pescoço, wz = profundidade, negativo = frente;
 	 * wpitch 90 = cano para baixo; wtilt inclina para fora; wyaw gira em volta do próprio eixo). 7..13: grip com lâmina na boca da caixa do ODM, preso à perna
 	 * (gx = distância lateral a partir do quadril, gy = para baixo a partir do quadril, gz = profundidade,
@@ -53,12 +62,22 @@ public class GripHolsterLayer extends RenderLayer<AbstractClientPlayer, PlayerMo
 	 * groll gira em torno do próprio comprimento). */
 	public static final String[] NAMES = {"sidex", "y", "z", "pitch", "yaw", "tilt", "scale",
 			"gx", "gy", "gz", "gpitch", "gyaw", "groll", "gscale",
-			"wx", "wy", "wz", "wpitch", "wyaw", "wtilt", "wscale"};
+			"wx", "wy", "wz", "wpitch", "wyaw", "wtilt", "wscale",
+			"nsidex", "ny", "nz", "npitch", "nyaw", "ntilt", "nscale",
+			"ngx", "ngy", "ngz", "ngpitch", "ngyaw", "ngroll", "ngscale",
+			"dsidex", "dy", "dz", "dpitch", "dyaw", "dtilt", "dscale",
+			"dgx", "dgy", "dgz", "dgpitch", "dgyaw", "dgroll", "dgscale"};
 	public static final float[] DEFAULTS = {4.0f, 2.0f, -2.8f, 90f, 0f, 8f, 0.7f,
 			// grip com lâmina (calibrado em jogo): gx, gy, gz, gpitch, gyaw, groll, gscale
 			4.0f, 2.0f, -10.5f, -23f, 180f, 0f, 0.90f,
 			// APG Gun / Automatic Pistol na cintura (valores iniciais, calibre em jogo): wx, wy, wz, wpitch, wyaw, wtilt, wscale
-			4.8f, 9.5f, 0.0f, 90f, 0f, 0f, 0.6f};
+			4.8f, 9.5f, 0.0f, 90f, 0f, 0f, 0.6f,
+			// New ODM Harness: coldre lateral, um pouco mais compacto e mais baixo que o modelo do DAOT.
+			3.5f, 4.0f, -3.0f, 90f, 0f, 0f, 0.58f,
+			3.5f, 3.0f, -8.5f, -8f, 180f, 0f, 0.72f,
+			// ODM Harness do DAOT: coldre fica mais baixo; baixar o cabo e o grip com lâmina em 2 px.
+			4.0f, 4.0f, -2.8f, 90f, 0f, 8f, 0.7f,
+			4.0f, 4.0f, -10.5f, -23f, 180f, 0f, 0.90f};
 	/** Valores atuais (mutáveis pelo comando /gripholster). */
 	public static final float[] VALUES = DEFAULTS.clone();
 
@@ -79,14 +98,18 @@ public class GripHolsterLayer extends RenderLayer<AbstractClientPlayer, PlayerMo
 		// Índice 0 = mão principal: fica no lado do braço principal do jogador.
 		boolean mainIsRight = player.getMainArm() == HumanoidArm.RIGHT;
 
-		float sideX = VALUES[0], y = VALUES[1], z = VALUES[2], pitch = VALUES[3], yaw = VALUES[4], tilt = VALUES[5],
-				scale = VALUES[6];
-
-		float gx = VALUES[7], gy = VALUES[8], gz = VALUES[9], gpitch = VALUES[10], gyaw = VALUES[11],
-				groll = VALUES[12], gscale = VALUES[13];
-
 		float wx = VALUES[14], wy = VALUES[15], wz = VALUES[16], wpitch = VALUES[17], wyaw = VALUES[18],
 				wtilt = VALUES[19], wscale = VALUES[20];
+		boolean newHarness = DaotBridge.wearsNewOdmHarness(player);
+		boolean daotHarness = !newHarness && DaotBridge.wearsHarness(player);
+		int cableBase = newHarness ? 21 : daotHarness ? 35 : 0;
+		int bladeBase = newHarness ? 28 : daotHarness ? 42 : 7;
+		float holsterSideX = VALUES[cableBase], holsterY = VALUES[cableBase + 1], holsterZ = VALUES[cableBase + 2];
+		float holsterPitch = VALUES[cableBase + 3], holsterYaw = VALUES[cableBase + 4],
+				holsterTilt = VALUES[cableBase + 5], holsterScale = VALUES[cableBase + 6];
+		float bladeX = VALUES[bladeBase], bladeY = VALUES[bladeBase + 1], bladeZ = VALUES[bladeBase + 2];
+		float bladePitch = VALUES[bladeBase + 3], bladeYaw = VALUES[bladeBase + 4],
+				bladeRoll = VALUES[bladeBase + 5], bladeScale = VALUES[bladeBase + 6];
 
 		// DAOT 2.5.0: a caixa do ODM segue 90% o torso e só 10% a perna (100% usando ODM/montado).
 		// O grip com lâmina precisa seguir a MESMA mistura, senão fica solto da caixa (ver OdmTankFollow).
@@ -94,52 +117,52 @@ public class GripHolsterLayer extends RenderLayer<AbstractClientPlayer, PlayerMo
 
 		// No modelo, o braço direito do jogador fica em x negativo e o esquerdo em x positivo.
 		for (int set = 0; set < 2; set++) // set 0 = storage principal, set 1 = segundo storage (o outro tipo de arma)
-		for (int side = -1; side <= 1; side += 2) {
-			boolean left = side > 0;
-			ItemStack stack = stored[set * 2 + ((left == mainIsRight) ? 1 : 0)];
-			if (stack.isEmpty()) continue;
-			ItemDisplayContext ctx = left ? ItemDisplayContext.THIRD_PERSON_LEFT_HAND
-					: ItemDisplayContext.THIRD_PERSON_RIGHT_HAND;
+			for (int side = -1; side <= 1; side += 2) {
+				boolean left = side > 0;
+				ItemStack stack = stored[set * 2 + ((left == mainIsRight) ? 1 : 0)];
+				if (stack.isEmpty()) continue;
+				ItemDisplayContext ctx = left ? ItemDisplayContext.THIRD_PERSON_LEFT_HAND
+						: ItemDisplayContext.THIRD_PERSON_RIGHT_HAND;
 
-			pose.pushPose();
-			ItemStack toDraw;
-			if (HolsterWeapons.isGun(stack)) {
-				// APG Gun / Automatic Pistol: lateral do torso, na altura da cintura (presa ao torso).
-				getParentModel().body.translateAndRotate(pose);
-				pose.translate(side * wx / 16f, wy / 16f, wz / 16f);
-				pose.mulPose(Axis.ZP.rotationDegrees(side * wtilt));
-				pose.mulPose(Axis.XP.rotationDegrees(wpitch));
-				pose.mulPose(Axis.YP.rotationDegrees(wyaw));
-				pose.scale(wscale, wscale, wscale);
-				toDraw = stack;
-			} else if (GripBlade.state(stack) > 0) {
-				// Grip com lâmina: na boca da caixa do ODM (presa à perna, como a caixa).
-				ModelPart leg = left ? getParentModel().leftLeg : getParentModel().rightLeg;
-				OdmTankFollow.applyHipFrame(pose, getParentModel().body, leg, tankLegWeight);
-				pose.translate(side * gx / 16f, gy / 16f, gz / 16f);
-				pose.mulPose(Axis.XP.rotationDegrees(gpitch));
-				pose.mulPose(Axis.YP.rotationDegrees(gyaw));
-				pose.mulPose(Axis.ZP.rotationDegrees(groll));
-				pose.scale(gscale, gscale, gscale);
-				toDraw = stack;
-			} else {
-				// Só o cabo: na lateral do peito.
-				getParentModel().body.translateAndRotate(pose);
-				pose.translate(side * sideX / 16f, y / 16f, z / 16f);
-				pose.mulPose(Axis.ZP.rotationDegrees(side * tilt));
-				pose.mulPose(Axis.XP.rotationDegrees(pitch));
-				pose.mulPose(Axis.YP.rotationDegrees(yaw));
-				pose.scale(scale, scale, scale);
-				toDraw = GripBlade.withoutBlade(stack);
+				pose.pushPose();
+				ItemStack toDraw;
+				if (HolsterWeapons.isGun(stack)) {
+					// APG Gun / Automatic Pistol: lateral do torso, na altura da cintura (presa ao torso).
+					getParentModel().body.translateAndRotate(pose);
+					pose.translate(side * wx / 16f, wy / 16f, wz / 16f);
+					pose.mulPose(Axis.ZP.rotationDegrees(side * wtilt));
+					pose.mulPose(Axis.XP.rotationDegrees(wpitch));
+					pose.mulPose(Axis.YP.rotationDegrees(wyaw));
+					pose.scale(wscale, wscale, wscale);
+					toDraw = stack;
+				} else if (GripBlade.state(stack) > 0) {
+					// Grip com lâmina: na boca da caixa do ODM (presa à perna, como a caixa).
+					ModelPart leg = left ? getParentModel().leftLeg : getParentModel().rightLeg;
+					OdmTankFollow.applyHipFrame(pose, getParentModel().body, leg, tankLegWeight);
+					pose.translate(side * bladeX / 16f, bladeY / 16f, bladeZ / 16f);
+					pose.mulPose(Axis.XP.rotationDegrees(bladePitch));
+					pose.mulPose(Axis.YP.rotationDegrees(bladeYaw));
+					pose.mulPose(Axis.ZP.rotationDegrees(bladeRoll));
+					pose.scale(bladeScale, bladeScale, bladeScale);
+					toDraw = stack;
+				} else {
+					// Só o cabo: na lateral do peito.
+					getParentModel().body.translateAndRotate(pose);
+					pose.translate(side * holsterSideX / 16f, holsterY / 16f, holsterZ / 16f);
+					pose.mulPose(Axis.ZP.rotationDegrees(side * holsterTilt));
+					pose.mulPose(Axis.XP.rotationDegrees(holsterPitch));
+					pose.mulPose(Axis.YP.rotationDegrees(holsterYaw));
+					pose.scale(holsterScale, holsterScale, holsterScale);
+					toDraw = GripBlade.withoutBlade(stack);
+				}
+				// Quadro de referência da mão (ItemInHandLayer), SEM o deslocamento de 10 px ao longo do braço:
+				// a origem fica no ponto onde a mão seguraria o cabo.
+				pose.mulPose(Axis.XP.rotationDegrees(-90f));
+				pose.mulPose(Axis.YP.rotationDegrees(180f));
+				pose.translate((left ? -1 : 1) / 16f, 0.125f, 0f);
+				itemRenderer.renderStatic(player, toDraw, ctx, left, pose, buffers, player.level(), light,
+						OverlayTexture.NO_OVERLAY, player.getId());
+				pose.popPose();
 			}
-			// Quadro de referência da mão (ItemInHandLayer), SEM o deslocamento de 10 px ao longo do braço:
-			// a origem fica no ponto onde a mão seguraria o cabo.
-			pose.mulPose(Axis.XP.rotationDegrees(-90f));
-			pose.mulPose(Axis.YP.rotationDegrees(180f));
-			pose.translate((left ? -1 : 1) / 16f, 0.125f, 0f);
-			itemRenderer.renderStatic(player, toDraw, ctx, left, pose, buffers, player.level(), light,
-					OverlayTexture.NO_OVERLAY, player.getId());
-			pose.popPose();
-		}
 	}
 }

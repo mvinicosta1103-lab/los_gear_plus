@@ -35,11 +35,14 @@ public final class PartialShiftClient {
 
         // Colossal parcial: mesmos ossos de braço do Colossal do DAOT. Sem pernas no modelo: a raiz "no_kneel_root"
         // não existe no geo de propósito (ajoelhar vira no-op), como no rig acima.
-        TitanLimbBones.registerRig("partial_titan_colossal", "no_kneel_root", -1f,
-                new String[] { "lefthand", "lowerlefthand", "leftwrist" },
-                new String[] { "righthand", "lowerrighthand", "rightwrist" },
-                new String[] { "leftleg", "lowerleftleg", "leftfoot" },
-                new String[] { "rightleg", "lowerrightleg", "rightfoot" });
+        // O Colossal V2 tem os mesmos ossos de braço (e também não tem pernas no modelo parcial): mesmo rig.
+        for (String colossalModel : new String[] { "partial_titan_colossal", "partial_titan_colossal_v2" }) {
+            TitanLimbBones.registerRig(colossalModel, "no_kneel_root", -1f,
+                    new String[] { "lefthand", "lowerlefthand", "leftwrist" },
+                    new String[] { "righthand", "lowerrighthand", "rightwrist" },
+                    new String[] { "leftleg", "lowerleftleg", "leftfoot" },
+                    new String[] { "rightleg", "lowerrightleg", "rightfoot" });
+        }
 
         // Membros do titã parcial (decepar/regenerar/peça solta): braços com ombro > antebraço > mão. O modelo não
         // tem pernas (os nomes de perna abaixo não existem no geo e são ignorados). O estado de membros é do JOGADOR:

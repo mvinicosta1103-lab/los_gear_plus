@@ -37,6 +37,25 @@ public final class DaotBridge {
 	private static final MethodHandle HARNESS_GET_GEAR = findHarness("getGear", ItemStack.class, LivingEntity.class);
 	/** daot.OdmHarness.hasHarness(LivingEntity) -> boolean. */
 	private static final MethodHandle HARNESS_HAS = findHarness("hasHarness", boolean.class, LivingEntity.class);
+	/** Los Gear r507: New ODM Uniform armazenado dentro do New ODM Harness. */
+	private static final MethodHandle NEW_HARNESS_UNIFORM = findNewHarnessUniform();
+
+	private static MethodHandle findNewHarnessUniform() {
+		try {
+			Class<?> cls = Class.forName("cn.blockforge.royalattire.RoyalAttire");
+			Method method = cls.getMethod("uniformInNewHarness", ItemStack.class);
+			if (method.getReturnType() != ItemStack.class) {
+				throw new NoSuchMethodException("uniformInNewHarness retorna " + method.getReturnType());
+			}
+			return MethodHandles.publicLookup().unreflect(method);
+		} catch (ClassNotFoundException e) {
+			return null; // Los Gear não instalado ou versão sem o New ODM Harness
+		} catch (Throwable t) {
+			LosGearPlus.LOGGER.warn("DaotBridge: não foi possível consultar o Uniform dentro do New ODM Harness ({}).",
+					t.toString());
+			return null;
+		}
+	}
 
 	private static MethodHandle findIsOdmGear() {
 		try {
@@ -79,6 +98,11 @@ public final class DaotBridge {
 		} catch (Throwable t) {
 			return false;
 		}
+	}
+
+	/** True quando o jogador veste o harness próprio do Los Gear (modelo/holster diferente do DAOT). */
+	public static boolean wearsNewOdmHarness(Player player) {
+		return isId(player.getItemBySlot(EquipmentSlot.LEGS), "los_gear", "new_odm_harness");
 	}
 
 	/**
@@ -132,6 +156,7 @@ public final class DaotBridge {
 		ItemStack gear = equippedGear(player);
 		if (isId(gear, "dannys-aot", "odm_apg")) return Loadout.GUNS;
 		if (isId(gear, "los_gear", "new_odm_uniform")
+				|| hasUniformInNewHarness(player)
 				|| isId(player.getItemBySlot(EquipmentSlot.CHEST), "los_gear", "new_odm_uniform")
 				|| isId(player.getItemBySlot(EquipmentSlot.LEGS), "los_gear", "new_odm_uniform")) {
 			return Loadout.EITHER;
@@ -146,9 +171,24 @@ public final class DaotBridge {
 	public static boolean wearsUniformAndGear(Player player) {
 		ItemStack chest = player.getItemBySlot(EquipmentSlot.CHEST);
 		ItemStack legs = player.getItemBySlot(EquipmentSlot.LEGS);
+		if (hasUniformInNewHarness(player) && wearsOdmGear(player)) {
+			return true;
+		}
 		boolean uniform = isId(chest, "los_gear", "new_odm_uniform") || isId(legs, "los_gear", "new_odm_uniform");
 		boolean gear = isId(equippedGear(player), "los_gear", "new_odm_gear") || isId(legs, "los_gear", "new_odm_gear");
 		return uniform && gear;
+	}
+
+	/** True quando o New ODM Uniform ocupa o slot de extensão do Los Gear New ODM Harness. */
+	private static boolean hasUniformInNewHarness(Player player) {
+		if (NEW_HARNESS_UNIFORM == null) return false;
+		try {
+			ItemStack uniform = (ItemStack) NEW_HARNESS_UNIFORM.invoke(player.getItemBySlot(EquipmentSlot.LEGS));
+			return uniform != null && !uniform.isEmpty()
+					&& isId(uniform, "los_gear", "new_odm_uniform");
+		} catch (Throwable t) {
+			return false;
+		}
 	}
 
 	private static boolean isId(ItemStack stack, String namespace, String path) {

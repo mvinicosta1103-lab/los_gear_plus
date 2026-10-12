@@ -1,6 +1,7 @@
 package com.example.losgearplus.mixin;
 
 import com.example.losgearplus.colossal.ColossalNukeMode;
+import com.example.losgearplus.colossal.ColossalV2Support;
 import daot.network.ModNetworking;
 import net.minecraft.server.level.ServerLevel;
 import net.minecraft.server.level.ServerPlayer;
@@ -21,6 +22,7 @@ public abstract class DaotColossalNukeMixin {
     // ---- Transformação completa: início (mordida) --------------------------------------------
     @Inject(method = "handleTitanShift", at = @At("HEAD"), remap = false)
     private static void losgearplus$nukeBeginShift(ServerPlayer player, ServerLevel level, CallbackInfo ci) {
+		ColossalV2Support.ensureDaotColossalTag(player);
         ColossalNukeMode.begin(player);
     }
 
@@ -32,6 +34,7 @@ public abstract class DaotColossalNukeMixin {
     // ---- Efeito de pré-transformação (completa e Tease Shift) ---------------------------------
     @Inject(method = {"firePreshiftAndQueueSpawn", "firePreshiftOnly"}, at = @At("HEAD"), remap = false)
     private static void losgearplus$nukeBeginPreshift(ServerPlayer player, ModNetworking.ShifterType type, CallbackInfo ci) {
+		ColossalV2Support.ensureDaotColossalTag(player);
         ColossalNukeMode.begin(player);
     }
 
@@ -44,6 +47,7 @@ public abstract class DaotColossalNukeMixin {
     @Inject(method = "spawnColossalTitan", at = @At("HEAD"), remap = false)
     private static void losgearplus$nukeBeginSpawn(ServerPlayer player, ServerLevel level,
                                                     double x, double y, double z, float yaw, CallbackInfo ci) {
+		ColossalV2Support.ensureDaotColossalTag(player);
         ColossalNukeMode.begin(player);
     }
 

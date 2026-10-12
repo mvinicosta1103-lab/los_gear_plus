@@ -8,7 +8,7 @@ import net.minecraft.server.level.ServerPlayer;
  * Qual titã parcial cada shifter recebe. A ordem das constantes é a prioridade (a mesma do DAOT quando o jogador
  * tem mais de uma tag): o primeiro cuja tag o jogador tiver vence.
  *
- * <p>O Colossal tem modelo próprio ("partial_titan_colossal"); as demais variantes ainda usam "partial_titan_attack". Quando tiver
+ * <p>O Colossal tem modelo próprio ("partial_titan_colossal"; o Colossal V2 usa "partial_titan_colossal_v2"); as demais variantes ainda usam "partial_titan_attack". Quando tiver
  * outros modelos, crie {@code geo/<nome>.geo.json} + {@code textures/entity/<nome>.png} e troque o nome da variante.
  */
 public enum PartialTitanVariant {
@@ -22,6 +22,12 @@ public enum PartialTitanVariant {
     ARMORED("armored", "armoredTitanHealth", "partial_titan_attack", 2, "armored"),
     BEAST("beast", "beastTitanHealth", "partial_titan_attack", 4, "beast"),
     WARHAMMER("warhammer", "warhammerTitanHealth", "partial_titan_attack", 5, "warhammer"),
+    /**
+     * Colossal V2: outro modelo (geo/textura/brilho próprios) com as MESMAS habilidades, animações e entidade do
+     * Colossal. Escolhido por quem tem a tag "colossal_v2" (além da "colossal", que o DAOT usa); fica ANTES do
+     * COLOSSAL para ganhar dele quando o jogador tem as duas.
+     */
+    COLOSSAL_V2("colossal_v2", "colossalTitanHealth", "partial_titan_colossal_v2", 6, "colossal"),
     COLOSSAL("colossal", "colossalTitanHealth", "partial_titan_colossal", 6, "colossal");
 
     private static final double DEFAULT_FULL_HEALTH = 400.0;
@@ -58,8 +64,8 @@ public enum PartialTitanVariant {
         return "partial_titan_attack".equals(modelName) ? "partial_titan.animation.json" : modelName + ".animation.json";
     }
 
-    /** O Colossal usa uma entidade própria (hitbox grande, ataques, habilidades e queda). */
-    public boolean isColossal() { return this == COLOSSAL; }
+    /** O Colossal (e o V2) usa uma entidade própria (hitbox grande, ataques, habilidades e queda). */
+    public boolean isColossal() { return this == COLOSSAL || this == COLOSSAL_V2; }
 
     /** Chave de tradução do nome do titã. */
     public String nameKey() { return "los_gear_plus.partial.titan." + id(); }
@@ -88,6 +94,7 @@ public enum PartialTitanVariant {
     /** Variante do jogador (shifter). Tag de addon desconhecida cai no Attack. */
     public static PartialTitanVariant of(ServerPlayer player) {
         Set<String> tags = player.getTags();
+        if (tags.contains("colossalv2")) return COLOSSAL_V2;
         for (PartialTitanVariant v : values()) {
             if (tags.contains(v.tag)) return v;
         }

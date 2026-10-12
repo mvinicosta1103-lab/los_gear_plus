@@ -21,6 +21,7 @@ import net.minecraft.client.renderer.entity.player.PlayerRenderer;
 public class LosGearPlusClient implements ClientModInitializer {
 	@Override
 	public void onInitializeClient() {
+		com.example.losgearplus.client.colossal.ColossalV2Client.init();
 		// Ponto de entrada para lógica só de cliente (renderers, HUD, teclas...).
 		OdmgModeClient.init();
 		com.example.losgearplus.client.ui.OdmgHud.init();
