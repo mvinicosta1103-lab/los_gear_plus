@@ -36,7 +36,8 @@
 		"DaotWeakNapeNamedMixin",
 		"DaotWeakNapeIntermediaryMixin",
 		"DaotWeakLegNamedMixin",
-		"DaotWeakLegIntermediaryMixin"
+		"DaotWeakLegIntermediaryMixin",
+		"NewOdmGearGasMixin"
 	],
 	"client": [
 		"client.KeyMappingAccessor",
