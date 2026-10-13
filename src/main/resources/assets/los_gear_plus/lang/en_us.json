@@ -95,6 +95,8 @@
 	"los_gear_plus.partial.reentered": "You went back inside the titan",
 	"los_gear_plus.partial.no_transform": "You are already shifted (partial). Emerge and Sneak to leave the titan first",
 	"los_gear_plus.partial.emerged": "You emerged from the nape. Sneak to leave completely, or press the key again to go back in",
+	"los_gear_plus.partial.guest_in": "You are sheltering inside the titan. Sneak again to leave",
+	"los_gear_plus.partial.guest_full": "The titan is full: no room for more guests",
 	"key.los_gear_plus.toggle_one_hand": "Toggle One-Hand / Two-Hand (ODMG)",
 	"los_gear_plus.mode.hands_one": "ODMG: One-Hand (1 grip in main hand)",
 	"los_gear_plus.mode.hands_two": "ODMG: Two-Hand (2 grips)",

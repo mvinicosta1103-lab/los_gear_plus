@@ -209,6 +209,7 @@ public final class PartialShiftManager {
      */
     public static boolean absorb(ServerPlayer rider, PartialShifterTitanEntity titan, DamageSource source, float amount) {
         if (source.is(DamageTypeTags.BYPASSES_INVULNERABILITY)) return false; // /kill, void
+        if (titan.isGuest(rider)) return true; // convidado abrigado: não toma dano nenhum (o titã não paga por ele)
         if (!titan.isOwnedBy(rider)) return false;
         if (titan.phase() == PartialShifterTitanEntity.PHASE_ACTIVE) {
             titan.hurt(source, amount);

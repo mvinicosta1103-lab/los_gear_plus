@@ -55,7 +55,7 @@ public abstract class DaotShifterCommandV2Mixin {
 	private static void losgearplus$afterSet(CommandContext<CommandSourceStack> context,
 			CallbackInfoReturnable<Integer> cir) {
 		if (cir.getReturnValue() != null && cir.getReturnValue() > 0) {
-			ColossalV2Support.onDaotShifterCommand(losgearplus$targets, losgearplus$type);
+			ColossalV2Support.onDaotShifterSet(losgearplus$targets, losgearplus$type);
 		}
 		losgearplus$targets = List.of();
 	}

@@ -43,5 +43,7 @@ public class PartialShifterTitanRenderer extends GeoEntityRenderer<PartialShifte
                 packedLight, packedOverlay, colour);
         float rise = animatable.getRise(partialTick);
         poseStack.translate(0.0, -(1.0f - rise) * animatable.riseDepth() + animatable.modelYOffset(partialTick), 0.0);
+        float scale = animatable.modelScale(); // depois da translação: a profundidade da subida segue em blocos reais
+        if (scale != 1.0f) poseStack.scale(scale, scale, scale);
     }
 }

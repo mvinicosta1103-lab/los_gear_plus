@@ -95,6 +95,8 @@
 	"los_gear_plus.partial.reentered": "Você voltou para dentro do titã",
 	"los_gear_plus.partial.no_transform": "Você já está transformado (parcial). Saia pela nuca e agache para deixar o titã antes",
 	"los_gear_plus.partial.emerged": "Você saiu pela nuca. Agache para sair de vez, ou aperte a tecla de novo para voltar",
+	"los_gear_plus.partial.guest_in": "Você está abrigado dentro do titã. Agache de novo para sair",
+	"los_gear_plus.partial.guest_full": "O titã está cheio: não cabem mais convidados",
 	"key.los_gear_plus.toggle_one_hand": "Alternar Uma Mão / Duas Mãos (ODMG)",
 	"los_gear_plus.mode.hands_one": "ODMG: One-Hand (1 grip na mão principal)",
 	"los_gear_plus.mode.hands_two": "ODMG: Two-Hand (2 grips)",

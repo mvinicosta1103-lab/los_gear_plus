@@ -23,6 +23,13 @@ public abstract class PlayerRendererRiderHideMixin {
     private void los_gear_plus$hideRider(AbstractClientPlayer player, float yaw, float partialTick, PoseStack poseStack,
                                          MultiBufferSource buffer, int light, CallbackInfo ci) {
         // Exceto durante o "dismount" (tecla B do DAOT): aí o jogador sai pela nuca e DEVE ser visto.
-        if (player.getVehicle() instanceof ShifterTitan titan && !titan.isDismounting()) ci.cancel();
+        if (player.getVehicle() instanceof ShifterTitan titan && !titan.isDismounting()) {
+            // Convidados abrigados na caixa torácica do titã parcial ficam visíveis (só o dono é escondido).
+            if (titan instanceof com.example.losgearplus.partial.PartialShifterTitanEntity partial
+                    && partial.isGuest(player)) {
+                return;
+            }
+            ci.cancel();
+        }
     }
 }

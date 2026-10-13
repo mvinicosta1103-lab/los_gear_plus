@@ -6,7 +6,10 @@ import daot.DannysAot;
 import daot.DismountSmokeHelper;
 import daot.ShifterMarkTracker;
 import daot.ShifterTitan;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
+import java.util.Optional;
 import java.util.UUID;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.particles.BlockParticleOption;
@@ -24,6 +27,8 @@ import net.minecraft.util.Mth;
 import net.minecraft.world.BossEvent;
 import net.minecraft.world.damagesource.DamageSource;
 import net.minecraft.world.damagesource.DamageTypes;
+import net.minecraft.world.InteractionHand;
+import net.minecraft.world.InteractionResult;
 import net.minecraft.world.effect.MobEffects;
 import net.minecraft.world.entity.Entity;
 import net.minecraft.world.entity.EntityDimensions;
@@ -34,6 +39,7 @@ import net.minecraft.world.entity.PathfinderMob;
 import net.minecraft.world.entity.ai.attributes.AttributeSupplier;
 import net.minecraft.world.entity.ai.attributes.Attributes;
 import net.minecraft.world.entity.monster.Enemy;
+import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.level.Level;
 import net.minecraft.world.phys.Vec3;
 import software.bernie.geckolib.animatable.GeoEntity;
@@ -79,6 +85,9 @@ public class PartialShifterTitanEntity extends PathfinderMob implements GeoEntit
             SynchedEntityData.defineId(PartialShifterTitanEntity.class, EntityDataSerializers.BOOLEAN);
     private static final EntityDataAccessor<Integer> DATA_PHASE =
             SynchedEntityData.defineId(PartialShifterTitanEntity.class, EntityDataSerializers.INT);
+    /** Dono, sincronizado: o cliente precisa saber quem é o dono para posicionar dono e convidados nos assentos. */
+    private static final EntityDataAccessor<Optional<UUID>> DATA_OWNER =
+            SynchedEntityData.defineId(PartialShifterTitanEntity.class, EntityDataSerializers.OPTIONAL_UUID);
 
     private static final RawAnimation IDLE = RawAnimation.begin().thenLoop("animation.partial_titan.idle");
 
@@ -91,6 +100,8 @@ public class PartialShifterTitanEntity extends PathfinderMob implements GeoEntit
     private boolean allowDismount;
     /** Só servidor: ticks até poder alternar de novo entre dentro e emergido (20 como no DAOT). */
     private int emergeCooldown;
+    /** Só servidor: convidado -> tick da última tentativa de sair agachado (controla o "agachar de novo para sair"). */
+    private final Map<UUID, Integer> guestSneakTick = new HashMap<>();
 
     public PartialShifterTitanEntity(EntityType<? extends PathfinderMob> type, Level level) {
         super(type, level);
@@ -115,6 +126,7 @@ public class PartialShifterTitanEntity extends PathfinderMob implements GeoEntit
         builder.define(DATA_VARIANT, PartialTitanVariant.ATTACK.id());
         builder.define(DATA_EMERGED, false);
         builder.define(DATA_PHASE, PHASE_ACTIVE);
+        builder.define(DATA_OWNER, Optional.empty());
     }
 
     // ---- dono / variante -------------------------------------------------------------------------------------
@@ -122,6 +134,7 @@ public class PartialShifterTitanEntity extends PathfinderMob implements GeoEntit
     /** Define o dono (único que pode montar) e ajusta vida e nome da barra. Chamar antes de adicionar ao mundo. */
     public void setOwner(ServerPlayer owner, PartialTitanVariant variant) {
         this.ownerId = owner.getUUID();
+        this.entityData.set(DATA_OWNER, Optional.of(owner.getUUID()));
         this.entityData.set(DATA_VARIANT, variant.id());
         double max = variant.partialMaxHealth();
         this.getAttribute(Attributes.MAX_HEALTH).setBaseValue(max);
@@ -131,7 +144,48 @@ public class PartialShifterTitanEntity extends PathfinderMob implements GeoEntit
     }
 
     public boolean isOwnedBy(Entity entity) {
-        return ownerId != null && entity != null && ownerId.equals(entity.getUUID());
+        if (entity == null) return false;
+        UUID owner = this.entityData.get(DATA_OWNER).orElse(null); // sincronizado: vale no cliente e no servidor
+        return owner != null && owner.equals(entity.getUUID());
+    }
+
+    /** Escala do modelo (o renderer aplica). O Colossal tem modelo próprio em tamanho real: 1. */
+    public float modelScale() {
+        return PartialShiftConfig.MODEL_SCALE;
+    }
+
+    /** Este titã aceita convidados (abrigados dentro dele)? O Colossal não. */
+    protected boolean allowsGuests() {
+        return true;
+    }
+
+    /** Convidado = jogador montado neste titã que não é o dono. */
+    public boolean isGuest(Entity entity) {
+        return allowsGuests() && entity instanceof Player && entity.getVehicle() == this && !isOwnedBy(entity);
+    }
+
+    private int guestCount() {
+        int n = 0;
+        for (Entity e : this.getPassengers()) if (e instanceof Player && !isOwnedBy(e)) n++;
+        return n;
+    }
+
+    private boolean ownerIsInside() {
+        for (Entity e : this.getPassengers()) if (isOwnedBy(e)) return true;
+        return false;
+    }
+
+    private List<ServerPlayer> guestPlayers() {
+        List<ServerPlayer> out = new java.util.ArrayList<>();
+        for (Entity e : this.getPassengers()) if (e instanceof ServerPlayer sp && !isOwnedBy(sp)) out.add(sp);
+        return out;
+    }
+
+    /** Assento do convidado {@code slot}, no referencial local (esquerda, altura, frente). */
+    protected Vec3 guestSeatPoint(int slot) {
+        double[] s = PartialShiftConfig.GUEST_SLOTS[Math.floorMod(slot, PartialShiftConfig.GUEST_SLOTS.length)];
+        return new Vec3(s[0] * PartialShiftConfig.MODEL_SCALE, PartialShiftConfig.GUEST_SEAT_Y,
+                s[1] * PartialShiftConfig.MODEL_SCALE);
     }
 
     public PartialTitanVariant getVariant() {
@@ -219,7 +273,20 @@ public class PartialShifterTitanEntity extends PathfinderMob implements GeoEntit
      * titã (titãs puros agarrando, outros mods, comandos de montaria) é vetada.
      */
     public boolean permitsDismount(ServerPlayer rider) {
-        return this.allowDismount || (isEmerged() && rider.isShiftKeyDown());
+        if (this.allowDismount) return true;
+        if (isGuest(rider)) return guestMayLeave(rider);
+        return isEmerged() && rider.isShiftKeyDown();
+    }
+
+    /**
+     * Convidado só sai agachando. Como ele ENTRA agachado (agachar + clique direito), o agachar que ainda está
+     * apertado ao entrar não pode tirá-lo na hora: ele precisa soltar e agachar de novo (uma pausa de alguns
+     * ticks entre as tentativas). Saídas sem agachar (teletransporte, comando) não são vetadas.
+     */
+    private boolean guestMayLeave(ServerPlayer guest) {
+        if (!guest.isShiftKeyDown()) return true;
+        Integer last = this.guestSneakTick.put(guest.getUUID(), this.tickCount);
+        return last != null && this.tickCount - last > PartialShiftConfig.GUEST_SNEAK_GAP_TICKS;
     }
 
     /**
@@ -335,13 +402,57 @@ public class PartialShifterTitanEntity extends PathfinderMob implements GeoEntit
 
     @Override
     protected boolean canAddPassenger(Entity passenger) {
-        return this.getPassengers().isEmpty() && isOwnedBy(passenger) && phase() == PHASE_ACTIVE;
+        if (phase() != PHASE_ACTIVE) return false;
+        if (isOwnedBy(passenger)) return !ownerIsInside();
+        // Convidado: só jogador, com o dono dentro, depois de o titã terminar de subir e com vaga.
+        return allowsGuests() && passenger instanceof Player && ownerIsInside()
+                && this.tickCount >= riseTicks() && guestCount() < PartialShiftConfig.MAX_GUESTS;
     }
 
     @Override
     protected Vec3 getPassengerAttachmentPoint(Entity passenger, EntityDimensions dimensions, float scale) {
         // Referencial local da entidade: +Z é a frente (a cabeça do modelo fica à frente).
-        return isEmerged() ? emergePoint() : seatPoint(); // emergido = pela nuca
+        if (!allowsGuests() || isOwnedBy(passenger)) {
+            return isEmerged() ? emergePoint() : seatPoint(); // emergido = pela nuca
+        }
+        // Convidado: posição dentro da caixa torácica, girada com o titã (esquerda = +X com yaw 0, frente = +Z).
+        int slot = 0;
+        for (Entity e : this.getPassengers()) {
+            if (e == passenger) break;
+            if (e instanceof Player && !isOwnedBy(e)) slot++;
+        }
+        Vec3 local = guestSeatPoint(slot);
+        double yaw = Math.toRadians(this.getYRot());
+        double cos = Math.cos(yaw), sin = Math.sin(yaw);
+        return new Vec3(local.x * cos - local.z * sin, local.y, local.x * sin + local.z * cos);
+    }
+
+    /** Agachar + clique direito no titã parcial: entra como convidado e fica protegido lá dentro. */
+    @Override
+    protected InteractionResult mobInteract(Player player, InteractionHand hand) {
+        if (!allowsGuests() || hand != InteractionHand.MAIN_HAND || !player.isShiftKeyDown()
+                || isOwnedBy(player) || phase() != PHASE_ACTIVE || player.isPassenger()) {
+            return super.mobInteract(player, hand);
+        }
+        if (this.level().isClientSide) return InteractionResult.sidedSuccess(true);
+        if (!ownerIsInside() || this.tickCount < riseTicks()) {
+            return InteractionResult.sidedSuccess(false);
+        }
+        if (guestCount() >= PartialShiftConfig.MAX_GUESTS) {
+            player.displayClientMessage(Component.translatable("los_gear_plus.partial.guest_full"), true);
+            return InteractionResult.sidedSuccess(false);
+        }
+        if (player.startRiding(this)) {
+            this.guestSneakTick.put(player.getUUID(), this.tickCount); // o agachar de entrada não conta como sair
+            player.displayClientMessage(Component.translatable("los_gear_plus.partial.guest_in"), true);
+        }
+        return InteractionResult.sidedSuccess(false);
+    }
+
+    @Override
+    protected void removePassenger(Entity passenger) {
+        super.removePassenger(passenger);
+        this.guestSneakTick.remove(passenger.getUUID());
     }
 
     // ---- dano / morte --------------------------------------------------------------------------------------
@@ -351,6 +462,7 @@ public class PartialShifterTitanEntity extends PathfinderMob implements GeoEntit
         if (this.level().isClientSide) return false;
         if (phase() != PHASE_ACTIVE || this.tickCount < riseTicks()) return false; // subindo/caindo/evaporando
         if (isOwnedBy(source.getEntity())) return false; // o dono não fere o próprio titã
+        if (source.getEntity() != null && source.getEntity().getVehicle() == this) return false; // nem os convidados
         return super.hurt(source, amount);
     }
 
@@ -450,6 +562,7 @@ public class PartialShifterTitanEntity extends PathfinderMob implements GeoEntit
         this.addTag(TitanEvaporation.HAD_RIDER_TAG); // garante que o corpo conte como "já teve portador"
         this.entityData.set(DATA_EMERGED, false);
         this.allowDismount = true; // libera o stopRiding (o veto do mixin só vale enquanto não permitido)
+        List<ServerPlayer> guests = guestPlayers(); // antes de ejetar: o titã vai evaporar, os convidados saem juntos
         this.ejectPassengers();
         this.bossEvent.removeAllPlayers();
         PartialShiftManager.unbind(ownerId, this);
@@ -464,7 +577,22 @@ public class PartialShifterTitanEntity extends PathfinderMob implements GeoEntit
             DismountSmokeHelper.armFullDismount(owner.getUUID(), owner.getX(), owner.getY(), owner.getZ(),
                     owner.getServer().getTickCount());
         }
+        placeGuestsOutside(guests);
         onExit();
+    }
+
+    /** Devolve os convidados ao chão, atrás do titã, lado a lado (o dono sai bem no meio). */
+    private void placeGuestsOutside(List<ServerPlayer> guests) {
+        double yaw = Math.toRadians(this.getYRot());
+        double back = groundExitBack();
+        for (int i = 0; i < guests.size(); i++) {
+            ServerPlayer g = guests.get(i);
+            if (!g.isAlive() || g.level() != this.level()) continue;
+            double lateral = (i % 2 == 0 ? 1 : -1) * 1.6 * (i / 2 + 1);
+            g.teleportTo(this.getX() + Math.sin(yaw) * back + Math.cos(yaw) * lateral, this.getY(),
+                    this.getZ() - Math.cos(yaw) * back + Math.sin(yaw) * lateral);
+            g.fallDistance = 0.0f;
+        }
     }
 
     @Override

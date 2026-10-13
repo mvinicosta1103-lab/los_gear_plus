@@ -94,8 +94,11 @@ public enum PartialTitanVariant {
     /** Variante do jogador (shifter). Tag de addon desconhecida cai no Attack. */
     public static PartialTitanVariant of(ServerPlayer player) {
         Set<String> tags = player.getTags();
-        if (tags.contains("colossalv2")) return COLOSSAL_V2;
+        // Tag V2 sem a tag base "colossal" é sobra de um shifter antigo: não conta.
+        boolean v2 = tags.contains("colossal") && (tags.contains("colossalv2") || tags.contains("colossal_v2"));
+        if (v2) return COLOSSAL_V2;
         for (PartialTitanVariant v : values()) {
+            if (v == COLOSSAL_V2) continue;
             if (tags.contains(v.tag)) return v;
         }
         return ATTACK;

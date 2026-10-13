@@ -46,8 +46,26 @@ public final class ColossalV2Support {
 	/** O DAOT ainda é dono dos poderes do Colossal; garante a tag base em quem é V2 e ressincroniza o visual. */
 	public static void ensureDaotColossalTag(ServerPlayer player) {
 		boolean v2 = hasV2Tag(player);
+		if (v2 && hasOtherShifterTag(player)) {
+			// Tag V2 velha: o jogador já foi setado para outro shifter. Não recoloca a tag base e limpa o V2.
+			clearV2(player);
+			return;
+		}
 		if (v2) player.addTag(DAOT_TAG);
 		broadcast(player, v2);
+	}
+
+	/** O jogador tem a tag de algum shifter que NÃO é o Colossal (nem V1 nem V2)? */
+	public static boolean hasOtherShifterTag(ServerPlayer player) {
+		for (String tag : player.getTags()) {
+			if (isOtherShifterTag(tag)) return true;
+		}
+		return false;
+	}
+
+	private static boolean isOtherShifterTag(String tag) {
+		return com.example.losgearplus.shifter.ShifterTypes.TAGS.contains(tag)
+				&& !DAOT_TAG.equals(tag) && !V2_TAG.equals(tag) && !V2_TAG_LEGACY.equals(tag);
 	}
 
 	/** Torna o jogador V2 (a tag base do DAOT é garantida). */
@@ -79,6 +97,22 @@ public final class ColossalV2Support {
 		for (ServerPlayer player : targets) {
 			if (!hasV2Tag(player)) continue;
 			if (colossalCommand || !player.getTags().contains(DAOT_TAG)) clearV2(player);
+		}
+	}
+
+	/**
+	 * Chamado depois de um {@code /daot shifter set <alvos> <tipo>} que deu certo. "set" TROCA o shifter:
+	 * se o tipo novo não é o Colossal (e é um shifter conhecido), o Colossal V1/V2 antigo sai do jogador
+	 * (tag base {@code colossal} e tags V2), senão ele continuava valendo na transformação e no Partial Shifting.
+	 */
+	public static void onDaotShifterSet(Iterable<ServerPlayer> targets, String type) {
+		if (isOtherShifterTag(type)) {
+			for (ServerPlayer player : targets) {
+				player.removeTag(DAOT_TAG);
+				clearV2(player);
+			}
+		} else {
+			onDaotShifterCommand(targets, type);
 		}
 	}
 

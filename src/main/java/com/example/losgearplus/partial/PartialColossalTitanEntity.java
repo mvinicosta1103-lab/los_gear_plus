@@ -130,6 +130,16 @@ public class PartialColossalTitanEntity extends PartialShifterTitanEntity {
     // ---- ganchos da variante ----------------------------------------------------------------------------------
 
     @Override
+    public float modelScale() {
+        return 1.0f; // o modelo do Colossal já está em tamanho real
+    }
+
+    @Override
+    protected boolean allowsGuests() {
+        return false;
+    }
+
+    @Override
     protected Vec3 seatPoint() {
         return new Vec3(0.0, PartialShiftConfig.COLOSSAL_SEAT_Y, PartialShiftConfig.COLOSSAL_SEAT_FORWARD);
     }
