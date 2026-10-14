@@ -144,4 +144,5 @@
 	"los_gear_plus.shifter_arm.no_transform": "The Shifter Arm is already a transformation: you cannot turn into a titan now",
 	"los_gear_plus.armored.arm": "Arm",
 	"los_gear_plus.armored.arm.desc": "A transformation of its own: only the arm transforms. You stand still and control it (punch, grab, throw) and cannot turn into the Partial or the normal titan while in it. Leave with B or L: the arm turns black and evaporates."
+
 }
