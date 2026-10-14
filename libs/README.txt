@@ -1,7 +1,7 @@
 Coloque AQUI exatamente 4 jars (um de cada). Estes são os que você já baixou:
 
   1. dannys-aot-2_4_3.jar                              (Danny's AoT)
-  2. los_gear-1_0_0.jar                                (LOS Gear)
+  2. LosKayDAOT Final Season Gear - v1.2.2                               (LOS Gear)
   3. geckolib-fabric-1_21_1-4_9_3.jar                  (GeckoLib)
   4. PlayerAnimationLibFabric-1_1_6_mc_1_21_1.jar      (Player Animation Library)
 

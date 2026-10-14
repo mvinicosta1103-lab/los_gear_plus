@@ -4,7 +4,7 @@
 	"version": "${version}",
 	"name": "LOS Gear Plus",
 	"description": "Addon do los_gear (que é addon do Danny's AoT).",
-	"authors": ["Seu nome"],
+	"authors": ["Yagami"],
 	"license": "MIT",
 	"environment": "*",
 	"entrypoints": {
