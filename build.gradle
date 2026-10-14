@@ -71,7 +71,7 @@ tasks.register('checkLibs') {
 		}
 		def required = [
 				"Danny's AoT"             : { String n -> n.contains('dannys-aot') },
-				"LosKayDAOT Final Season Gear - v1.2.2"                : { String n -> n.contains('LosKayDAOT Final Season Gear - v1.2.2') },
+				"LosKayDAOT Final Season Gear (los_gear)": { String n -> n.contains('loskay') || n.contains('los_gear') },
 				"GeckoLib"                : { String n -> n.contains('geckolib') },
 				"Player Animation Library": { String n -> n.contains('player') && n.contains('anim') }
 		]
