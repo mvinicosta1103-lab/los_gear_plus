@@ -171,7 +171,7 @@
 	"los_gear_plus.codex.titan.beast": "Beast Titan",
 	"los_gear_plus.codex.titan.warhammer": "War Hammer Titan",
 	"los_gear_plus.codex.skill.los_gear_plus.shockwave.name": "Shockwave",
-	"los_gear_plus.codex.skill.los_gear_plus.shockwave.desc": "Slams the ground: damages and throws back everything around the titan.",
+	"los_gear_plus.codex.skill.los_gear_plus.shockwave.desc": "The titan punches the ground: it cracks open, debris flies and everything nearby is damaged and thrown back. Works on Attack, Armored, Female and War Hammer (with the hammer).",
 	"los_gear_plus.codex.skill.los_gear_plus.steam_surge.name": "Steam Surge",
 	"los_gear_plus.codex.skill.los_gear_plus.steam_surge.desc": "The titan releases a huge smoke curtain that ejects you out (like the Cart Titan) and makes you untouchable: no hit lands for 10 seconds. You lose the titan.",
 	"los_gear_plus.codex.skill.daot.attack.ground_stomp.name": "Ground Stomp",
@@ -220,5 +220,6 @@
 	"los_gear_plus.codex.skill.daot.warhammer.giant_spike.name": "Giant Spike",
 	"los_gear_plus.codex.skill.daot.warhammer.summon_hammer.name": "Summon Hammer",
 	"los_gear_plus.codex.msg.smoke_start": "Smoke curtain! Nothing can touch you for 10 s.",
-	"los_gear_plus.codex.msg.smoke_end": "The smoke clears: you are vulnerable again."
+	"los_gear_plus.codex.msg.smoke_end": "The smoke clears: you are vulnerable again.",
+	"los_gear_plus.codex.msg.cant_now": "Can't use that right now."
 }

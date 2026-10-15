@@ -45,6 +45,7 @@ public final class CodexServer {
 	public static void init() {
 		TitanCodex.init();
 		SmokeCurtain.init();
+		CodexScheduler.init();
 
 		PayloadTypeRegistry.playC2S().register(CodexPayloads.Request.TYPE, CodexPayloads.Request.CODEC);
 		PayloadTypeRegistry.playC2S().register(CodexPayloads.Assign.TYPE, CodexPayloads.Assign.CODEC);

@@ -171,7 +171,7 @@
 	"los_gear_plus.codex.titan.beast": "Titã Bestial",
 	"los_gear_plus.codex.titan.warhammer": "Titã Martelo de Guerra",
 	"los_gear_plus.codex.skill.los_gear_plus.shockwave.name": "Onda de Choque",
-	"los_gear_plus.codex.skill.los_gear_plus.shockwave.desc": "Golpeia o chão: causa dano e arremessa tudo ao redor do titã.",
+	"los_gear_plus.codex.skill.los_gear_plus.shockwave.desc": "O titã soca o chão: ele racha, entulho voa e tudo por perto leva dano e é arremessado. Funciona no Attack, Armored, Female e War Hammer (com o martelo).",
 	"los_gear_plus.codex.skill.los_gear_plus.steam_surge.name": "Surto de Vapor",
 	"los_gear_plus.codex.skill.los_gear_plus.steam_surge.desc": "O titã solta uma grande cortina de fumaça que te ejeta para fora (como o Titã Cart) e te deixa intocável: nenhum golpe te atinge por 10 segundos. Você perde o titã.",
 	"los_gear_plus.codex.skill.daot.attack.ground_stomp.name": "Ground Stomp",
@@ -220,5 +220,6 @@
 	"los_gear_plus.codex.skill.daot.warhammer.giant_spike.name": "Giant Spike",
 	"los_gear_plus.codex.skill.daot.warhammer.summon_hammer.name": "Summon Hammer",
 	"los_gear_plus.codex.msg.smoke_start": "Cortina de fumaça! Nada te toca por 10 s.",
-	"los_gear_plus.codex.msg.smoke_end": "A fumaça se dissipa: você está vulnerável de novo."
+	"los_gear_plus.codex.msg.smoke_end": "A fumaça se dissipa: você está vulnerável de novo.",
+	"los_gear_plus.codex.msg.cant_now": "Não dá para usar isso agora."
 }
