@@ -28,6 +28,7 @@
 		"PlayerMainArmLimbMixin",
 		"EntitySprintLimbMixin",
 		"DaotTitanActionsLimbMixin",
+		"DaotTitanAbilityLoadoutMixin",
 		"DaotTitanJumpLimbMixin",
 		"DaotDodgeLimbMixin",
 		"DaotTitanCorpseEvaporationMixin",
@@ -40,6 +41,7 @@
 		"NewOdmGearGasMixin"
 	],
 	"client": [
+		"client.DaotAbilityHudIconMixin",
 		"client.KeyMappingAccessor",
 		"client.KeyMappingMixin",
 		"client.MouseHandlerMixin",

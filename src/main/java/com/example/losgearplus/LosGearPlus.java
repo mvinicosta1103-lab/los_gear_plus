@@ -43,6 +43,7 @@ public class LosGearPlus implements ModInitializer {
 		LimbManager.init();
 		LimbCommand.init();
 		TitanEvaporation.init();
+		com.example.losgearplus.codex.CodexServer.init(); // Titan Ability Codex
 
 		// los_gear é "recommends": só toca nas classes dele se estiver instalado.
 		if (FabricLoader.getInstance().isModLoaded("los_gear")) {

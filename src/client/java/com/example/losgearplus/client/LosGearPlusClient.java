@@ -40,6 +40,7 @@ public class LosGearPlusClient implements ClientModInitializer {
 		HangeSfxConfig.load();
 		HangeTitanAlert.init();
 		HangeSfxCommand.init();
+		com.example.losgearplus.client.codex.CodexClient.init(); // Titan Ability Codex
 
 		// Os slots de arma ao lado do peitoral somem só com o ODMG Mode ligado COM pistolas nas mãos: o cliente informa o estado.
 		HolsterSlots.clientModeActive = player -> OdmgModeClient.isActive();
