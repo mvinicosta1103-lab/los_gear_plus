@@ -47,10 +47,11 @@ public final class CodexPayloads {
 	 * @param active   titã que o jogador está montando agora ("" se nenhum)
 	 * @param titans   titãs que ele possui (as abas)
 	 * @param loadouts uma linha por titã: {@code titan|slot1|...|slot9} ("" = padrão, "-" = vazio)
-	 * @param unlocked skills liberadas manualmente
+	 * @param unlocked skills liberadas (manualmente ou por stack)
+	 * @param stacks   uma linha por stack do jogador: {@code titã|nível}
 	 */
-	public record Sync(boolean open, String active, List<String> titans, List<String> loadouts, List<String> unlocked)
-			implements CustomPacketPayload {
+	public record Sync(boolean open, String active, List<String> titans, List<String> loadouts, List<String> unlocked,
+			List<String> stacks) implements CustomPacketPayload {
 		public static final Type<Sync> TYPE = new Type<>(LosGearPlus.id("codex_sync"));
 		public static final StreamCodec<RegistryFriendlyByteBuf, Sync> CODEC = StreamCodec.composite(
 				ByteBufCodecs.BOOL, Sync::open,
@@ -58,7 +59,21 @@ public final class CodexPayloads {
 				ByteBufCodecs.STRING_UTF8.apply(ByteBufCodecs.list()), Sync::titans,
 				ByteBufCodecs.STRING_UTF8.apply(ByteBufCodecs.list()), Sync::loadouts,
 				ByteBufCodecs.STRING_UTF8.apply(ByteBufCodecs.list()), Sync::unlocked,
+				ByteBufCodecs.STRING_UTF8.apply(ByteBufCodecs.list()), Sync::stacks,
 				Sync::new);
+
+		@Override
+		public Type<? extends CustomPacketPayload> type() {
+			return TYPE;
+		}
+	}
+
+	/** Apertou uma das 3 teclas de stack: usa a skill que está naquele slot (0 a 2) da aba de stacks. */
+	public record UseStack(int slot) implements CustomPacketPayload {
+		public static final Type<UseStack> TYPE = new Type<>(LosGearPlus.id("codex_use_stack"));
+		public static final StreamCodec<RegistryFriendlyByteBuf, UseStack> CODEC = StreamCodec.composite(
+				ByteBufCodecs.VAR_INT, UseStack::slot,
+				UseStack::new);
 
 		@Override
 		public Type<? extends CustomPacketPayload> type() {

@@ -9,6 +9,8 @@ import com.example.losgearplus.codex.CustomTitanSkill;
 import com.example.losgearplus.codex.TitanCodex;
 import com.example.losgearplus.codex.TitanIds;
 import com.example.losgearplus.codex.TitanSkill;
+import com.example.losgearplus.codex.stacks.StackKills;
+import com.example.losgearplus.codex.stacks.StackSkill;
 import daot.DannysAotClient;
 import java.util.ArrayList;
 import java.util.List;
@@ -168,7 +170,7 @@ public final class TitanCodexScreen extends Screen {
 			TitanSkill shown = id.equals(CodexData.EMPTY) ? null
 					: id.isEmpty() ? TitanCodex.defaultSkill(titan, i) : TitanCodex.find(id).orElse(null);
 
-			UiDraw.centered(g, this.font, keyName(i), x + SLOT / 2, sy - 10, Palette.TEXT_DIM);
+			UiDraw.centered(g, this.font, keyName(titan, i), x + SLOT / 2, sy - 10, Palette.TEXT_DIM);
 			g.blit(hov && !picked.isEmpty() ? SLOT_SEL : SLOT_TEX, x, sy, SLOT, SLOT, 0f, 0f, 48, 46, 48, 46);
 			if (shown != null) drawIcon(g, shown.icon(), x + (SLOT - 26) / 2, sy + (SLOT - 26) / 2, 26, true);
 			if (!id.isEmpty() && !id.equals(CodexData.EMPTY)) g.fill(x + SLOT - 6, sy + 2, x + SLOT - 2, sy + 6, Palette.GOLD); // marca "personalizado"
@@ -204,7 +206,14 @@ public final class TitanCodexScreen extends Screen {
 			}
 			if (s.titanId().equals(TitanSkill.ALL)) t.add(Component.translatable("los_gear_plus.codex.compat_all").withStyle(ChatFormatting.DARK_GRAY));
 		}
-		if (!unlocked) t.add(Component.translatable("los_gear_plus.codex.locked_tip").withStyle(ChatFormatting.RED));
+		if (s instanceof StackSkill stackSkill) {
+			Component source = Component.translatable("los_gear_plus.codex.source." + stackSkill.source().id);
+			int level = CodexClient.stackLevel(stackSkill.source().id);
+			if (level > 0) t.add(Component.translatable("los_gear_plus.codex.stack.line", source, StackKills.roman(level)).withStyle(ChatFormatting.LIGHT_PURPLE));
+			else t.add(Component.translatable("los_gear_plus.codex.stack.locked_tip", source).withStyle(ChatFormatting.RED));
+		} else if (!unlocked) {
+			t.add(Component.translatable("los_gear_plus.codex.locked_tip").withStyle(ChatFormatting.RED));
+		}
 		return t;
 	}
 
@@ -221,7 +230,8 @@ public final class TitanCodexScreen extends Screen {
 	}
 
 	/** Nome da tecla de habilidade i (a mesma do DAOT, então respeita o que o jogador remapeou). */
-	private static String keyName(int i) {
+	private static String keyName(String titan, int i) {
+		if (TitanIds.STACK.equals(titan)) return CodexClient.stackKeyName(i); // as 3 teclas próprias dos stacks
 		KeyMapping[] keys = {
 				DannysAotClient.SHIFTER_ABILITY_1_KEY, DannysAotClient.SHIFTER_ABILITY_2_KEY, DannysAotClient.SHIFTER_ABILITY_3_KEY,
 				DannysAotClient.SHIFTER_ABILITY_4_KEY, DannysAotClient.SHIFTER_ABILITY_5_KEY, DannysAotClient.SHIFTER_ABILITY_6_KEY,

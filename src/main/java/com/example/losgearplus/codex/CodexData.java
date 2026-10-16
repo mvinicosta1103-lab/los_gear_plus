@@ -1,6 +1,8 @@
 package com.example.losgearplus.codex;
 
 import com.example.losgearplus.LosGearPlus;
+import com.example.losgearplus.codex.stacks.StackData;
+import com.example.losgearplus.codex.stacks.StackSkill;
 import com.mojang.serialization.Codec;
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -91,7 +93,9 @@ public final class CodexData {
 	}
 
 	public static boolean isUnlocked(ServerPlayer player, TitanSkill skill) {
-		return skill.unlockedByDefault() || unlockedList(player).contains(skill.id());
+		if (skill.unlockedByDefault() || unlockedList(player).contains(skill.id())) return true;
+		// skills de stack: liberadas enquanto o jogador tiver o stack de origem
+		return skill instanceof StackSkill stackSkill && StackData.level(player, stackSkill.source()) > 0;
 	}
 
 	public static boolean unlock(ServerPlayer player, String skillId) {

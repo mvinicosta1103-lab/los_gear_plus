@@ -98,6 +98,11 @@ public final class SmokeCurtain {
 		player.displayClientMessage(Component.translatable("los_gear_plus.codex.msg.smoke_start"), true);
 	}
 
+	/** Só a nuvem de fumaça (sem proteção para ninguém), por {@code ticks} ticks. */
+	public static void cloud(ServerLevel level, double x, double y, double z, double radius, double height, int ticks) {
+		CURTAINS.add(new Curtain(level.dimension(), x, y, z, radius, height, level.getServer().getTickCount() + ticks));
+	}
+
 	private static void dodgeEffect(ServerPlayer player) {
 		int now = player.server.getTickCount();
 		Integer last = LAST_DODGE_FX.get(player.getUUID());

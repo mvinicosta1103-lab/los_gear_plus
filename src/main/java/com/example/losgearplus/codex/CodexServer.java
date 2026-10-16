@@ -1,10 +1,17 @@
 package com.example.losgearplus.codex;
 
+import com.example.losgearplus.codex.stacks.StackBuffs;
+import com.example.losgearplus.codex.stacks.StackData;
+import com.example.losgearplus.codex.stacks.StackKills;
+import com.example.losgearplus.codex.stacks.StackSkill;
+import com.example.losgearplus.codex.stacks.StackSource;
 import com.example.losgearplus.limb.LimbLookup;
 import com.example.losgearplus.limb.LimbRules;
 import com.example.losgearplus.limb.LimbState;
 import com.example.losgearplus.LosGearPlus;
 import com.example.losgearplus.shifter.ShifterMastery;
+import com.mojang.brigadier.arguments.IntegerArgumentType;
+import com.mojang.brigadier.arguments.StringArgumentType;
 import daot.ShifterTitan;
 import daot.network.ModNetworking;
 import java.util.ArrayList;
@@ -46,9 +53,12 @@ public final class CodexServer {
 		TitanCodex.init();
 		SmokeCurtain.init();
 		CodexScheduler.init();
+		StackBuffs.init();
+		StackKills.init();
 
 		PayloadTypeRegistry.playC2S().register(CodexPayloads.Request.TYPE, CodexPayloads.Request.CODEC);
 		PayloadTypeRegistry.playC2S().register(CodexPayloads.Assign.TYPE, CodexPayloads.Assign.CODEC);
+		PayloadTypeRegistry.playC2S().register(CodexPayloads.UseStack.TYPE, CodexPayloads.UseStack.CODEC);
 		PayloadTypeRegistry.playS2C().register(CodexPayloads.Sync.TYPE, CodexPayloads.Sync.CODEC);
 		PayloadTypeRegistry.playS2C().register(CodexPayloads.Cooldown.TYPE, CodexPayloads.Cooldown.CODEC);
 
@@ -56,6 +66,8 @@ public final class CodexServer {
 				(payload, context) -> sync(context.player(), true));
 		ServerPlayNetworking.registerGlobalReceiver(CodexPayloads.Assign.TYPE,
 				(payload, context) -> assign(context.player(), payload));
+		ServerPlayNetworking.registerGlobalReceiver(CodexPayloads.UseStack.TYPE,
+				(payload, context) -> useStack(context.player(), payload.slot()));
 
 		ServerPlayConnectionEvents.JOIN.register((handler, sender, server) -> sync(handler.getPlayer(), false));
 		ServerPlayConnectionEvents.DISCONNECT.register((handler, server) -> CodexCooldowns.clear(handler.getPlayer().getUUID()));
@@ -99,7 +111,7 @@ public final class CodexServer {
 		return original == pressed ? PASS : original;
 	}
 
-	private static void runCustom(ServerPlayer player, LivingEntity titan, CustomTitanSkill skill) {
+	static void runCustom(ServerPlayer player, LivingEntity titan, CustomTitanSkill skill) {
 		UUID id = player.getUUID();
 		boolean creative = player.isCreative();
 
@@ -142,7 +154,7 @@ public final class CodexServer {
 
 	private static void assign(ServerPlayer player, CodexPayloads.Assign p) {
 		String titan = p.titan();
-		if (!TitanIds.isSupported(titan) || !TitanIds.owned(player).contains(titan)) return;
+		if (!TitanIds.isTab(titan) || !TitanIds.owned(player).contains(titan)) return;
 
 		if (p.slot() == -1) {
 			CodexData.resetTitan(player, titan);
@@ -172,7 +184,35 @@ public final class CodexServer {
 		List<String> lines = new ArrayList<>();
 		for (String titan : titans) lines.add(titan + "|" + String.join("|", CodexData.slots(player, titan)));
 
-		ServerPlayNetworking.send(player, new CodexPayloads.Sync(open, active, titans, lines, CodexData.unlockedList(player)));
+		// Liberadas = as manuais + as skills de cada stack que o jogador tem (o cliente só precisa desta lista).
+		List<String> unlocked = new ArrayList<>(CodexData.unlockedList(player));
+		for (TitanSkill s : TitanCodex.all()) {
+			if (s instanceof StackSkill stackSkill && StackData.level(player, stackSkill.source()) > 0) unlocked.add(s.id());
+		}
+		List<String> stacks = new ArrayList<>();
+		StackData.all(player).forEach((source, level) -> stacks.add(source + "|" + level));
+
+		ServerPlayNetworking.send(player, new CodexPayloads.Sync(open, active, titans, lines, unlocked, stacks));
+	}
+
+	/** Uma das 3 teclas de stack: usa a skill do slot, no titã que o jogador está montando (qualquer um, até Cart/Jaw/Ogre). */
+	private static void useStack(ServerPlayer player, int slot) {
+		if (slot < 0 || slot >= TitanIds.slotCount(TitanIds.STACK)) return;
+		Entity vehicle = player.getVehicle();
+		if (!(vehicle instanceof ShifterTitan shifterTitan) || !(vehicle instanceof LivingEntity living)
+				|| !player.getUUID().equals(shifterTitan.getShifterUUID())) {
+			player.displayClientMessage(Component.translatable("los_gear_plus.codex.msg.stack_need_titan"), true);
+			return;
+		}
+		String skillId = CodexData.getSlot(player, TitanIds.STACK, slot);
+		if (skillId.equals(CodexData.DEFAULT) || skillId.equals(CodexData.EMPTY)) return;
+		TitanSkill skill = TitanCodex.find(skillId).orElse(null);
+		if (!(skill instanceof CustomTitanSkill custom) || !skill.compatibleWith(TitanIds.STACK)) return;
+		if (!CodexData.isUnlocked(player, skill)) {
+			player.displayClientMessage(Component.translatable("los_gear_plus.codex.msg.locked"), true);
+			return;
+		}
+		runCustom(player, living, custom);
 	}
 
 	// ---- comandos (permissão 2) --------------------------------------------------------------------------
@@ -204,6 +244,24 @@ public final class CodexServer {
 						.then(Commands.argument("skill", ResourceLocationArgument.id()).suggests(SKILL_IDS)
 								.executes(ctx -> setLock(ctx.getSource(), EntityArgument.getPlayers(ctx, "targets"),
 										ResourceLocationArgument.getId(ctx, "skill"), false)))))
+				.then(Commands.literal("stack")
+						.then(Commands.literal("give").then(Commands.argument("targets", EntityArgument.players())
+								.then(Commands.argument("source", StringArgumentType.word()).suggests(STACK_IDS)
+										.executes(ctx -> giveStack(ctx.getSource(), EntityArgument.getPlayers(ctx, "targets"),
+												StringArgumentType.getString(ctx, "source"), 1))
+										.then(Commands.argument("level", IntegerArgumentType.integer(1, StackData.MAX_LEVEL))
+												.executes(ctx -> giveStack(ctx.getSource(), EntityArgument.getPlayers(ctx, "targets"),
+														StringArgumentType.getString(ctx, "source"), IntegerArgumentType.getInteger(ctx, "level")))))))
+						.then(Commands.literal("clear").then(Commands.argument("targets", EntityArgument.players())
+								.executes(ctx -> {
+									Collection<ServerPlayer> targets = EntityArgument.getPlayers(ctx, "targets");
+									for (ServerPlayer p : targets) {
+										StackData.clear(p);
+										sync(p, false);
+									}
+									ctx.getSource().sendSuccess(() -> Component.literal("Stacks cleared for " + targets.size() + " player(s)."), true);
+									return targets.size();
+								}))))
 				.then(Commands.literal("reset").then(Commands.argument("targets", EntityArgument.players())
 						.executes(ctx -> {
 							Collection<ServerPlayer> targets = EntityArgument.getPlayers(ctx, "targets");
@@ -214,6 +272,23 @@ public final class CodexServer {
 							ctx.getSource().sendSuccess(() -> Component.literal("Codex reset for " + targets.size() + " player(s)."), true);
 							return targets.size();
 						}))));
+	}
+
+	private static final com.mojang.brigadier.suggestion.SuggestionProvider<CommandSourceStack> STACK_IDS =
+			(ctx, builder) -> SharedSuggestionProvider.suggest(java.util.Arrays.stream(StackSource.values()).map(s -> s.id), builder);
+
+	private static int giveStack(CommandSourceStack src, Collection<ServerPlayer> targets, String sourceId, int level) {
+		StackSource source = StackSource.byId(sourceId);
+		if (source == null) {
+			src.sendFailure(Component.literal("Unknown stack source: " + sourceId));
+			return 0;
+		}
+		for (ServerPlayer p : targets) {
+			StackData.set(p, source, level);
+			sync(p, false);
+		}
+		src.sendSuccess(() -> Component.literal("Gave stack " + source.id + " (level " + level + ") to " + targets.size() + " player(s)."), true);
+		return targets.size();
 	}
 
 	private static final com.mojang.brigadier.suggestion.SuggestionProvider<CommandSourceStack> SKILL_IDS =

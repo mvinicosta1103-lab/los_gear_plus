@@ -29,6 +29,7 @@
 		"EntitySprintLimbMixin",
 		"DaotTitanActionsLimbMixin",
 		"DaotTitanAbilityLoadoutMixin",
+		"LivingEntityStackBuffMixin",
 		"DaotTitanJumpLimbMixin",
 		"DaotDodgeLimbMixin",
 		"DaotTitanCorpseEvaporationMixin",

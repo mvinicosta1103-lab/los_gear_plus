@@ -60,6 +60,25 @@ public final class GroundBreaker {
 		crackStep(level, center, cracks, 1, crackLength, grief, debris);
 	}
 
+	/**
+	 * Parte o chão num ponto só (usado pelas fendas que correm): partículas sempre, e, se a destruição estiver
+	 * ligada, tira até {@code depth} blocos de profundidade (às vezes lançando o bloco como entulho).
+	 */
+	public static void cleave(ServerLevel level, Vec3 point, Vec3 origin, int depth) {
+		BlockPos ground = ground(level, (int) Math.floor(point.x), (int) Math.floor(point.y), (int) Math.floor(point.z));
+		if (ground == null) return;
+		level.sendParticles(new BlockParticleOption(ParticleTypes.BLOCK, level.getBlockState(ground)),
+				point.x, ground.getY() + 1.0, point.z, 12, 0.5, 0.2, 0.5, 0.08);
+		if (!DannysAot.isTitanGriefingEnabled(level)) return;
+		for (int i = 0; i < depth; i++) {
+			BlockPos pos = ground.below(i);
+			BlockState state = level.getBlockState(pos);
+			if (!breakable(level, pos, state)) break;
+			if (i == 0 && level.random.nextFloat() < 0.2f) fling(level, pos, state, origin, new Debris());
+			else level.removeBlock(pos, false);
+		}
+	}
+
 	// ---- cratera -----------------------------------------------------------------------------------------
 
 	private static void crater(ServerLevel level, Vec3 center, int radius, Debris debris) {

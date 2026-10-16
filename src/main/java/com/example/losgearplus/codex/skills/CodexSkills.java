@@ -17,5 +17,6 @@ public final class CodexSkills {
 	public static void registerAll() {
 		TitanCodex.register(new ShockwaveSkill());
 		TitanCodex.register(new SteamSurgeSkill());
+		com.example.losgearplus.codex.stacks.StackSkills.registerAll(); // skills ganhas por stack
 	}
 }

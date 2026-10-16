@@ -7,7 +7,9 @@ import com.example.losgearplus.codex.CodexPayloads;
 import com.example.losgearplus.codex.TitanCodex;
 import com.example.losgearplus.codex.TitanIds;
 import com.example.losgearplus.codex.TitanSkill;
+import com.example.losgearplus.client.ui.Palette;
 import com.mojang.blaze3d.platform.InputConstants;
+import daot.ShifterTitan;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
@@ -33,6 +35,9 @@ public final class CodexClient {
 	public static final ResourceLocation EMPTY_ICON = LosGearPlus.id("textures/gui/codex/empty.png");
 
 	private static KeyMapping key;
+	/** As 3 teclas das skills de stack (padrão , . /): funcionam com qualquer titã. */
+	private static final KeyMapping[] STACK_KEYS = new KeyMapping[3];
+	private static final Map<String, Integer> STACKS = new HashMap<>();
 	private static List<String> titans = List.of();
 	private static String active = "";
 	private static final Map<String, String[]> LOADOUTS = new HashMap<>();
@@ -43,6 +48,12 @@ public final class CodexClient {
 		TitanCodex.init();
 		key = KeyBindingHelper.registerKeyBinding(new KeyMapping("key.los_gear_plus.codex",
 				InputConstants.Type.KEYSYM, GLFW.GLFW_KEY_I, "key.categories.los_gear_plus"));
+
+		int[] stackDefaults = {GLFW.GLFW_KEY_COMMA, GLFW.GLFW_KEY_PERIOD, GLFW.GLFW_KEY_SLASH};
+		for (int i = 0; i < STACK_KEYS.length; i++) {
+			STACK_KEYS[i] = KeyBindingHelper.registerKeyBinding(new KeyMapping("key.los_gear_plus.stack_" + (i + 1),
+					InputConstants.Type.KEYSYM, stackDefaults[i], "key.categories.los_gear_plus"));
+		}
 
 		ClientPlayNetworking.registerGlobalReceiver(CodexPayloads.Sync.TYPE, (payload, context) -> context.client().execute(() -> {
 			accept(payload);
@@ -61,8 +72,15 @@ public final class CodexClient {
 					ClientPlayNetworking.send(new CodexPayloads.Request());
 				}
 			}
+			for (int i = 0; i < STACK_KEYS.length; i++) {
+				while (STACK_KEYS[i].consumeClick()) {
+					if (mc.player != null && mc.screen == null && ClientPlayNetworking.canSend(CodexPayloads.UseStack.TYPE)) {
+						ClientPlayNetworking.send(new CodexPayloads.UseStack(i));
+					}
+				}
+			}
 		});
-		HudRenderCallback.EVENT.register(CodexClient::renderCooldowns);
+		HudRenderCallback.EVENT.register(CodexClient::renderHud);
 	}
 
 	public static KeyMapping key() {
@@ -82,6 +100,11 @@ public final class CodexClient {
 		}
 		UNLOCKED.clear();
 		UNLOCKED.addAll(p.unlocked());
+		STACKS.clear();
+		for (String line : p.stacks()) {
+			String[] parts = line.split("\\|");
+			if (parts.length == 2) STACKS.put(parts[0], Integer.parseInt(parts[1]));
+		}
 	}
 
 	private static void clear() {
@@ -89,6 +112,7 @@ public final class CodexClient {
 		active = "";
 		LOADOUTS.clear();
 		UNLOCKED.clear();
+		STACKS.clear();
 		COOLDOWN_END.clear();
 	}
 
@@ -106,6 +130,16 @@ public final class CodexClient {
 	public static String slotSkill(String titan, int slot) {
 		String[] s = LOADOUTS.get(titan);
 		return s == null || slot < 0 || slot >= s.length ? CodexData.DEFAULT : s[slot];
+	}
+
+	/** Nível (0 = não tem) do stack deste titã de origem ("armored", "cart"...). */
+	public static int stackLevel(String source) {
+		return STACKS.getOrDefault(source, 0);
+	}
+
+	/** Nome da tecla da skill de stack i (0 a 2). */
+	public static String stackKeyName(int i) {
+		return i >= 0 && i < STACK_KEYS.length ? STACK_KEYS[i].getTranslatedKeyMessage().getString().toUpperCase() : String.valueOf(i + 1);
 	}
 
 	public static boolean isUnlocked(TitanSkill skill) {
@@ -140,15 +174,47 @@ public final class CodexClient {
 		return TitanIds.isSupported(id) ? id : null;
 	}
 
-	// ---- recargas das skills próprias, desenhadas em cima dos slots do DAOT ---------------------------------
+	// ---- HUD: barra de stacks e recargas das skills próprias ----------------------------------------------------
 
-	private static void renderCooldowns(GuiGraphics g, DeltaTracker delta) {
+	private static void renderHud(GuiGraphics g, DeltaTracker delta) {
 		Minecraft mc = Minecraft.getInstance();
-		if (mc.player == null || mc.level == null || mc.options.hideGui || mc.screen != null || COOLDOWN_END.isEmpty()) return;
+		if (mc.player == null || mc.level == null || mc.options.hideGui || mc.screen != null) return;
+		long now = mc.level.getGameTime();
+		renderStackBar(g, mc, now);
+		renderSlotCooldowns(g, mc, now);
+	}
+
+	/** Os 3 slots de stack, no canto inferior direito, só enquanto você monta um titã e tem alguma skill equipada. */
+	private static void renderStackBar(GuiGraphics g, Minecraft mc, long now) {
+		if (!(mc.player.getVehicle() instanceof ShifterTitan)) return;
+		boolean any = false;
+		for (int i = 0; i < STACK_KEYS.length; i++) {
+			String id = slotSkill(TitanIds.STACK, i);
+			if (!id.isEmpty() && !id.equals(CodexData.EMPTY)) any = true;
+		}
+		if (!any) return;
+		int x0 = g.guiWidth() - STACK_KEYS.length * 26 - 8;
+		int y = g.guiHeight() - 30;
+		for (int i = 0; i < STACK_KEYS.length; i++) {
+			int x = x0 + i * 26;
+			String id = slotSkill(TitanIds.STACK, i);
+			g.fill(x, y, x + 22, y + 22, 0xAA0B0E13);
+			UiDraw.outline(g, x, y, 22, 22, UiDraw.alpha(Palette.STEEL, 0.6f));
+			UiDraw.centered(g, mc.font, stackKeyName(i), x + 11, y - 9, Palette.TEXT_DIM);
+			TitanCodex.find(id).ifPresent(s -> g.blit(s.icon(), x + 2, y + 2, 18, 18, 0f, 0f, 32, 32, 32, 32));
+			Long end = COOLDOWN_END.get(id);
+			if (end != null && end > now) {
+				g.fill(x, y, x + 22, y + 22, 0xAA000000);
+				UiDraw.centered(g, mc.font, ((end - now + 19) / 20) + "s", x + 11, y + 7, 0xFFFFFFFF);
+			}
+		}
+	}
+
+	/** Recarga das skills próprias em cima da barra 1-9 do DAOT (mesma geometria dela). */
+	private static void renderSlotCooldowns(GuiGraphics g, Minecraft mc, long now) {
+		if (COOLDOWN_END.isEmpty()) return;
 		String titan = TitanIds.of(mc.player.getVehicle());
 		if (titan == null) return;
-		long now = mc.level.getGameTime();
-		// Mesma geometria da barra do DAOT: 9 slots de 22 px a cada 24 px, centrada, 26 px acima do rodapé.
 		int startX = (g.guiWidth() - 214) / 2;
 		int y = g.guiHeight() - 26;
 		for (int i = 0; i < TitanIds.slotCount(titan); i++) {
