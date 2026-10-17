@@ -46,6 +46,7 @@ public final class CodexClient {
 
 	public static void init() {
 		TitanCodex.init();
+		CrystalClient.init();
 		key = KeyBindingHelper.registerKeyBinding(new KeyMapping("key.los_gear_plus.codex",
 				InputConstants.Type.KEYSYM, GLFW.GLFW_KEY_I, "key.categories.los_gear_plus"));
 

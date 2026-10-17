@@ -6,7 +6,7 @@ import net.minecraft.server.level.ServerPlayer;
 
 /**
  * Skill ganha ao absorver um stack. Mora no "titã" especial {@code stack} do Codex (3 slots, 3 teclas próprias),
- * então funciona com QUALQUER titã que o jogador monte, inclusive Cart, Jaw e Ogre, que não usam a barra 1-9.
+ * então funciona com QUALQUER titã que o jogador monte (Cart, Jaw, Ogre e Founding são subclasses do Attack no DAOT).
  * Fica bloqueada até o jogador ter o stack de origem; o nível do stack (I a III) aumenta o poder.
  */
 public abstract class StackSkill extends AbstractCustomSkill {

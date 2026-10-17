@@ -81,6 +81,30 @@ public final class CodexPayloads {
 		}
 	}
 
+	/**
+	 * Efeito de cristal num titã (para o cliente desenhar a textura): {@code mode} {@link #CLEAR}, {@link #FULL} (corpo todo,
+	 * a cristalização do Iron Skin; começa em {@code start}) ou {@link #ARMS} (só punhos e antebraços, os punhos
+	 * endurecidos, de {@code start} até {@code end}). Os ticks são do relógio do mundo.
+	 */
+	public record CrystalFx(int entityId, int mode, long start, long end) implements CustomPacketPayload {
+		public static final int CLEAR = 0;
+		public static final int FULL = 1;
+		public static final int ARMS = 2;
+
+		public static final Type<CrystalFx> TYPE = new Type<>(LosGearPlus.id("crystal_fx"));
+		public static final StreamCodec<RegistryFriendlyByteBuf, CrystalFx> CODEC = StreamCodec.composite(
+				ByteBufCodecs.VAR_INT, CrystalFx::entityId,
+				ByteBufCodecs.VAR_INT, CrystalFx::mode,
+				ByteBufCodecs.VAR_LONG, CrystalFx::start,
+				ByteBufCodecs.VAR_LONG, CrystalFx::end,
+				CrystalFx::new);
+
+		@Override
+		public Type<? extends CustomPacketPayload> type() {
+			return TYPE;
+		}
+	}
+
 	/** Uma skill própria entrou em recarga: o cliente desenha o contador por cima do slot. */
 	public record Cooldown(String skill, int ticks) implements CustomPacketPayload {
 		public static final Type<Cooldown> TYPE = new Type<>(LosGearPlus.id("codex_cooldown"));

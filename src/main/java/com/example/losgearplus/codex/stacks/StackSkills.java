@@ -5,10 +5,16 @@ import com.example.losgearplus.codex.GroundBreaker;
 import com.example.losgearplus.codex.SmokeCurtain;
 import com.example.losgearplus.codex.TitanCodex;
 import com.example.losgearplus.codex.TitanIds;
+import com.example.losgearplus.codex.CodexPayloads;
+import com.example.losgearplus.codex.TitanEject;
+import com.example.losgearplus.codex.TitanJump;
+import daot.AttackTitanEntity;
+import daot.FemaleTitanEntity;
 import daot.ModSounds;
 import java.util.List;
 import net.minecraft.core.particles.ParticleOptions;
 import net.minecraft.core.particles.ParticleTypes;
+import net.minecraft.network.chat.Component;
 import net.minecraft.server.level.ServerLevel;
 import net.minecraft.server.level.ServerPlayer;
 import net.minecraft.sounds.SoundEvent;
@@ -28,16 +34,16 @@ import net.minecraft.world.phys.Vec3;
  * (recarga, custo de stamina) e no corpo de {@code activate}; o nível do stack entra por {@code power()}.
  *
  * <pre>
- *  Armored   Hardened Fists  punhos endurecidos: +dano e um pouco de defesa por 15 s
- *            Wall Leap       salto de escalada: o titã pula por cima de obstáculos
+ *  Armored   Hardened Fists  punhos endurecidos (nativo do DAOT ou camada de cristal): +dano por 15 s
+ *            Wall Leap       o pulo do próprio titã, reto para cima
  *  Attack    Frenzy          fúria: +dano e regeneração por 12 s
  *  Female    Crystal Shell   casca de cristal: leva bem menos dano por 8 s
  *  Colossal  Heat Wave       onda de calor: dano e fogo em área
  *  Beast     Savage Roar     rugido: lentidão e fraqueza nos inimigos, +dano para você
  *  Warhammer Crystal Spikes  fenda de espetos de cristal que corre para a frente
- *  Jaw       Pounce          bote: salto à frente que esmaga onde cai
+ *  Jaw       Pounce          o pulo do titã para a frente, que esmaga o chão onde cai
  *  Cart      Smoke Bomb      nuvem de fumaça que cega os inimigos e esconde o titã
- *  Ogre      Iron Skin       pele de ferro: leva metade do dano por 10 s
+ *  Ogre      Iron Skin       cristalização total: ejeta você e o corpo vira estátua indestrutível
  * </pre>
  */
 public final class StackSkills {
@@ -108,35 +114,62 @@ public final class StackSkills {
 		}
 	}
 
+	/** Só o Attack "puro" e a Female têm braço endurecido de verdade no DAOT (Cart, Jaw, Ogre e Founding herdam o estado do Attack, mas não o desenham). */
+	private static boolean nativeHardening(LivingEntity t) {
+		return t.getClass() == AttackTitanEntity.class || t instanceof FemaleTitanEntity;
+	}
+
+	private static int hardeningMode(LivingEntity t) {
+		return t instanceof FemaleTitanEntity f ? f.getHardeningMode() : ((AttackTitanEntity) t).getHardeningMode();
+	}
+
+	private static void setHardeningMode(LivingEntity t, int mode) {
+		if (t instanceof FemaleTitanEntity f) f.setHardeningMode(mode);
+		else if (t instanceof AttackTitanEntity a) a.setHardeningMode(mode);
+	}
+
 	// ---- ARMORED ---------------------------------------------------------------------------------------------
 
-	/** Punhos endurecidos: +dano causado (x1.4 / 1.5 / 1.6) e 15% menos dano recebido por 15 s. */
+	/**
+	 * Punhos endurecidos por 15 s: +dano causado (x1.4 / 1.5 / 1.6). No Attack e na Female usa o ENDURECIMENTO NATIVO do
+	 * DAOT (textura, animação e, no Attack, a escalada de paredes); nos outros titãs o DAOT não tem braço endurecido,
+	 * então os punhos ganham uma camada de cristal desenhada no cliente.
+	 */
 	static final class HardenedFists extends StackSkill {
+		private static final int DURATION = 20 * 15;
+
 		HardenedFists() { super(StackSource.ARMORED, "stack_hardened_fists", 20 * 30, 0.12f); }
 
 		@Override
 		public boolean activate(ServerPlayer player, LivingEntity titan) {
-			StackBuffs.add(titan, 1.0 + 0.4 * power(player), 0.85, 20 * 15, ParticleTypes.CRIT);
 			ServerLevel level = player.serverLevel();
+			if (nativeHardening(titan)) {
+				if (hardeningMode(titan) != 0) return false; // já está endurecido: não gasta nada
+				setHardeningMode(titan, titan instanceof FemaleTitanEntity ? 3 : 1);
+				CodexScheduler.runLater(level.getServer(), DURATION, () -> {
+					if (titan.isAlive() && hardeningMode(titan) != 0) setHardeningMode(titan, 0);
+				});
+			} else {
+				long now = level.getGameTime();
+				CrystalTitans.broadcast(titan, CodexPayloads.CrystalFx.ARMS, now, now + DURATION);
+			}
+			StackBuffs.add(titan, 1.0 + 0.4 * power(player), 0.85, DURATION, ParticleTypes.CRIT);
 			burst(level, titan, ParticleTypes.CRIT, 40);
 			sound(level, titan, SoundEvents.ANVIL_LAND, 2.0f, 1.6f);
 			return true;
 		}
 	}
 
-	/** Salto de escalada: o titã pula para cima e para a frente (precisa estar no chão). */
+	/** Salto de escalada: usa o PULO do próprio titã (animação e impulso do DAOT), reto para cima, por cima de muros. */
 	static final class WallLeap extends StackSkill {
 		WallLeap() { super(StackSource.ARMORED, "stack_wall_leap", 20 * 12, 0.10f); }
 
 		@Override
 		public boolean activate(ServerPlayer player, LivingEntity titan) {
-			if (!titan.onGround()) return false;
-			Vec3 f = forward(titan);
-			double s = Math.sqrt(scale(titan));
-			titan.setDeltaMovement(f.x * 1.1 * s, 1.15 * s, f.z * 1.1 * s);
-			titan.hurtMarked = true;
-			titan.fallDistance = 0.0f;
-			titan.setOnGround(false);
+			if (!TitanJump.start(titan, player, false)) {
+				player.displayClientMessage(Component.translatable("los_gear_plus.codex.msg.cant_jump"), true);
+				return false;
+			}
 			ServerLevel level = player.serverLevel();
 			burst(level, titan, ParticleTypes.CLOUD, 30);
 			sound(level, titan, SoundEvents.ANVIL_LAND, 2.0f, 0.5f);
@@ -259,26 +292,38 @@ public final class StackSkills {
 
 	// ---- JAW -------------------------------------------------------------------------------------------------
 
-	/** Bote: salta para a frente e, ao cair (14 ticks depois), esmaga o chão ferindo quem está perto. */
+	/**
+	 * Bote: usa o PULO do próprio titã, para onde o piloto olha, e ao aterrissar (o chão volta a ser tocado depois de
+	 * ter saído dele) esmaga o chão ferindo quem está perto.
+	 */
 	static final class Pounce extends StackSkill {
 		Pounce() { super(StackSource.JAW, "stack_pounce", 20 * 14, 0.10f); }
 
 		@Override
 		public boolean activate(ServerPlayer player, LivingEntity titan) {
-			if (!titan.onGround()) return false;
+			if (!TitanJump.start(titan, player, true)) {
+				player.displayClientMessage(Component.translatable("los_gear_plus.codex.msg.cant_jump"), true);
+				return false;
+			}
 			ServerLevel level = player.serverLevel();
-			Vec3 f = forward(titan);
-			titan.setDeltaMovement(f.x * 1.7, 0.85, f.z * 1.7);
-			titan.hurtMarked = true;
-			titan.fallDistance = 0.0f;
-			titan.setOnGround(false);
 			sound(level, titan, SoundEvents.RAVAGER_ROAR, 2.0f, 1.2f);
-			CodexScheduler.runLater(level.getServer(), 14, () -> land(level, titan, player));
+			CodexScheduler.runLater(level.getServer(), 4, () -> watch(level, titan, player, 0, false));
 			return true;
 		}
 
+		/** Espera o titã sair do chão e voltar a pisar (no máximo 8 s). */
+		private void watch(ServerLevel level, LivingEntity titan, ServerPlayer player, int ticks, boolean airborne) {
+			if (!titan.isAlive() || !player.isAlive() || ticks > 160) return;
+			boolean ground = titan.onGround();
+			if (airborne && ground) {
+				land(level, titan, player);
+				return;
+			}
+			boolean inAir = airborne || !ground;
+			CodexScheduler.runLater(level.getServer(), 1, () -> watch(level, titan, player, ticks + 1, inAir));
+		}
+
 		private void land(ServerLevel level, LivingEntity titan, ServerPlayer player) {
-			if (!titan.isAlive() || !player.isAlive()) return;
 			Vec3 c = titan.position();
 			double radius = 6.0 * scale(titan);
 			DamageSource src = level.damageSources().playerAttack(player);
@@ -315,16 +360,20 @@ public final class StackSkills {
 
 	// ---- OGRE ------------------------------------------------------------------------------------------------
 
-	/** Pele de ferro: dano recebido x0.5 / 0.4 / 0.3 por 10 s. */
+	/**
+	 * Cristalização total: o titã se ajoelha (o dismount do DAOT), o piloto é EJETADO e o corpo vira uma estátua de
+	 * cristal: imóvel e indestrutível; só um Thunder Spear o estilhaça. Ver {@link CrystalTitans}. Você perde o titã.
+	 */
 	static final class IronSkin extends StackSkill {
-		IronSkin() { super(StackSource.OGRE, "stack_iron_skin", 20 * 30, 0.10f); }
+		IronSkin() { super(StackSource.OGRE, "stack_iron_skin", 20 * 60, 0.10f); }
 
 		@Override
 		public boolean activate(ServerPlayer player, LivingEntity titan) {
-			StackBuffs.add(titan, 1.0, 0.6 - 0.1 * level(player), 20 * 10, ParticleTypes.ASH);
-			ServerLevel level = player.serverLevel();
-			burst(level, titan, ParticleTypes.ASH, 40);
-			sound(level, titan, SoundEvents.ANVIL_LAND, 2.0f, 0.8f);
+			if (CrystalTitans.isCrystal(titan) || !TitanEject.eject(player, titan, false)) {
+				player.displayClientMessage(Component.translatable("los_gear_plus.codex.msg.cant_now"), true);
+				return false;
+			}
+			CrystalTitans.start(titan);
 			return true;
 		}
 	}

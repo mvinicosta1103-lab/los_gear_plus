@@ -18,8 +18,9 @@ import net.minecraft.world.entity.Entity;
 /**
  * Quais titãs o Codex conhece e como reconhecê-los (pela entidade que o jogador monta ou pelas tags de shifter).
  *
- * <p>Fora da v1: Jaw, Cart, Ogre e Founding. Eles não passam por {@code ModNetworking.handleTitanAbility} (o
- * Jaw/Cart usam outro caminho no DAOT), então precisam de um gancho próprio; ver o README do Codex.
+ * <p>Fora da barra 1-9 do Codex: Jaw, Cart, Ogre e Founding. Eles ESTENDEM o Attack no DAOT e passam pelo mesmo ramo
+ * do {@code handleTitanAbility}, então dá para cobri-los; falta só mapear o catálogo de habilidades deles. As skills
+ * de stack já funcionam neles (teclas próprias).
  */
 public final class TitanIds {
 	private TitanIds() {}

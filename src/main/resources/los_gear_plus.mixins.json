@@ -30,6 +30,8 @@
 		"DaotTitanActionsLimbMixin",
 		"DaotTitanAbilityLoadoutMixin",
 		"LivingEntityStackBuffMixin",
+		"DaotTitanHooksMixin",
+		"EntityRemoveMixin",
 		"DaotTitanJumpLimbMixin",
 		"DaotDodgeLimbMixin",
 		"DaotTitanCorpseEvaporationMixin",
@@ -43,6 +45,7 @@
 	],
 	"client": [
 		"client.DaotAbilityHudIconMixin",
+		"client.DaotTitanRendererMixin",
 		"client.KeyMappingAccessor",
 		"client.KeyMappingMixin",
 		"client.MouseHandlerMixin",

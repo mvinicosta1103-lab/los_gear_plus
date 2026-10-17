@@ -234,9 +234,9 @@
 	"los_gear_plus.codex.stack.locked_tip": "Locked: defeat a shifter of the %s to unlock it",
 	"los_gear_plus.codex.msg.stack_need_titan": "Stack skills need you riding your titan.",
 	"los_gear_plus.codex.skill.los_gear_plus.stack_hardened_fists.name": "Hardened Fists",
-	"los_gear_plus.codex.skill.los_gear_plus.stack_hardened_fists.desc": "Hardens the titan's fists: you deal much more damage and take a little less for 15 s. Stronger at each stack level.",
+	"los_gear_plus.codex.skill.los_gear_plus.stack_hardened_fists.desc": "Hardens the titan's fists for 15 s and you deal much more damage. On the Attack and Female Titans it uses the game's real hardening (the Attack Titan can also climb walls while hardened); on the others the fists gain a crystal coating. Stronger at each stack level.",
 	"los_gear_plus.codex.skill.los_gear_plus.stack_wall_leap.name": "Wall Leap",
-	"los_gear_plus.codex.skill.los_gear_plus.stack_wall_leap.desc": "The titan leaps up and forward, over walls and obstacles.",
+	"los_gear_plus.codex.skill.los_gear_plus.stack_wall_leap.desc": "The titan makes its own jump straight up, over walls and obstacles.",
 	"los_gear_plus.codex.skill.los_gear_plus.stack_frenzy.name": "Frenzy",
 	"los_gear_plus.codex.skill.los_gear_plus.stack_frenzy.desc": "A rage: you deal more damage and regenerate for 12 s. Stronger at each stack level.",
 	"los_gear_plus.codex.skill.los_gear_plus.stack_crystal_shell.name": "Crystal Shell",
@@ -248,11 +248,11 @@
 	"los_gear_plus.codex.skill.los_gear_plus.stack_crystal_spikes.name": "Crystal Spikes",
 	"los_gear_plus.codex.skill.los_gear_plus.stack_crystal_spikes.desc": "A fissure of crystal runs ahead of you, hurting and launching everything it touches.",
 	"los_gear_plus.codex.skill.los_gear_plus.stack_pounce.name": "Pounce",
-	"los_gear_plus.codex.skill.los_gear_plus.stack_pounce.desc": "Leap forward and smash the ground where you land, hurting those nearby.",
+	"los_gear_plus.codex.skill.los_gear_plus.stack_pounce.desc": "The titan jumps forward and smashes the ground where it lands, hurting everything nearby.",
 	"los_gear_plus.codex.skill.los_gear_plus.stack_smoke_bomb.name": "Smoke Bomb",
 	"los_gear_plus.codex.skill.los_gear_plus.stack_smoke_bomb.desc": "A smoke cloud blinds and slows enemies and covers the titan: it takes 20% less damage for 7 s.",
 	"los_gear_plus.codex.skill.los_gear_plus.stack_iron_skin.name": "Iron Skin",
-	"los_gear_plus.codex.skill.los_gear_plus.stack_iron_skin.desc": "Take much less damage for 10 s. Stronger at each stack level.",
+	"los_gear_plus.codex.skill.los_gear_plus.stack_iron_skin.desc": "The titan kneels and crystallizes from head to toe while you are ejected. The body stays behind, still and indestructible: only a Thunder Spear can shatter it. You lose the titan.",
 	"los_gear_plus.codex.source.armored": "Armored Titan",
 	"los_gear_plus.codex.source.attack": "Attack Titan",
 	"los_gear_plus.codex.source.female": "Female Titan",
@@ -261,5 +261,6 @@
 	"los_gear_plus.codex.source.warhammer": "War Hammer Titan",
 	"los_gear_plus.codex.source.jaw": "Jaw Titan",
 	"los_gear_plus.codex.source.cart": "Cart Titan",
-	"los_gear_plus.codex.source.ogre": "Ogre Titan"
+	"los_gear_plus.codex.source.ogre": "Ogre Titan",
+	"los_gear_plus.codex.msg.cant_jump": "This titan can't jump right now."
 }

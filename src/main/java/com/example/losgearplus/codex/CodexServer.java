@@ -1,5 +1,6 @@
 package com.example.losgearplus.codex;
 
+import com.example.losgearplus.codex.stacks.CrystalTitans;
 import com.example.losgearplus.codex.stacks.StackBuffs;
 import com.example.losgearplus.codex.stacks.StackData;
 import com.example.losgearplus.codex.stacks.StackKills;
@@ -55,12 +56,14 @@ public final class CodexServer {
 		CodexScheduler.init();
 		StackBuffs.init();
 		StackKills.init();
+		CrystalTitans.init();
 
 		PayloadTypeRegistry.playC2S().register(CodexPayloads.Request.TYPE, CodexPayloads.Request.CODEC);
 		PayloadTypeRegistry.playC2S().register(CodexPayloads.Assign.TYPE, CodexPayloads.Assign.CODEC);
 		PayloadTypeRegistry.playC2S().register(CodexPayloads.UseStack.TYPE, CodexPayloads.UseStack.CODEC);
 		PayloadTypeRegistry.playS2C().register(CodexPayloads.Sync.TYPE, CodexPayloads.Sync.CODEC);
 		PayloadTypeRegistry.playS2C().register(CodexPayloads.Cooldown.TYPE, CodexPayloads.Cooldown.CODEC);
+		PayloadTypeRegistry.playS2C().register(CodexPayloads.CrystalFx.TYPE, CodexPayloads.CrystalFx.CODEC);
 
 		ServerPlayNetworking.registerGlobalReceiver(CodexPayloads.Request.TYPE,
 				(payload, context) -> sync(context.player(), true));

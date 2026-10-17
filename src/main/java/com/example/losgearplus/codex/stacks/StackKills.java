@@ -48,17 +48,21 @@ public final class StackKills {
 	private static final Map<UUID, Integer> CREDITED = new HashMap<>();
 
 	public static void init() {
-		ServerLivingEntityEvents.ALLOW_DEATH.register((entity, source, amount) -> {
-			if (entity instanceof ShifterTitan titan) onTitanDefeated(entity, titan, source);
-			return true; // só observamos
-		});
+		// Jogadores que morrem de verdade (forma humana) e titãs que não sobrescrevem o die() do DAOT.
 		ServerLivingEntityEvents.AFTER_DEATH.register((entity, source) -> {
 			if (entity instanceof ServerPlayer victim) onPlayerDied(victim, source);
+			else onTitanDefeated(entity, source);
 		});
 		ServerLifecycleEvents.SERVER_STOPPED.register(server -> CREDITED.clear());
 	}
 
-	private static void onTitanDefeated(LivingEntity entity, ShifterTitan titan, DamageSource source) {
+	/**
+	 * Um titã de shifter foi derrotado. Chamado pelo {@code DaotTitanHooksMixin}: o DAOT sobrescreve o {@code die()} dos
+	 * seis titãs principais (e dos que herdam deles: Cart, Jaw, Ogre, Founding) para "derrotar" em vez de matar, e esse
+	 * caminho não passa pelos eventos de morte do Fabric.
+	 */
+	public static void onTitanDefeated(LivingEntity entity, DamageSource source) {
+		if (!(entity instanceof ShifterTitan titan) || entity.level().isClientSide) return;
 		UUID victimId = titan.getShifterUUID();
 		MinecraftServer server = entity.getServer();
 		if (victimId == null || server == null) return; // titã sem dono (puro)

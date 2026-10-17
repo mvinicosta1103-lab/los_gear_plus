@@ -234,9 +234,9 @@
 	"los_gear_plus.codex.stack.locked_tip": "Bloqueada: derrote um shifter do %s para liberar",
 	"los_gear_plus.codex.msg.stack_need_titan": "As habilidades de stack exigem que você esteja montado no seu titã.",
 	"los_gear_plus.codex.skill.los_gear_plus.stack_hardened_fists.name": "Punhos Endurecidos",
-	"los_gear_plus.codex.skill.los_gear_plus.stack_hardened_fists.desc": "Endurece os punhos do titã: você causa bem mais dano e recebe um pouco menos por 15 s. Mais forte a cada nível do stack.",
+	"los_gear_plus.codex.skill.los_gear_plus.stack_hardened_fists.desc": "Endurece os punhos do titã por 15 s e você causa bem mais dano. No Titã de Ataque e no Feminino usa o endurecimento de verdade do jogo (o de Ataque também escala paredes enquanto endurecido); nos outros os punhos ganham uma camada de cristal. Mais forte a cada nível do stack.",
 	"los_gear_plus.codex.skill.los_gear_plus.stack_wall_leap.name": "Salto de Escalada",
-	"los_gear_plus.codex.skill.los_gear_plus.stack_wall_leap.desc": "O titã salta para cima e para a frente, por cima de muros e obstáculos.",
+	"los_gear_plus.codex.skill.los_gear_plus.stack_wall_leap.desc": "O titã dá o próprio pulo, reto para cima, por cima de muros e obstáculos.",
 	"los_gear_plus.codex.skill.los_gear_plus.stack_frenzy.name": "Frenesi",
 	"los_gear_plus.codex.skill.los_gear_plus.stack_frenzy.desc": "Uma fúria: você causa mais dano e regenera vida por 12 s. Mais forte a cada nível do stack.",
 	"los_gear_plus.codex.skill.los_gear_plus.stack_crystal_shell.name": "Casca de Cristal",
@@ -248,11 +248,11 @@
 	"los_gear_plus.codex.skill.los_gear_plus.stack_crystal_spikes.name": "Espetos de Cristal",
 	"los_gear_plus.codex.skill.los_gear_plus.stack_crystal_spikes.desc": "Uma fenda de cristal corre à sua frente, ferindo e lançando tudo que toca.",
 	"los_gear_plus.codex.skill.los_gear_plus.stack_pounce.name": "Bote",
-	"los_gear_plus.codex.skill.los_gear_plus.stack_pounce.desc": "Salte para a frente e esmague o chão onde cair, ferindo quem estiver perto.",
+	"los_gear_plus.codex.skill.los_gear_plus.stack_pounce.desc": "O titã pula para a frente e esmaga o chão onde cai, ferindo tudo por perto.",
 	"los_gear_plus.codex.skill.los_gear_plus.stack_smoke_bomb.name": "Bomba de Fumaça",
 	"los_gear_plus.codex.skill.los_gear_plus.stack_smoke_bomb.desc": "Uma nuvem de fumaça cega e atrasa os inimigos e cobre o titã: ele recebe 20% menos dano por 7 s.",
 	"los_gear_plus.codex.skill.los_gear_plus.stack_iron_skin.name": "Pele de Ferro",
-	"los_gear_plus.codex.skill.los_gear_plus.stack_iron_skin.desc": "Receba muito menos dano por 10 s. Mais forte a cada nível do stack.",
+	"los_gear_plus.codex.skill.los_gear_plus.stack_iron_skin.desc": "O titã se ajoelha e se cristaliza da cabeça aos pés enquanto você é ejetado. O corpo fica para trás, parado e indestrutível: só um Thunder Spear o estilhaça. Você perde o titã.",
 	"los_gear_plus.codex.source.armored": "Titã Blindado",
 	"los_gear_plus.codex.source.attack": "Titã de Ataque",
 	"los_gear_plus.codex.source.female": "Titã Feminino",
@@ -261,5 +261,6 @@
 	"los_gear_plus.codex.source.warhammer": "Titã Martelo de Guerra",
 	"los_gear_plus.codex.source.jaw": "Titã Mandíbula",
 	"los_gear_plus.codex.source.cart": "Titã Cart",
-	"los_gear_plus.codex.source.ogre": "Titã Ogro"
+	"los_gear_plus.codex.source.ogre": "Titã Ogro",
+	"los_gear_plus.codex.msg.cant_jump": "Este titã não pode pular agora."
 }
