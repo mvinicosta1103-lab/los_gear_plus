@@ -9,7 +9,12 @@ import java.io.Writer;
 import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
 import java.nio.file.Path;
+import net.fabricmc.fabric.api.networking.v1.PayloadTypeRegistry;
+import net.fabricmc.fabric.api.networking.v1.ServerPlayNetworking;
 import net.fabricmc.loader.api.FabricLoader;
+import net.minecraft.network.chat.Component;
+import net.minecraft.server.MinecraftServer;
+import net.minecraft.server.level.ServerPlayer;
 
 /**
  * Configuração do servidor para a maestria dos shifters. Arquivo: {@code config/los_gear_plus-mastery.json}
@@ -24,9 +29,9 @@ public final class ShifterMasteryConfig {
     /** Os campos públicos são exatamente o que aparece no arquivo JSON. */
     public static final class Data {
         public String _readme =
-                "Tabelas por nivel de maestria: a lista tem 10 numeros, do nivel 0 ao nivel 9 (nessa ordem). "
-                        + "maxTransformsPerLevel: -1 = ilimitado. Porcentagens: 100 = normal, 0 = nao gasta/nao drena. "
-                        + "Depois de editar, use /shiftermastery reload.";
+                "Per-level lists have 10 numbers, level 0 to level 9 (in that order). "
+                        + "maxTransformsPerLevel: -1 = unlimited. Percentages: 100 = normal, 0 = costs/drains nothing. "
+                        + "Edit in game with /shiftermastery config, or edit this file and use /shiftermastery reload.";
 
         // ---- nivel maximo --------------------------------------------------------------------------------
         /** Nivel 9: transformacoes ilimitadas, nenhum gasto de stamina (nem para transformar, nem em forma de tita, nem nas skills). */
@@ -89,7 +94,7 @@ public final class ShifterMasteryConfig {
         Path file = path();
         if (!Files.exists(file)) {
             current = new Data();
-            save(file);
+            write(current);
             apply(current);
             return true;
         }
@@ -106,15 +111,87 @@ public final class ShifterMasteryConfig {
         }
     }
 
-    private static void save(Path file) {
+    /** Writes the given config to the config file. */
+    public static void write(Data d) {
+        Path file = path();
         try {
             Files.createDirectories(file.getParent());
             try (Writer out = Files.newBufferedWriter(file, StandardCharsets.UTF_8)) {
-                GSON.toJson(new Data(), out);
+                GSON.toJson(d, out);
             }
         } catch (IOException e) {
-            LosGearPlus.LOGGER.error("[mastery] Nao consegui criar {}: {}", file, e.toString());
+            LosGearPlus.LOGGER.error("[mastery] Could not write {}: {}", file, e.toString());
         }
+    }
+
+    public static String toJson(Data d) {
+        return GSON.toJson(d);
+    }
+
+    /** Parses a config JSON (used by the in-game menu). Never null: falls back to defaults if the text is invalid. */
+    public static Data fromJson(String json) {
+        Data d = null;
+        try {
+            d = GSON.fromJson(json, Data.class);
+        } catch (RuntimeException ignored) {
+            // invalid JSON: defaults below
+        }
+        if (d == null) d = new Data();
+        fixArrays(d);
+        return d;
+    }
+
+    /** Makes every per-level list exactly 10 entries long (missing entries take the default). */
+    public static void fixArrays(Data d) {
+        Data def = new Data();
+        d.maxTransformsPerLevel = fit(d.maxTransformsPerLevel, def.maxTransformsPerLevel);
+        d.transformCostPercentPerLevel = fit(d.transformCostPercentPerLevel, def.transformCostPercentPerLevel);
+        d.titanDrainPercentPerLevel = fit(d.titanDrainPercentPerLevel, def.titanDrainPercentPerLevel);
+        d.xpToReachLevel = fit(d.xpToReachLevel, def.xpToReachLevel);
+    }
+
+    // ---- in-game menu (operators only) ------------------------------------------------------------------------
+
+    public static void initNetworking() {
+        PayloadTypeRegistry.playS2C().register(MasteryConfigPayloads.Open.TYPE, MasteryConfigPayloads.Open.CODEC);
+        PayloadTypeRegistry.playC2S().register(MasteryConfigPayloads.Save.TYPE, MasteryConfigPayloads.Save.CODEC);
+        ServerPlayNetworking.registerGlobalReceiver(MasteryConfigPayloads.Save.TYPE,
+                (payload, context) -> context.server().execute(() -> handleSave(context.player(), payload.json())));
+    }
+
+    private static boolean isOp(ServerPlayer p) {
+        return p.createCommandSourceStack().hasPermission(2);
+    }
+
+    /** Opens the config menu on the operator's screen (the current values travel with the packet). */
+    public static void sendOpen(ServerPlayer p) {
+        if (!isOp(p)) return;
+        if (ServerPlayNetworking.canSend(p, MasteryConfigPayloads.Open.TYPE)) {
+            ServerPlayNetworking.send(p, new MasteryConfigPayloads.Open(toJson(current)));
+        } else {
+            p.sendSystemMessage(Component.literal("The Shifter Mastery menu needs the mod installed on your client."));
+        }
+    }
+
+    /** The menu's Save button: re-checks the permission on the server, applies, writes the file and refreshes everyone. */
+    private static void handleSave(ServerPlayer p, String json) {
+        if (!isOp(p)) {
+            p.sendSystemMessage(Component.literal("You need operator permission to change the Shifter Mastery config."));
+            return;
+        }
+        Data d = fromJson(json);
+        current = d;
+        apply(d);
+        write(d);
+        MinecraftServer server = p.getServer();
+        if (server != null) {
+            for (ServerPlayer other : server.getPlayerList().getPlayers()) {
+                ShifterMasteryStats.apply(other);
+                ShifterMasterySync.send(other, true);
+            }
+        }
+        LosGearPlus.LOGGER.info("[mastery] Config saved from the in-game menu by {}.", p.getGameProfile().getName());
+        p.sendSystemMessage(Component.literal("Shifter Mastery config saved and applied (" + FILE_NAME + ")."));
     }
 
     // ---- aplicar nos números do mod -------------------------------------------------------------------------
@@ -138,9 +215,9 @@ public final class ShifterMasteryConfig {
         float[] cost = new float[n];
         float[] drain = new float[n];
         for (int i = 0; i < n; i++) {
-            maxT[i] = transforms[i] < 0 ? ShifterMastery.UNLIMITED : Math.max(1, transforms[i]);
-            cost[i] = Math.max(0, costPct[i]) / 100f;
-            drain[i] = Math.max(0, drainPct[i]) / 100f;
+            maxT[i] = transforms[i] < 0 ? ShifterMastery.UNLIMITED : Math.max(1, Math.min(100000, transforms[i]));
+            cost[i] = Math.max(0, Math.min(10000, costPct[i])) / 100f;
+            drain[i] = Math.max(0, Math.min(10000, drainPct[i])) / 100f;
         }
         int top = n - 1;
         if (d.maxLevelInfinite) {
@@ -156,22 +233,22 @@ public final class ShifterMasteryConfig {
 
         // XP: o nivel 0 e sempre 0 e a lista nunca diminui (senao o nivel poderia "voltar").
         xp[0] = 0;
-        for (int i = 1; i < n; i++) xp[i] = Math.max(xp[i], xp[i - 1] + 1);
+        for (int i = 1; i < n; i++) xp[i] = Math.max(Math.min(xp[i], 100_000_000), xp[i - 1] + 1);
 
         ShifterMastery.applyTables(maxT, cost, drain, xp);
-        ShifterMastery.BASE_TITAN_SECONDS = (float) Math.max(1.0, d.baseTitanSeconds);
-        ShifterMastery.RESET_TICKS = Math.max(0L, d.transformCooldownSeconds) * 20L;
-        ShifterMastery.XP_PER_TRANSFORMATION = Math.max(0, d.xpPerTransformation);
-        ShifterMastery.XP_PER_SECOND_TRANSFORMED = Math.max(0, d.xpPerSecondTransformed);
+        ShifterMastery.BASE_TITAN_SECONDS = (float) Math.max(1.0, Math.min(d.baseTitanSeconds, 1_000_000.0));
+        ShifterMastery.RESET_TICKS = Math.max(0L, Math.min(d.transformCooldownSeconds, 31_536_000)) * 20L;
+        ShifterMastery.XP_PER_TRANSFORMATION = Math.max(0, Math.min(d.xpPerTransformation, 1_000_000));
+        ShifterMastery.XP_PER_SECOND_TRANSFORMED = Math.max(0, Math.min(d.xpPerSecondTransformed, 1_000_000));
         ShifterMastery.cartAlwaysInfinite = d.cartAlwaysInfinite;
         ShifterMastery.maxLevelInfinite = d.maxLevelInfinite;
 
         // Coracoes: 1 coracao = 2 de vida; o jogador comum tem 20 de vida (10 coracoes).
-        ShifterMasteryStats.BASE_HP_BONUS = Math.max(0.0, d.shifterBaseHearts) * 2.0 - 20.0;
-        ShifterMasteryStats.HP_PER_LEVEL = Math.max(0.0, d.heartsPerMasteryLevel) * 2.0;
-        ShifterMasteryStats.MAX_HEARTS = Math.max(0.0, d.maxHearts);
-        ShifterMasteryStats.TITAN_HP_PER_LEVEL = Math.max(0.0, d.titanHpPercentPerLevel) / 100.0;
-        ShifterMasteryStats.STRENGTH_PER_LEVEL = (float) (Math.max(0.0, d.damageDealtPercentPerLevel) / 100.0);
+        ShifterMasteryStats.BASE_HP_BONUS = Math.max(0.0, Math.min(d.shifterBaseHearts, 500.0)) * 2.0 - 20.0;
+        ShifterMasteryStats.HP_PER_LEVEL = Math.max(0.0, Math.min(d.heartsPerMasteryLevel, 100.0)) * 2.0;
+        ShifterMasteryStats.MAX_HEARTS = Math.max(0.0, Math.min(d.maxHearts, 500.0));
+        ShifterMasteryStats.TITAN_HP_PER_LEVEL = Math.max(0.0, Math.min(d.titanHpPercentPerLevel, 10000.0)) / 100.0;
+        ShifterMasteryStats.STRENGTH_PER_LEVEL = (float) (Math.max(0.0, Math.min(d.damageDealtPercentPerLevel, 10000.0)) / 100.0);
         // A reducao total (nivel 9) nunca passa de 90%, para o dano nunca zerar de vez.
         double maxPerLevel = 90.0 / ShifterMastery.MAX_LEVEL;
         ShifterMasteryStats.REDUCTION_PER_LEVEL = (float) (Math.min(maxPerLevel, Math.max(0.0, d.damageReductionPercentPerLevel)) / 100.0);

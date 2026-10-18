@@ -88,6 +88,7 @@ public final class ShifterMastery {
 
 	public static void init() {
 		ShifterMasteryConfig.load();
+		ShifterMasteryConfig.initNetworking();
 		ServerLifecycleEvents.SERVER_STARTED.register(s -> {
 			server = s;
 			data = s.overworld().getDataStorage().computeIfAbsent(ShifterMasteryData.factory(), ShifterMasteryData.NAME);

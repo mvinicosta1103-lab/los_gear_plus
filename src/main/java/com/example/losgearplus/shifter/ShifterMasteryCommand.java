@@ -21,6 +21,7 @@ import net.minecraft.server.level.ServerPlayer;
  *  /shiftermastery cooldown &lt;players&gt;       reset only the transformation cooldown (alias: resetcooldown)
  *  /shiftermastery addxp &lt;players&gt; &lt;amount&gt;  grant mastery XP
  *  /shiftermastery get [player]             show level, XP, transformations and costs
+ *  /shiftermastery config                   open the in-game config menu (operators)
  *  /shiftermastery reload                   reload config/los_gear_plus-mastery.json
  *  /sm ...                                  short alias for /shiftermastery
  * </pre>
@@ -71,6 +72,13 @@ public final class ShifterMasteryCommand {
 					.executes(ctx -> get(ctx, ctx.getSource().getPlayerOrException()))
 					.then(Commands.argument("target", EntityArgument.player())
 							.executes(ctx -> get(ctx, EntityArgument.getPlayer(ctx, "target")))));
+
+			// /shiftermastery config  (opens the menu)
+			builder.then(Commands.literal("config").executes(ctx -> {
+				ServerPlayer p = ctx.getSource().getPlayerOrException();
+				ShifterMasteryConfig.sendOpen(p);
+				return 1;
+			}));
 
 			// /shiftermastery reload
 			builder.then(Commands.literal("reload").executes(ShifterMasteryCommand::reload));

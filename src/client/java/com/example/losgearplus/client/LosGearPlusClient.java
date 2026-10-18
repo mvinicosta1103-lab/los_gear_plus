@@ -28,6 +28,7 @@ public class LosGearPlusClient implements ClientModInitializer {
 		SteamHealClient.init();
 		com.example.losgearplus.client.shifter.ShifterMasteryHud.init();
 		com.example.losgearplus.client.shifter.ShifterMasteryHudControls.init();
+		com.example.losgearplus.client.shifter.MasteryConfigClient.init(); // menu de config da maestria (operadores)
 		GripHolsterCommand.init();
 		com.example.losgearplus.client.limb.LimbClient.init();
 		com.example.losgearplus.client.evap.EvaporationClient.init();
