@@ -172,6 +172,7 @@ public final class CodexClient {
 	public static String titanFromHud(Object hudType) {
 		if (!(hudType instanceof Enum<?> e)) return null;
 		String id = e.name().toLowerCase(java.util.Locale.ROOT);
+		if (id.equals("founding_shifted")) id = "founding"; // o Founding transformado usa a barra do HUD "FOUNDING_SHIFTED"
 		return TitanIds.isSupported(id) ? id : null;
 	}
 

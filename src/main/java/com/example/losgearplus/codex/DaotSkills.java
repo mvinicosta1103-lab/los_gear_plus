@@ -57,6 +57,28 @@ final class DaotSkills {
 		add("warhammer", 7, "control_center", "ability_titan_control_center");
 		add("warhammer", 8, "giant_spike", "abilities_titan_giant_spike");
 		add("warhammer", 9, "summon_hammer", "abilities_titan_summon_hammer");
+		// Jaw: barra de 5 habilidades (teclas 1-5)
+		add("jaw", 1, "pounce", "ability_titan_pounce");
+		add("jaw", 2, "kickback", "ability_titan_kickback");
+		add("jaw", 3, "slash_barrage", "ability_titan_slash_barrage");
+		add("jaw", 4, "nape_hardening", "ability_titan_jaw_nape_hardening");
+		add("jaw", 5, "chomp", "ability_titan_chomp");
+		// Cart: barra de 9 habilidades (teclas 1-9)
+		add("cart", 1, "chomp", "ability_titan_cart_chomp");
+		add("cart", 2, "collect_boulder", "ability_titan_collect_boulder");
+		add("cart", 3, "eject", "ability_titan_eject");
+		add("cart", 4, "smoke_screen", "ability_titan_smoke_screen");
+		add("cart", 5, "nape_frenzy", "ability_titan_nape_frenzy");
+		add("cart", 6, "minigun", "ability_titan_minigun");
+		add("cart", 7, "cargo", "ability_titan_cargo");
+		add("cart", 8, "cannon", "ability_titan_cannon");
+		add("cart", 9, "lock", "ability_titan_lock");
+		// Founding: usa a mesma barra do Attack
+		add("founding", 1, "ground_stomp", "ability_titan_ground_stomp");
+		add("founding", 4, "heavy_punch", "ability_titan_heavy_punch");
+		add("founding", 6, "harden", "ability_titan_hardened_block");
+		add("founding", 7, "grab", "ability_titan_grab_female");
+		add("founding", 9, "berserk", "ability_titan_berserk");
 	}
 
 	private static void add(String titan, int number, String key, String texture) {

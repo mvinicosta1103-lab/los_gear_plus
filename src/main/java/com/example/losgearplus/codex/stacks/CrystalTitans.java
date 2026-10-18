@@ -202,7 +202,7 @@ public final class CrystalTitans {
 		// Golpes de titã de shifter (o atacante é o corpo do titã que o jogador está pilotando).
 		Entity attacker = owner != null ? owner : direct;
 		if (attacker instanceof ArmoredTitanEntity || attacker instanceof WarhammerTitanEntity) return true;
-		if (attacker instanceof daot.TestShifterTitanEntity) return true; // Jaw: ataques e mordidas
+		if (attacker instanceof daot.TestShifterTitanEntity && !(attacker instanceof daot.CartShifterTitanEntity)) return true; // Jaw: ataques e mordidas (o Cart estende o Jaw, mas só o canhão dele estilhaça)
 		if (attacker instanceof FemaleTitanEntity f) return f.getHardeningMode() != 0; // só com punho/pé endurecido
 		if (attacker instanceof AttackTitanEntity a && StackSource.ofTitan(a) == StackSource.ATTACK) {
 			return a.getHardeningMode() != 0; // só o Attack puro, e só endurecido
