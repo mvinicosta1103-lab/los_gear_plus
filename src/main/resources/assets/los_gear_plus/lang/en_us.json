@@ -230,6 +230,7 @@
 	"los_gear_plus.codex.stack.levelup": "Your %1$s stack grew to level %2$s! (%3$s)",
 	"los_gear_plus.codex.stack.lost": "Another shifter took your stacks.",
 	"los_gear_plus.codex.stack.took": "You also took the stacks your victim was carrying.",
+	"los_gear_plus.codex.potion.iron_skin": "You drank the potion and gained the Iron Skin ability! Open the Codex and use the Stacks tab.",
 	"los_gear_plus.codex.stack.line": "Stack: %1$s (%2$s)",
 	"los_gear_plus.codex.stack.locked_tip": "Locked: defeat a shifter of the %s to unlock it",
 	"los_gear_plus.codex.msg.stack_need_titan": "Stack skills need you riding your titan.",

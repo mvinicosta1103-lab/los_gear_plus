@@ -135,7 +135,7 @@ public final class CodexServer {
 
 		// Maestria 9 não gasta stamina (igual ao resto do mod), nem o criativo.
 		float cost = skill.staminaFraction() * ModNetworking.getMaxStaminaForUUID(id);
-		boolean free = creative || cost <= 0f || ShifterMastery.ruleLevel(id) >= ShifterMastery.MAX_LEVEL;
+		boolean free = creative || cost <= 0f || ShifterMastery.hasInfinity(id);
 		if (!free && ModNetworking.getStamina(id) < cost) {
 			player.displayClientMessage(Component.translatable("los_gear_plus.codex.msg.no_stamina"), true);
 			return;

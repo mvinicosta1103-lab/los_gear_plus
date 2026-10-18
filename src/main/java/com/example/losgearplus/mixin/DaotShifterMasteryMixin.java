@@ -95,7 +95,7 @@ public abstract class DaotShifterMasteryMixin {
 		if (player.getVehicle() instanceof ShifterTitan) return; // leaving titan form: never blocked or counted
 		if (losgearplus$hadBite || pendingShifts.containsKey(id)) return; // already transforming
 
-		if (ShifterMastery.ruleLevel(id) >= ShifterMastery.MAX_LEVEL) {
+		if (ShifterMastery.hasInfinity(id)) {
 			// Full control: no entry = full stamina (DAOT uses the maximum as the default).
 			playerStamina.remove(id);
 			losgearplus$staminaBeforeShift = null;
@@ -176,6 +176,6 @@ public abstract class DaotShifterMasteryMixin {
 	private static void losgearplus$masterImmune(UUID id, CallbackInfoReturnable<Boolean> cir) {
 		// Level 9 is immune to every stamina cost; below that the Beast Titan's natural immunity is removed so
 		// it spends stamina like any other titan.
-		cir.setReturnValue(ShifterMastery.ruleLevel(id) >= ShifterMastery.MAX_LEVEL);
+		cir.setReturnValue(ShifterMastery.hasInfinity(id));
 	}
 }

@@ -21,6 +21,7 @@ import net.minecraft.server.level.ServerPlayer;
  *  /shiftermastery cooldown &lt;players&gt;       reset only the transformation cooldown (alias: resetcooldown)
  *  /shiftermastery addxp &lt;players&gt; &lt;amount&gt;  grant mastery XP
  *  /shiftermastery get [player]             show level, XP, transformations and costs
+ *  /shiftermastery reload                   reload config/los_gear_plus-mastery.json
  *  /sm ...                                  short alias for /shiftermastery
  * </pre>
  * The root is {@code shiftermastery} (not {@code shifter}) so it never collides with DAOT commands.
@@ -70,6 +71,9 @@ public final class ShifterMasteryCommand {
 					.executes(ctx -> get(ctx, ctx.getSource().getPlayerOrException()))
 					.then(Commands.argument("target", EntityArgument.player())
 							.executes(ctx -> get(ctx, EntityArgument.getPlayer(ctx, "target")))));
+
+			// /shiftermastery reload
+			builder.then(Commands.literal("reload").executes(ShifterMasteryCommand::reload));
 
 			LiteralCommandNode<CommandSourceStack> root = dispatcher.register(builder);
 
@@ -130,6 +134,20 @@ public final class ShifterMasteryCommand {
 		ctx.getSource().sendSuccess(() -> Component.literal(
 				"Granted " + amount + " mastery XP to " + targets.size() + " player(s)."), true);
 		return targets.size();
+	}
+
+	private static int reload(CommandContext<CommandSourceStack> ctx) {
+		boolean ok = ShifterMasteryConfig.load();
+		for (ServerPlayer p : ctx.getSource().getServer().getPlayerList().getPlayers()) {
+			ShifterMasteryStats.apply(p);
+			ShifterMasterySync.send(p, true);
+		}
+		if (ok) {
+			ctx.getSource().sendSuccess(() -> Component.literal("Mastery config reloaded (" + ShifterMasteryConfig.path().getFileName() + ")."), true);
+			return 1;
+		}
+		ctx.getSource().sendFailure(Component.literal("Could not read the mastery config (see the server log). Previous values kept."));
+		return 0;
 	}
 
 	private static int get(CommandContext<CommandSourceStack> ctx, ServerPlayer p) {

@@ -61,19 +61,33 @@ public final class ShifterMastery {
 	/** Total XP needed to REACH each level (index = level). */
 	public static final int[] XP_TO_REACH = { 0, 100, 300, 600, 1000, 1600, 2400, 3400, 4800, 7000 };
 
+	/** Config: nível máximo = transformações e energia infinitas (ver {@link ShifterMasteryConfig}). */
+	public static boolean maxLevelInfinite = true;
+	/** Config: o Cart Titan sempre age como nível máximo. */
+	public static boolean cartAlwaysInfinite = true;
+
 	//                                          level: 0  1  2  3  4  5  6  7  8  9
-	private static final int[] MAX_TRANSFORMS = { 1, 1, 1, 3, 3, 3, 6, 6, 6, UNLIMITED };
-	private static final float[] SHIFT_COST = { 1f, 1f, 1f, 1f, 1f, 1f, 0.75f, 0.65f, 0.55f, 0f };
+	static final int[] MAX_TRANSFORMS = { 1, 1, 1, 3, 3, 3, 6, 6, 6, UNLIMITED };
+	static final float[] SHIFT_COST = { 1f, 1f, 1f, 1f, 1f, 1f, 0.75f, 0.65f, 0.55f, 0f };
 	/**
 	 * Titan-form drain, relative to the base rate (100% = {@link #BASE_TITAN_SECONDS} seconds from full stamina to
 	 * empty). Above 1 = drains faster (low level), below 1 = lasts longer, 0 = infinite (level 9).
 	 */
-	private static final float[] DRAIN = { 2f, 1.7f, 1.45f, 1.25f, 1.1f, 1f, 0.8f, 0.65f, 0.5f, 0f };
+	static final float[] DRAIN = { 2f, 1.7f, 1.45f, 1.25f, 1.1f, 1f, 0.8f, 0.65f, 0.5f, 0f };
+
+	/** Chamado pela config: troca as tabelas (copia para dentro dos arrays existentes). */
+	static void applyTables(int[] maxTransforms, float[] shiftCost, float[] drain, int[] xpToReach) {
+		System.arraycopy(maxTransforms, 0, MAX_TRANSFORMS, 0, MAX_TRANSFORMS.length);
+		System.arraycopy(shiftCost, 0, SHIFT_COST, 0, SHIFT_COST.length);
+		System.arraycopy(drain, 0, DRAIN, 0, DRAIN.length);
+		System.arraycopy(xpToReach, 0, XP_TO_REACH, 0, XP_TO_REACH.length);
+	}
 
 	private static MinecraftServer server;
 	private static ShifterMasteryData data;
 
 	public static void init() {
+		ShifterMasteryConfig.load();
 		ServerLifecycleEvents.SERVER_STARTED.register(s -> {
 			server = s;
 			data = s.overworld().getDataStorage().computeIfAbsent(ShifterMasteryData.factory(), ShifterMasteryData.NAME);
@@ -185,7 +199,16 @@ public final class ShifterMastery {
 
 	/** Level used for the RULES (transformations, cost, drain): the Cart Titan always counts as the maximum. */
 	public static int ruleLevel(UUID id) {
-		return isCartShifter(id) ? MAX_LEVEL : getLevel(id);
+		return cartAlwaysInfinite && isCartShifter(id) ? MAX_LEVEL : getLevel(id);
+	}
+
+	/**
+	 * Transformações ilimitadas e nenhum gasto de stamina? Vale para quem está no nível máximo (se
+	 * {@code maxLevelInfinite}) e para o Cart Titan (se {@code cartAlwaysInfinite}).
+	 */
+	public static boolean hasInfinity(UUID id) {
+		if (cartAlwaysInfinite && isCartShifter(id)) return true;
+		return maxLevelInfinite && getLevel(id) >= MAX_LEVEL;
 	}
 
 	// ---- rules per level -------------------------------------------------------------------------------------
@@ -204,15 +227,15 @@ public final class ShifterMastery {
 
 	/** Same rules, but by player: already applies the Cart Titan override. */
 	public static int maxTransforms(UUID id) {
-		return maxTransforms(ruleLevel(id));
+		return cartAlwaysInfinite && isCartShifter(id) ? UNLIMITED : maxTransforms(ruleLevel(id));
 	}
 
 	public static float shiftCostMultiplier(UUID id) {
-		return shiftCostMultiplier(ruleLevel(id));
+		return cartAlwaysInfinite && isCartShifter(id) ? 0f : shiftCostMultiplier(ruleLevel(id));
 	}
 
 	public static float drainMultiplier(UUID id) {
-		return drainMultiplier(ruleLevel(id));
+		return cartAlwaysInfinite && isCartShifter(id) ? 0f : drainMultiplier(ruleLevel(id));
 	}
 
 	public static boolean isMaster(UUID id) {
@@ -241,14 +264,14 @@ public final class ShifterMastery {
 
 	/** Can the player start a transformation right now? The Cart Titan always can. */
 	public static boolean canShift(ServerPlayer player) {
-		if (data == null || isCartShifter(player.getUUID())) return true;
+		if (data == null || (cartAlwaysInfinite && isCartShifter(player.getUUID()))) return true;
 		ShifterMasteryData.Entry e = fresh(player.getUUID());
 		return e.uses < maxTransforms(e.level);
 	}
 
 	/** Called when a transformation really started. The Cart Titan does not spend transformations. */
 	public static void registerShift(ServerPlayer player) {
-		if (data == null || isCartShifter(player.getUUID())) return;
+		if (data == null || (cartAlwaysInfinite && isCartShifter(player.getUUID()))) return;
 		ShifterMasteryData.Entry e = fresh(player.getUUID());
 		if (e.uses == 0) e.windowStart = now();
 		e.uses++;

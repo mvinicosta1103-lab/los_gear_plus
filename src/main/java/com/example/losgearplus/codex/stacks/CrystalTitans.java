@@ -3,7 +3,14 @@ package com.example.losgearplus.codex.stacks;
 import com.example.losgearplus.LosGearPlus;
 import com.example.losgearplus.codex.CodexPayloads;
 import com.mojang.serialization.Codec;
+import daot.ArmoredTitanEntity;
+import daot.AttackTitanEntity;
+import daot.CartCannonShellEntity;
+import daot.FemaleTitanEntity;
+import daot.RockProjectileEntity;
 import daot.ThunderSpearEntity;
+import daot.WarhammerTitanEntity;
+import daot.gun.AntiTitanRifleItem;
 import java.lang.reflect.Field;
 import java.util.HashMap;
 import java.util.HashSet;
@@ -38,8 +45,10 @@ import net.minecraft.world.phys.Vec3;
 
 /**
  * Titã cristalizado (a skill Iron Skin): depois de ejetar o piloto, o corpo do titã, que o DAOT deixa ajoelhado,
- * vira uma estátua de cristal: imóvel, que não some e INDESTRUTÍVEL. Só um Thunder Spear o estilhaça (e, para os
- * admins, o /kill e o modo criativo).
+ * vira uma estátua de cristal: imóvel, que não some (sem fumaça nem som de evaporação) e INDESTRUTÍVEL. Titãs puros
+ * comuns não o machucam. Só estas fontes o estilhaçam (e, para os admins, o /kill e o modo criativo):
+ * Thunder Spear, tiro da Anti-Titan Rifle, tiro de canhão do Cart, pedras do Beast, golpes do Armored, do Warhammer e
+ * do Jaw (ataques e mordidas) e golpes do Attack/Female com o punho/pé endurecido (cristalizado).
  *
  * <ul>
  *   <li>O estado fica NO titã (Data Attachment persistente), então sobrevive a reiniciar o servidor.</li>
@@ -181,10 +190,32 @@ public final class CrystalTitans {
 	}
 
 	private static boolean breaksCrystal(DamageSource source) {
+		Entity direct = source.getDirectEntity();
+		Entity owner = source.getEntity();
+
 		// O DAOT reconhece o Thunder Spear assim: dano de explosão cuja entidade direta é o ThunderSpearEntity.
-		if (source.getDirectEntity() instanceof ThunderSpearEntity || source.getEntity() instanceof ThunderSpearEntity) return true;
+		if (direct instanceof ThunderSpearEntity || owner instanceof ThunderSpearEntity) return true;
+		if (direct instanceof RockProjectileEntity) return true; // pedras do Beast
+		if (direct instanceof CartCannonShellEntity) return true; // tiro de canhão do Cart
+		if (isRifleShot(owner, direct)) return true; // Anti-Titan Rifle
+
+		// Golpes de titã de shifter (o atacante é o corpo do titã que o jogador está pilotando).
+		Entity attacker = owner != null ? owner : direct;
+		if (attacker instanceof ArmoredTitanEntity || attacker instanceof WarhammerTitanEntity) return true;
+		if (attacker instanceof daot.TestShifterTitanEntity) return true; // Jaw: ataques e mordidas
+		if (attacker instanceof FemaleTitanEntity f) return f.getHardeningMode() != 0; // só com punho/pé endurecido
+		if (attacker instanceof AttackTitanEntity a && StackSource.ofTitan(a) == StackSource.ATTACK) {
+			return a.getHardeningMode() != 0; // só o Attack puro, e só endurecido
+		}
+
 		if (source.is(DamageTypeTags.BYPASSES_INVULNERABILITY)) return true; // /kill e vazio
-		return source.getEntity() instanceof Player p && p.getAbilities().instabuild; // criativo
+		return owner instanceof Player p && p.getAbilities().instabuild; // criativo
+	}
+
+	/** O tiro da arma é dano de jogador (playerAttack): o atacante e a entidade direta são o próprio atirador com a rifle na mão. */
+	private static boolean isRifleShot(Entity owner, Entity direct) {
+		if (!(owner instanceof Player p) || direct != owner) return false;
+		return p.getMainHandItem().getItem() instanceof AntiTitanRifleItem || p.getOffhandItem().getItem() instanceof AntiTitanRifleItem;
 	}
 
 	/** Estilhaça: partículas, sons e remove o titã. */

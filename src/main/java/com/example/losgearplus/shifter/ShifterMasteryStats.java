@@ -32,6 +32,8 @@ public final class ShifterMasteryStats {
     public static double TITAN_HP_PER_LEVEL = 0.10;   // level 9 = +90% titan HP
     public static float STRENGTH_PER_LEVEL = 0.08f;   // level 9 = +72% damage
     public static float REDUCTION_PER_LEVEL = 0.05f;  // level 9 = 45% less damage
+    /** Config: limite de corações totais na forma humana (0 = sem limite). */
+    public static double MAX_HEARTS = 0.0;
 
     private static final ResourceLocation HP_ID =
             ResourceLocation.fromNamespaceAndPath("los_gear_plus", "mastery_hp");
@@ -67,7 +69,8 @@ public final class ShifterMasteryStats {
 
         // Human form: +1 heart per mastery level (permanent, tied to the saved level) and, for shifters, the base bonus.
         double hp = HP_PER_LEVEL * level + (ShifterTypes.isShifter(p) ? BASE_HP_BONUS : 0.0);
-        if (hp > 0.0) {
+        if (MAX_HEARTS > 0.0) hp = Math.min(hp, MAX_HEARTS * 2.0 - 20.0); // vida base do jogador = 20
+        if (hp != 0.0) {
             setModifier(p, Attributes.MAX_HEALTH, hp, AttributeModifier.Operation.ADD_VALUE);
         } else {
             removeModifier(p, Attributes.MAX_HEALTH);

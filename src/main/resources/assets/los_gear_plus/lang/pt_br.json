@@ -230,6 +230,7 @@
 	"los_gear_plus.codex.stack.levelup": "Seu stack do %1$s subiu para o nível %2$s! (%3$s)",
 	"los_gear_plus.codex.stack.lost": "Outro shifter tomou os seus stacks.",
 	"los_gear_plus.codex.stack.took": "Você também tomou os stacks que a sua vítima carregava.",
+	"los_gear_plus.codex.potion.iron_skin": "Você bebeu a poção e ganhou a habilidade Pele de Ferro! Abra o Codex e use a aba Stacks.",
 	"los_gear_plus.codex.stack.line": "Stack: %1$s (%2$s)",
 	"los_gear_plus.codex.stack.locked_tip": "Bloqueada: derrote um shifter do %s para liberar",
 	"los_gear_plus.codex.msg.stack_need_titan": "As habilidades de stack exigem que você esteja montado no seu titã.",

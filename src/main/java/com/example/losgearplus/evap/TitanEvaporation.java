@@ -1,5 +1,6 @@
 package com.example.losgearplus.evap;
 
+import com.example.losgearplus.codex.stacks.CrystalTitans;
 import daot.ShifterTitan;
 import java.util.ArrayList;
 import java.util.HashMap;
@@ -75,6 +76,13 @@ public final class TitanEvaporation {
 	private static void tickShifter(ServerLevel level, LivingEntity titan, ShifterTitan st) {
 		long now = level.getGameTime();
 		UUID id = titan.getUUID();
+
+		// Titã cristalizado (Iron Skin): é uma estátua permanente, nunca evapora (sem escurecer, sem fumaça, sem som).
+		if (CrystalTitans.isCrystal(titan)) {
+			STARTS.remove(id);
+			if (ANNOUNCED.remove(id)) broadcast(titan, 0); // se já tinha começado a escurecer, volta ao normal
+			return;
+		}
 
 		if (hasRider(titan, st)) {
 			if (!titan.getTags().contains(HAD_RIDER_TAG)) titan.addTag(HAD_RIDER_TAG);
@@ -163,7 +171,7 @@ public final class TitanEvaporation {
 	 * o Shifter Arm). Vai para quem rastreia {@code tracked}.
 	 */
 	public static void smokeAt(ServerLevel level, Entity tracked, double cx, double cy, double cz,
-			double dx, double dy, double dz, float progress, int boost) {
+							   double dx, double dy, double dz, float progress, int boost) {
 		int big = Math.round((6 + 22 * progress) * boost);
 		int cosy = Math.round((2 + 6 * progress) * boost);
 		int ash = Math.round((3 + 10 * progress) * boost);
@@ -175,7 +183,7 @@ public final class TitanEvaporation {
 	}
 
 	private static void send(ServerLevel level, ServerPlayer sp, ParticleOptions type, double x, double y, double z,
-			int count, double dx, double dy, double dz, double speed) {
+							 int count, double dx, double dy, double dz, double speed) {
 		// longDistance = true: titãs são enormes e são vistos de muito além dos 32 blocos padrão das partículas.
 		level.sendParticles(sp, type, true, x, y, z, count, dx, dy, dz, speed);
 	}
