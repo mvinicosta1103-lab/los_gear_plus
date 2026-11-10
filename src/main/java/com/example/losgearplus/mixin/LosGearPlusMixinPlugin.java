@@ -4,25 +4,38 @@ import java.util.List;
 import java.util.Set;
 import net.fabricmc.loader.api.FabricLoader;
 import org.objectweb.asm.tree.ClassNode;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.spongepowered.asm.mixin.extensibility.IMixinConfigPlugin;
 import org.spongepowered.asm.mixin.extensibility.IMixinInfo;
 
-/**
- * Escolhe, entre os mixins que dependem do nome (intermediary x Mojang) de classes do Minecraft no descritor
- * de um método do DAOT, o que combina com o ambiente em execução. Assim nunca sobra um alvo inexistente
- * (que, com require = 1, derrubaria o jogo).
- */
 public final class LosGearPlusMixinPlugin implements IMixinConfigPlugin {
+	private static final Logger LOG = LoggerFactory.getLogger("los_gear_plus/mixin-plugin");
+
 	private boolean intermediary = true;
 
 	@Override
 	public void onLoad(String mixinPackage) {
+		String ns = "?";
+		boolean byNamespace;
 		try {
-			String ns = FabricLoader.getInstance().getMappingResolver().getCurrentRuntimeNamespace();
-			intermediary = "intermediary".equals(ns);
+			ns = FabricLoader.getInstance().getMappingResolver().getCurrentRuntimeNamespace();
+			byNamespace = "intermediary".equals(ns);
 		} catch (Throwable t) {
-			intermediary = true; // sem resolvedor: assume o jogo normal
+			byNamespace = true; // sem resolvedor: assume o jogo normal
 		}
+
+		boolean mojangNames = false;
+		try {
+			ClassLoader cl = LosGearPlusMixinPlugin.class.getClassLoader();
+			mojangNames = cl != null && cl.getResource("net/minecraft/world/entity/LivingEntity.class") != null;
+		} catch (Throwable ignored) {
+			// mantém false: decide só pelo namespace
+		}
+
+		intermediary = byNamespace && !mojangNames;
+		LOG.info("[los_gear_plus] namespace='{}', classes com nome Mojang={} -> usando mixins {}",
+				ns, mojangNames, intermediary ? "INTERMEDIARY" : "NAMED");
 	}
 
 	@Override
